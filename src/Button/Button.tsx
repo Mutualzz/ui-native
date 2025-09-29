@@ -16,14 +16,16 @@ const baseSizeMap: Record<Size, number> = {
     lg: 16,
 };
 
-const ButtonWrapper = styled(Pressable)<ButtonProps>(
-    ({
-        theme,
-        color = "primary",
-        variant = "solid",
-        size = "md",
-        disabled,
-    }) => ({
+const ButtonWrapper = styled(Pressable)<ButtonProps>(({
+    theme,
+    color = "primary",
+    variant = "solid",
+    size = "md",
+    disabled,
+}) => {
+    const resolvedSize = resolveSize(theme, size, baseSizeMap);
+
+    return {
         position: "relative",
         display: "flex",
         alignItems: "center",
@@ -36,17 +38,11 @@ const ButtonWrapper = styled(Pressable)<ButtonProps>(
             opacity: 0.5,
             pointerEvents: "none",
         }),
-        ...() => {
-            const resolvedSize = resolveSize(theme, size, baseSizeMap);
-
-            return {
-                fontSize: resolvedSize,
-                padding: resolvedSize * 0.6,
-                ...resolveButtonContainerStyles(theme, color)[variant],
-            };
-        },
-    }),
-);
+        fontSize: resolvedSize,
+        padding: resolvedSize * 0.6,
+        ...resolveButtonContainerStyles(theme, color)[variant],
+    };
+});
 
 ButtonWrapper.displayName = "ButtonWrapper";
 
@@ -67,13 +63,8 @@ const ButtonContent = styled(Text)<ButtonProps>(
         height: "100%",
         opacity: loading ? 0 : 1,
         boxSizing: "border-box",
-        ...() => {
-            const resolvedSize = resolveSize(theme, size, baseSizeMap);
-            return {
-                fontSize: resolvedSize,
-                ...resolveButtonTextStyles(theme, color)[variant],
-            };
-        },
+        fontSize: resolveSize(theme, size, baseSizeMap),
+        ...resolveButtonTextStyles(theme, color)[variant],
     }),
 );
 

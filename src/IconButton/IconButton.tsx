@@ -65,13 +65,8 @@ const IconButtonContent = styled(Text)<IconButtonProps>(
         height: "100%",
         opacity: loading ? 0 : 1,
         boxSizing: "border-box",
-        ...() => {
-            const resolvedSize = resolveSize(theme, size, baseSizeMap);
-            return {
-                fontSize: resolvedSize,
-                ...resolveIconButtonTextStyles(theme, color)[variant],
-            };
-        },
+        fontSize: resolveSize(theme, size, baseSizeMap),
+        ...resolveIconButtonTextStyles(theme, color)[variant],
     }),
 );
 

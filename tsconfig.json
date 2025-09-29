@@ -2,8 +2,7 @@
     "compilerOptions": {
         "target": "es2024",
         "module": "ESNext",
-        "declaration": true,
-        "declarationDir": "dist",
+        "declaration": false,
         "emitDeclarationOnly": false,
         "outDir": "dist",
         "moduleResolution": "node",
@@ -15,17 +14,7 @@
         "strict": true,
         "jsx": "react-jsx",
         "jsxImportSource": "@emotion/react",
-        "baseUrl": "./src",
-        "paths": {
-            "@components/*": ["components/*"],
-            "@utils": ["utils/index"],
-            "@hooks/*": ["hooks/*"],
-            "@utils/*": ["utils/*"],
-            "@styled": ["utils/styled"],
-            "@ui-types": ["types/index.ts"],
-            "@ui-types/*": ["types/*"],
-            "@test-utils": ["setupTests.tsx"]
-        }
+        "baseUrl": "./src"
     },
     "include": ["src/**/*"]
 }

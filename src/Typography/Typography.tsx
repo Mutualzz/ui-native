@@ -1,10 +1,20 @@
-import styled from "@emotion/native";
+import styled, { type StyledComponent } from "@emotion/native";
+import type { Theme } from "@emotion/react";
 import { normalizeTypography } from "@mutualzz/ui-core";
-import { Text, type TextStyle } from "react-native";
+import { Text, type TextProps, type TextStyle } from "react-native";
 import { resolveTypographStyles } from "./Typography.helpers";
 import type { TypographyProps } from "./Typography.types";
 
-const Typography = styled(Text)<TypographyProps>(
+const Typography: StyledComponent<
+    TextProps & {
+        theme?: Theme;
+        as?: React.ElementType;
+    } & TypographyProps,
+    {},
+    {
+        ref?: React.Ref<Text> | undefined;
+    }
+> = styled(Text)<TypographyProps>(
     ({
         theme,
         level = "inherit",

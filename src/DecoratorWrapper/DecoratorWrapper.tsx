@@ -1,10 +1,22 @@
-import styled from "@emotion/native";
-import { View } from "react-native";
+import styled, { type StyledComponent } from "@emotion/native";
+import type { Theme } from "@emotion/react";
+import { View, type ViewProps } from "react-native";
 
-const DecoratorWrapper = styled(View)<{
+interface DecoratorWrapperProps {
     position?: "start" | "end";
     spacing?: number;
-}>(({ position, spacing = 8 }) => ({
+}
+
+const DecoratorWrapper: StyledComponent<
+    ViewProps & {
+        theme?: Theme;
+        as?: React.ElementType;
+    } & DecoratorWrapperProps,
+    {},
+    {
+        ref?: React.Ref<View> | undefined;
+    }
+> = styled(View)<DecoratorWrapperProps>(({ position, spacing = 8 }) => ({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
