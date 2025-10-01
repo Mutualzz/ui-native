@@ -1,12 +1,11 @@
 import { type Theme } from "@emotion/react";
 import type { Color, ColorLike, Variant } from "@mutualzz/ui-core";
 import {
-    alpha,
-    getLuminance,
+    formatColor,
     resolveColor,
     resolveColorFromLuminance,
 } from "@mutualzz/ui-core";
-import { formatHex8 } from "culori";
+import ColorPkg from "color";
 import type { TextStyle, ViewStyle } from "react-native";
 
 export function resolveButtonContainerStyles(
@@ -14,7 +13,7 @@ export function resolveButtonContainerStyles(
     color: Color | ColorLike,
 ): Record<Variant, ViewStyle> {
     const resolvedColor = resolveColor(color, theme);
-    const hexColor = formatHex8(resolvedColor);
+    const hexColor = formatColor(resolvedColor, { format: "hexa" });
 
     return {
         solid: {
@@ -36,7 +35,10 @@ export function resolveButtonContainerStyles(
             borderColor: "transparent",
         },
         soft: {
-            backgroundColor: formatHex8(alpha(resolvedColor, 0.15)),
+            backgroundColor: formatColor(resolvedColor, {
+                alpha: 15,
+                format: "hexa",
+            }),
             borderWidth: 0,
             borderStyle: undefined,
             borderColor: "transparent",
@@ -49,21 +51,21 @@ export const resolveButtonTextStyles = (
     color: Color | ColorLike,
 ): Record<Variant, TextStyle> => {
     const resolvedColor = resolveColor(color, theme);
-    const bgLuminance = getLuminance(resolvedColor);
-    const textColor = resolveColorFromLuminance(bgLuminance, theme);
+    const textColor = resolveColorFromLuminance(ColorPkg(resolvedColor), theme);
+    const hexColor = formatColor(resolvedColor, { format: "hexa" });
 
     return {
         solid: {
             color: textColor,
         },
         outlined: {
-            color: formatHex8(resolvedColor),
+            color: hexColor,
         },
         plain: {
-            color: formatHex8(resolvedColor),
+            color: hexColor,
         },
         soft: {
-            color: formatHex8(resolvedColor),
+            color: hexColor,
         },
     };
 };

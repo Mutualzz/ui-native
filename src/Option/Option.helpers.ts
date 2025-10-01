@@ -1,8 +1,6 @@
 import type { Theme } from "@emotion/react";
 import {
-    alpha,
-    getLuminance,
-    lighten,
+    formatColor,
     resolveColor,
     resolveColorFromLuminance,
     resolveSize,
@@ -11,7 +9,7 @@ import {
     type Size,
     type SizeValue,
 } from "@mutualzz/ui-core";
-import { formatHex, formatHex8 } from "culori";
+import ColorPkg from "color";
 
 const baseSizeMap: Record<Size, number> = {
     sm: 32,
@@ -41,42 +39,72 @@ export const resolveOptionStyles = (
     isSelected: boolean,
 ) => {
     const resolvedColor = resolveColor(color, theme);
-    const bgLum = getLuminance(resolvedColor);
-    const textColor = resolveColorFromLuminance(bgLum, theme);
+    const textColor = resolveColorFromLuminance(ColorPkg(resolvedColor), theme);
 
     return {
         solid: {
             container: {
                 backgroundColor: isSelected
-                    ? formatHex(lighten(resolvedColor, 0.18))
-                    : formatHex(resolvedColor),
+                    ? formatColor(resolvedColor, { alpha: 18, format: "hexa" })
+                    : formatColor(resolvedColor, { format: "hexa" }),
             },
-            text: { color: formatHex(textColor) },
+            text: { color: formatColor(textColor, { format: "hexa" }) },
         },
         outlined: {
             container: {
                 backgroundColor: isSelected
-                    ? formatHex8(alpha(lighten(resolvedColor, 0.15), 0.7))
+                    ? formatColor(resolvedColor, {
+                          alpha: 70,
+                          format: "hexa",
+                          lighten: 15,
+                      })
                     : "transparent",
                 borderTopWidth: 0,
             },
-            text: { color: formatHex(lighten(resolvedColor, 0.8)) },
+            text: {
+                color: formatColor(resolvedColor, {
+                    format: "hexa",
+                    lighten: 80,
+                }),
+            },
         },
         soft: {
             container: {
                 backgroundColor: isSelected
-                    ? formatHex8(alpha(lighten(resolvedColor, 0.15), 0.7))
-                    : formatHex(lighten(resolvedColor, 0.08)),
+                    ? formatColor(resolvedColor, {
+                          alpha: 70,
+                          format: "hexa",
+                          lighten: 15,
+                      })
+                    : formatColor(resolvedColor, {
+                          format: "hexa",
+                          lighten: 8,
+                      }),
             },
-            text: { color: formatHex(lighten(resolvedColor, 0.8)) },
+            text: {
+                color: formatColor(resolvedColor, {
+                    format: "hexa",
+                    lighten: 80,
+                }),
+            },
         },
         plain: {
             container: {
                 backgroundColor: isSelected
-                    ? formatHex8(alpha(lighten(resolvedColor, 0.15), 0.7))
+                    ? formatColor(resolvedColor, {
+                          alpha: 70,
+                          format: "hexa",
+                          lighten: 15,
+                      })
                     : "transparent",
+                borderTopWidth: 0,
             },
-            text: { color: formatHex(lighten(resolvedColor, 0.8)) },
+            text: {
+                color: formatColor(resolvedColor, {
+                    format: "hexa",
+                    lighten: 80,
+                }),
+            },
         },
     };
 };

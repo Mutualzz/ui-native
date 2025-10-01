@@ -1,8 +1,6 @@
 import type { Theme } from "@emotion/react";
 import {
-    darken,
-    getLuminance,
-    lighten,
+    formatColor,
     resolveColor,
     resolveColorFromLuminance,
     resolveSize,
@@ -11,7 +9,7 @@ import {
     type Size,
     type SizeValue,
 } from "@mutualzz/ui-core";
-import { formatHex } from "culori";
+import ColorPkg from "color";
 
 export const baseSizeMap: Record<Size, number> = {
     sm: 32,
@@ -44,35 +42,52 @@ export const resolveSelectSize = (
 
 export const resolveSelectStyles = (theme: Theme, color: Color | ColorLike) => {
     const resolvedColor = resolveColor(color, theme);
-    const bgLuminance = getLuminance(resolvedColor);
-    const textColor = resolveColorFromLuminance(bgLuminance, theme);
+    const textColor = resolveColorFromLuminance(ColorPkg(resolvedColor), theme);
 
     return {
         solid: {
             container: {
-                backgroundColor: formatHex(resolvedColor),
+                backgroundColor: formatColor(resolvedColor, { format: "hexa" }),
             },
             text: {
-                color: formatHex(textColor),
+                color: formatColor(textColor, { format: "hexa" }),
             },
         },
         outlined: {
             container: {
                 borderWidth: 1,
-                borderColor: formatHex(resolvedColor),
+                borderColor: formatColor(resolvedColor, { format: "hexa" }),
                 backgroundColor: "transparent",
             },
-            text: { color: formatHex(lighten(resolvedColor, 0.75)) },
+            text: {
+                color: formatColor(resolvedColor, {
+                    format: "hexa",
+                    lighten: 75,
+                }),
+            },
         },
         soft: {
             container: {
-                backgroundColor: formatHex(darken(resolvedColor, 0.5)),
+                backgroundColor: formatColor(resolvedColor, {
+                    darken: 15,
+                    format: "hexa",
+                }),
             },
-            text: { color: formatHex(lighten(resolvedColor, 0.75)) },
+            text: {
+                color: formatColor(resolvedColor, {
+                    lighten: 75,
+                    format: "hexa",
+                }),
+            },
         },
         plain: {
             container: { backgroundColor: "transparent" },
-            text: { color: formatHex(lighten(resolvedColor, 0.75)) },
+            text: {
+                color: formatColor(resolvedColor, {
+                    lighten: 75,
+                    format: "hexa",
+                }),
+            },
         },
     };
 };
@@ -83,33 +98,45 @@ export const resolveSelectContentStyles = (
 ) => {
     const { colors } = theme;
     const resolvedColor = resolveColor(color, theme);
-    const bgLuminance = getLuminance(resolvedColor);
-    const textColor = resolveColorFromLuminance(bgLuminance, theme);
+    const textColor = resolveColorFromLuminance(ColorPkg(resolvedColor), theme);
 
     return {
         solid: {
             surface: {
-                backgroundColor: formatHex(resolvedColor),
+                backgroundColor: formatColor(resolvedColor, { format: "hexa" }),
             },
             item: {
-                color: formatHex(textColor),
+                color: formatColor(textColor, { format: "hexa" }),
             },
         },
         outlined: {
             surface: {
                 backgroundColor: colors.surface,
                 borderWidth: 1,
-                borderColor: formatHex(resolvedColor),
+                borderColor: formatColor(resolvedColor, { format: "hexa" }),
             },
-            item: { color: formatHex(lighten(resolvedColor, 0.2)) },
+            item: {
+                color: formatColor(resolvedColor, {
+                    format: "hexa",
+                    lighten: 20,
+                }),
+            },
         },
         soft: {
-            surface: { backgroundColor: formatHex(darken(resolvedColor, 0.5)) },
-            itemTeitemxt: { color: formatHex(lighten(resolvedColor, 0.2)) },
+            surface: {
+                backgroundColor: formatColor(resolvedColor, {
+                    darken: 50,
+                }),
+            },
+            itemTeitemxt: {
+                color: formatColor(resolvedColor, {
+                    lighten: 20,
+                }),
+            },
         },
         plain: {
             surface: { backgroundColor: colors.surface },
-            item: { color: formatHex(resolvedColor) },
+            item: { color: formatColor(resolvedColor, { format: "hexa" }) },
         },
     };
 };

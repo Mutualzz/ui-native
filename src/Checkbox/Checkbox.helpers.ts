@@ -1,7 +1,6 @@
 import { type Theme } from "@emotion/react";
 import {
-    alpha,
-    getLuminance,
+    formatColor,
     resolveColor,
     resolveColorFromLuminance,
     resolveSize,
@@ -11,7 +10,7 @@ import {
     type SizeValue,
     type Variant,
 } from "@mutualzz/ui-core";
-import { formatHex8 } from "culori";
+import ColorPkg from "color";
 import type { ViewStyle } from "react-native";
 
 export const baseSizeMap: Record<Size, number> = {
@@ -38,7 +37,7 @@ export const resolveCheckboxStyles = (
     checked?: boolean,
 ): Record<Variant, ViewStyle> => {
     const resolvedColor = resolveColor(color, theme);
-    const hexColor = formatHex8(resolvedColor);
+    const hexColor = formatColor(resolvedColor);
 
     return {
         solid: {
@@ -48,15 +47,15 @@ export const resolveCheckboxStyles = (
         },
         outlined: {
             backgroundColor: checked
-                ? formatHex8(alpha(resolvedColor, 0.1))
+                ? formatColor(resolvedColor, { alpha: 10, format: "hexa" })
                 : "transparent",
             borderColor: hexColor,
             borderWidth: 1,
         },
         soft: {
-            backgroundColor: formatHex8(
-                alpha(resolvedColor, checked ? 0.3 : 0.1),
-            ),
+            backgroundColor: checked
+                ? formatColor(resolvedColor, { alpha: 30, format: "hexa" })
+                : formatColor(resolvedColor, { alpha: 10, format: "hexa" }),
             borderWidth: 0,
         },
         plain: {
@@ -83,13 +82,13 @@ export const resolveCheckboxColor = (
     color: Color | ColorLike,
 ) => {
     const resolvedColor = resolveColor(color, theme);
-    const bgLuminance = getLuminance(resolvedColor);
-    const textColor = resolveColorFromLuminance(bgLuminance, theme);
+    const textColor = resolveColorFromLuminance(ColorPkg(resolvedColor), theme);
+    const hexColor = formatColor(resolvedColor, { format: "hexa" });
 
     return {
         solid: textColor,
-        outlined: formatHex8(resolvedColor) as string,
-        soft: formatHex8(resolvedColor) as string,
-        plain: formatHex8(resolvedColor) as string,
+        outlined: hexColor,
+        soft: hexColor,
+        plain: hexColor,
     };
 };

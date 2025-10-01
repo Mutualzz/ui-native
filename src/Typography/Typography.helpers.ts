@@ -1,8 +1,6 @@
 import type { Theme } from "@emotion/react";
 import {
-    alpha,
-    darken,
-    getLuminance,
+    formatColor,
     isValidColorInput,
     resolveColor,
     resolveTypographyColor,
@@ -10,7 +8,7 @@ import {
     type ColorLike,
     type TypographyColor,
 } from "@mutualzz/ui-core";
-import { formatHex8 } from "culori";
+import ColorPkg from "color";
 
 export const resolveTypographStyles = (
     theme: Theme,
@@ -26,35 +24,41 @@ export const resolveTypographStyles = (
             : resolveTypographyColor(textColor, theme);
 
     const isColorLike = isValidColorInput(parsedTextColor);
-    const luminance = getLuminance(resolvedColor) ?? 0;
+    const luminance = ColorPkg(resolvedColor).luminosity();
     const solidTextColor =
         luminance < 0.5
-            ? formatHex8(colors.common.white)
-            : darken(resolvedColor, 0.7);
+            ? formatColor(colors.common.white)
+            : formatColor(resolvedColor, {
+                  darken: 70,
+                  format: "hexa",
+              });
 
-    const textColorFinal = formatHex8(
+    const textColorFinal = formatColor(
         isColorLike ? parsedTextColor : theme.typography.colors.primary,
+        { format: "hexa" },
     );
 
     return {
         solid: {
-            backgroundColor: formatHex8(resolvedColor),
+            backgroundColor: formatColor(resolvedColor, { format: "hexa" }),
             color: solidTextColor,
             border: "none",
         },
         outlined: {
             backgroundColor: "transparent",
-            color: formatHex8(resolvedColor),
-            border: `1px solid ${formatHex8(resolvedColor)}`,
+            color: formatColor(resolvedColor, { format: "hexa" }),
+            border: `1px solid ${formatColor(resolvedColor, { format: "hexa" })}`,
         },
         plain: {
             backgroundColor: "transparent",
-            color: formatHex8(resolvedColor),
+            color: formatColor(resolvedColor, { format: "hexa" }),
             border: "none",
         },
         soft: {
-            backgroundColor: formatHex8(alpha(resolvedColor, 0.4)),
-            color: formatHex8(resolvedColor),
+            backgroundColor: formatColor(resolvedColor, {
+                alpha: 40,
+            }),
+            color: formatColor(resolvedColor, { format: "hexa" }),
             border: "none",
         },
         none: {
