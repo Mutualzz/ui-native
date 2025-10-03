@@ -73,6 +73,7 @@ const PopupList = styled(ScrollView)({
 
 type Placement = "top" | "bottom";
 
+// TODO: Fix the select and the option components
 const Select = forwardRef<View, SelectProps>(
     (
         {
