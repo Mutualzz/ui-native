@@ -2,14 +2,12 @@ import type { Theme } from "@emotion/react";
 import {
     formatColor,
     resolveColor,
-    resolveColorFromLuminance,
     resolveSize,
     type Color,
     type ColorLike,
     type Size,
     type SizeValue,
 } from "@mutualzz/ui-core";
-import ColorPkg from "color";
 
 export const baseSizeMap: Record<Size, number> = {
     sm: 32,
@@ -42,26 +40,27 @@ export const resolveSelectSize = (
 
 export const resolveSelectStyles = (theme: Theme, color: Color | ColorLike) => {
     const resolvedColor = resolveColor(color, theme);
-    const textColor = resolveColorFromLuminance(ColorPkg(resolvedColor), theme);
 
     return {
         solid: {
             container: {
-                backgroundColor: formatColor(resolvedColor, { format: "hexa" }),
+                backgroundColor: formatColor(resolvedColor, { format: "rgba" }),
             },
             text: {
-                color: formatColor(textColor, { format: "hexa" }),
+                color: formatColor(theme.typography.colors.primary, {
+                    format: "rgba",
+                }),
             },
         },
         outlined: {
             container: {
                 borderWidth: 1,
-                borderColor: formatColor(resolvedColor, { format: "hexa" }),
+                borderColor: formatColor(resolvedColor, { format: "rgba" }),
                 backgroundColor: "transparent",
             },
             text: {
                 color: formatColor(resolvedColor, {
-                    format: "hexa",
+                    format: "rgba",
                     lighten: 75,
                 }),
             },
@@ -70,13 +69,13 @@ export const resolveSelectStyles = (theme: Theme, color: Color | ColorLike) => {
             container: {
                 backgroundColor: formatColor(resolvedColor, {
                     darken: 15,
-                    format: "hexa",
+                    format: "rgba",
                 }),
             },
             text: {
                 color: formatColor(resolvedColor, {
                     lighten: 75,
-                    format: "hexa",
+                    format: "rgba",
                 }),
             },
         },
@@ -85,7 +84,7 @@ export const resolveSelectStyles = (theme: Theme, color: Color | ColorLike) => {
             text: {
                 color: formatColor(resolvedColor, {
                     lighten: 75,
-                    format: "hexa",
+                    format: "rgba",
                 }),
             },
         },
@@ -98,26 +97,27 @@ export const resolveSelectContentStyles = (
 ) => {
     const { colors } = theme;
     const resolvedColor = resolveColor(color, theme);
-    const textColor = resolveColorFromLuminance(ColorPkg(resolvedColor), theme);
 
     return {
         solid: {
             surface: {
-                backgroundColor: formatColor(resolvedColor, { format: "hexa" }),
+                backgroundColor: formatColor(resolvedColor, { format: "rgba" }),
             },
             item: {
-                color: formatColor(textColor, { format: "hexa" }),
+                color: formatColor(theme.typography.colors.primary, {
+                    format: "rgba",
+                }),
             },
         },
         outlined: {
             surface: {
                 backgroundColor: colors.surface,
                 borderWidth: 1,
-                borderColor: formatColor(resolvedColor, { format: "hexa" }),
+                borderColor: formatColor(resolvedColor, { format: "rgba" }),
             },
             item: {
                 color: formatColor(resolvedColor, {
-                    format: "hexa",
+                    format: "rgba",
                     lighten: 20,
                 }),
             },
@@ -136,7 +136,7 @@ export const resolveSelectContentStyles = (
         },
         plain: {
             surface: { backgroundColor: colors.surface },
-            item: { color: formatColor(resolvedColor, { format: "hexa" }) },
+            item: { color: formatColor(resolvedColor, { format: "rgba" }) },
         },
     };
 };

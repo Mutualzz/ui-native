@@ -2,7 +2,6 @@ import { type Theme } from "@emotion/react";
 import {
     formatColor,
     resolveColor,
-    resolveColorFromLuminance,
     resolveSize,
     type Color,
     type ColorLike,
@@ -10,7 +9,6 @@ import {
     type SizeValue,
     type Variant,
 } from "@mutualzz/ui-core";
-import ColorPkg from "color";
 import type { ViewStyle } from "react-native";
 
 export const baseSizeMap: Record<Size, number> = {
@@ -47,15 +45,15 @@ export const resolveCheckboxStyles = (
         },
         outlined: {
             backgroundColor: checked
-                ? formatColor(resolvedColor, { alpha: 10, format: "hexa" })
+                ? formatColor(resolvedColor, { alpha: 10, format: "rgba" })
                 : "transparent",
             borderColor: hexColor,
             borderWidth: 1,
         },
         soft: {
             backgroundColor: checked
-                ? formatColor(resolvedColor, { alpha: 30, format: "hexa" })
-                : formatColor(resolvedColor, { alpha: 10, format: "hexa" }),
+                ? formatColor(resolvedColor, { alpha: 30, format: "rgba" })
+                : formatColor(resolvedColor, { alpha: 10, format: "rgba" }),
             borderWidth: 0,
         },
         plain: {
@@ -82,11 +80,10 @@ export const resolveCheckboxColor = (
     color: Color | ColorLike,
 ) => {
     const resolvedColor = resolveColor(color, theme);
-    const textColor = resolveColorFromLuminance(ColorPkg(resolvedColor), theme);
-    const hexColor = formatColor(resolvedColor, { format: "hexa" });
+    const hexColor = formatColor(resolvedColor, { format: "rgba" });
 
     return {
-        solid: textColor,
+        solid: theme.typography.colors.primary,
         outlined: hexColor,
         soft: hexColor,
         plain: hexColor,

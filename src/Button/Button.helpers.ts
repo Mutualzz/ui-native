@@ -1,11 +1,6 @@
 import { type Theme } from "@emotion/react";
 import type { Color, ColorLike, Variant } from "@mutualzz/ui-core";
-import {
-    formatColor,
-    resolveColor,
-    resolveColorFromLuminance,
-} from "@mutualzz/ui-core";
-import ColorPkg from "color";
+import { formatColor, resolveColor } from "@mutualzz/ui-core";
 import type { TextStyle, ViewStyle } from "react-native";
 
 export function resolveButtonContainerStyles(
@@ -13,7 +8,7 @@ export function resolveButtonContainerStyles(
     color: Color | ColorLike,
 ): Record<Variant, ViewStyle> {
     const resolvedColor = resolveColor(color, theme);
-    const hexColor = formatColor(resolvedColor, { format: "hexa" });
+    const hexColor = formatColor(resolvedColor, { format: "rgba" });
 
     return {
         solid: {
@@ -37,7 +32,7 @@ export function resolveButtonContainerStyles(
         soft: {
             backgroundColor: formatColor(resolvedColor, {
                 alpha: 15,
-                format: "hexa",
+                format: "rgba",
             }),
             borderWidth: 0,
             borderStyle: undefined,
@@ -51,12 +46,11 @@ export const resolveButtonTextStyles = (
     color: Color | ColorLike,
 ): Record<Variant, TextStyle> => {
     const resolvedColor = resolveColor(color, theme);
-    const textColor = resolveColorFromLuminance(ColorPkg(resolvedColor), theme);
-    const hexColor = formatColor(resolvedColor, { format: "hexa" });
+    const hexColor = formatColor(resolvedColor, { format: "rgba" });
 
     return {
         solid: {
-            color: textColor,
+            color: theme.typography.colors.primary,
         },
         outlined: {
             color: hexColor,

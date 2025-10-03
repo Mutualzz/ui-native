@@ -1,6 +1,7 @@
 import styled from "@emotion/native";
 import { forwardRef } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
+import { Typography } from "../Typography/Typography";
 import { useTheme } from "../useTheme";
 import { resolveDividerColor, resolveDividerStyles } from "./Divider.helpers";
 import type { DividerProps, DividerVariant } from "./Divider.types";
@@ -43,7 +44,7 @@ const DividerLine = styled(View)<{
 
 DividerLine.displayName = "DividerLine";
 
-const DividerText = styled(Text)<{
+const DividerText = styled(Typography)<{
     textColor: string;
     isVertical: boolean;
 }>(({ theme, isVertical, textColor }) => ({
@@ -108,7 +109,7 @@ const Divider = forwardRef<View, DividerProps>(
 
                 {children && (
                     <DividerText
-                        textColor={resolvedTextColor}
+                        textColor={resolvedTextColor as any}
                         isVertical={isVertical}
                     >
                         {children}

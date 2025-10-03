@@ -6,7 +6,6 @@ import {
     Modal,
     Pressable,
     ScrollView,
-    Text,
     View,
     type LayoutRectangle,
 } from "react-native";
@@ -49,7 +48,7 @@ const TriggerText = styled(Typography)<SelectProps & { hasValue: boolean }>(
     }),
 );
 
-const Chevron = styled.View({
+const Chevron = styled(View)({
     width: 18,
     height: 18,
     transform: [{ rotate: "90deg" }],
@@ -133,15 +132,15 @@ const Select = forwardRef<View, SelectProps>(
                             currentValue.includes(opt.props.value),
                     )
                     .map((opt: any, i: number) => (
-                        <Text key={`${opt?.props?.value}-${i}`}>
+                        <Typography key={`${opt?.props?.value}-${i}`}>
                             {opt?.props?.children}
-                        </Text>
+                        </Typography>
                     ));
             }
             const sel = kids.find(
                 (opt: any) => opt?.props?.value === currentValue,
             );
-            return sel ? <Text>{sel.props.children}</Text> : null;
+            return sel ? <Typography>{sel.props.children}</Typography> : null;
         })();
 
         const handleOptionSelect = useCallback(

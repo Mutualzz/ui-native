@@ -1,9 +1,10 @@
 import styled from "@emotion/native";
 import type { Size, SizeValue } from "@mutualzz/ui-core";
 import { forwardRef, useContext, useRef, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { useTheme } from "useTheme";
 import { CheckboxGroupContext } from "../CheckboxGroup/CheckboxGroup.context";
+import { Typography } from "../Typography/Typography";
 import {
     resolveCheckboxColor,
     resolveCheckboxSize,
@@ -44,7 +45,7 @@ const CheckboxBox = styled(View)<Omit<CheckboxProps, "value">>(
     }),
 );
 
-const CheckboxLabel = styled(Text)<{
+const CheckboxLabel = styled(Typography)<{
     rtl?: boolean;
     disabled?: boolean;
     color: string;
@@ -73,7 +74,7 @@ const CheckIcon = ({ color }: { color: string }) => (
             alignItems: "center",
         }}
     >
-        <Text
+        <Typography
             style={{
                 color,
                 fontSize: 12,
@@ -82,7 +83,7 @@ const CheckIcon = ({ color }: { color: string }) => (
             }}
         >
             ✓
-        </Text>
+        </Typography>
     </View>
 );
 

@@ -2,8 +2,9 @@ import type { Size, SizeValue } from "@mutualzz/ui-core";
 
 import styled from "@emotion/native";
 import { forwardRef, useContext, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { RadioGroupContext } from "../RadioGroup/RadioGroup.context";
+import { Typography } from "../Typography/Typography";
 import { useTheme } from "../useTheme";
 import {
     resolveIconScaling,
@@ -44,7 +45,7 @@ const RadioControl = styled(View)<RadioProps>(
 
 RadioControl.displayName = "RadioControl";
 
-const RadioLabel = styled(Text)<{
+const RadioLabel = styled(Typography)<{
     rtl?: boolean;
     disabled?: boolean;
     color: string;

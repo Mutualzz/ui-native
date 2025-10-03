@@ -2,14 +2,12 @@ import type { Theme } from "@emotion/react";
 import {
     formatColor,
     resolveColor,
-    resolveColorFromLuminance,
     resolveSize,
     type Color,
     type ColorLike,
     type Size,
     type SizeValue,
 } from "@mutualzz/ui-core";
-import ColorPkg from "color";
 
 const baseSizeMap: Record<Size, number> = {
     sm: 32,
@@ -39,23 +37,26 @@ export const resolveOptionStyles = (
     isSelected: boolean,
 ) => {
     const resolvedColor = resolveColor(color, theme);
-    const textColor = resolveColorFromLuminance(ColorPkg(resolvedColor), theme);
 
     return {
         solid: {
             container: {
                 backgroundColor: isSelected
-                    ? formatColor(resolvedColor, { alpha: 18, format: "hexa" })
-                    : formatColor(resolvedColor, { format: "hexa" }),
+                    ? formatColor(resolvedColor, { alpha: 18, format: "rgba" })
+                    : formatColor(resolvedColor, { format: "rgba" }),
             },
-            text: { color: formatColor(textColor, { format: "hexa" }) },
+            text: {
+                color: formatColor(theme.typography.colors.primary, {
+                    format: "rgba",
+                }),
+            },
         },
         outlined: {
             container: {
                 backgroundColor: isSelected
                     ? formatColor(resolvedColor, {
                           alpha: 70,
-                          format: "hexa",
+                          format: "rgba",
                           lighten: 15,
                       })
                     : "transparent",
@@ -63,7 +64,7 @@ export const resolveOptionStyles = (
             },
             text: {
                 color: formatColor(resolvedColor, {
-                    format: "hexa",
+                    format: "rgba",
                     lighten: 80,
                 }),
             },
@@ -73,17 +74,17 @@ export const resolveOptionStyles = (
                 backgroundColor: isSelected
                     ? formatColor(resolvedColor, {
                           alpha: 70,
-                          format: "hexa",
+                          format: "rgba",
                           lighten: 15,
                       })
                     : formatColor(resolvedColor, {
-                          format: "hexa",
+                          format: "rgba",
                           lighten: 8,
                       }),
             },
             text: {
                 color: formatColor(resolvedColor, {
-                    format: "hexa",
+                    format: "rgba",
                     lighten: 80,
                 }),
             },
@@ -93,7 +94,7 @@ export const resolveOptionStyles = (
                 backgroundColor: isSelected
                     ? formatColor(resolvedColor, {
                           alpha: 70,
-                          format: "hexa",
+                          format: "rgba",
                           lighten: 15,
                       })
                     : "transparent",
@@ -101,7 +102,7 @@ export const resolveOptionStyles = (
             },
             text: {
                 color: formatColor(resolvedColor, {
-                    format: "hexa",
+                    format: "rgba",
                     lighten: 80,
                 }),
             },

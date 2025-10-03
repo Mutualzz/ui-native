@@ -20,7 +20,7 @@ export const resolveDividerColor = (
           ? resolveTypographyColor(color, theme)
           : resolveColor(color, theme);
 
-    const hexColor = formatColor(resolvedColor, { format: "hexa" });
+    const hexColor = formatColor(resolvedColor, { format: "rgba" });
     if (!hexColor) return color;
 
     return hexColor;

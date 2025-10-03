@@ -8,8 +8,6 @@ export type * from "./Checkbox/Checkbox.types";
 export * from "./CheckboxGroup/CheckboxGroup";
 export type * from "./CheckboxGroup/CheckboxGroup.types";
 
-export * from "./CssBaseline/CssBaseline";
-
 export * from "./DecoratorWrapper/DecoratorWrapper";
 
 export * from "./Divider/Divider";

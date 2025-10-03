@@ -2,8 +2,9 @@ import styled from "@emotion/native";
 import type { Size } from "@mutualzz/ui-core";
 import { resolveSize } from "@mutualzz/ui-core";
 import { forwardRef } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { DecoratorWrapper } from "../DecoratorWrapper/DecoratorWrapper";
+import { Typography } from "../Typography/Typography";
 import {
     resolveButtonContainerStyles,
     resolveButtonTextStyles,
@@ -46,7 +47,7 @@ const ButtonWrapper = styled(Pressable)<ButtonProps>(({
 
 ButtonWrapper.displayName = "ButtonWrapper";
 
-const ButtonContent = styled(Text)<ButtonProps>(
+const ButtonContent = styled(Typography)<ButtonProps>(
     ({
         theme,
         color = "primary",
@@ -116,7 +117,7 @@ const Button = forwardRef<View, ButtonProps>(
                              *  Eventually we should replace it with a proper spinner component,
                              *  when we convert the web versison to native version
                              */
-                            <Text>Loading...</Text>
+                            <Typography>Loading...</Typography>
                         )}
                     </SpinnerOverlay>
                 )}

@@ -9,12 +9,14 @@ import {
     type TypographyColor,
 } from "@mutualzz/ui-core";
 import ColorPkg from "color";
+import type { TextStyle } from "react-native";
+import type { TypographyVariant } from "./Typography.types";
 
 export const resolveTypographStyles = (
     theme: Theme,
     color: Color | ColorLike,
     textColor: TypographyColor | ColorLike | "inherit",
-) => {
+): Record<TypographyVariant, TextStyle> => {
     const { colors } = theme;
     const resolvedColor = resolveColor(color, theme);
 
@@ -30,40 +32,42 @@ export const resolveTypographStyles = (
             ? formatColor(colors.common.white)
             : formatColor(resolvedColor, {
                   darken: 70,
-                  format: "hexa",
+                  format: "rgba",
               });
 
     const textColorFinal = formatColor(
         isColorLike ? parsedTextColor : theme.typography.colors.primary,
-        { format: "hexa" },
+        { format: "rgba" },
     );
 
     return {
         solid: {
-            backgroundColor: formatColor(resolvedColor, { format: "hexa" }),
+            backgroundColor: formatColor(resolvedColor, { format: "rgba" }),
             color: solidTextColor,
-            border: "none",
+            borderWidth: 0,
         },
         outlined: {
             backgroundColor: "transparent",
-            color: formatColor(resolvedColor, { format: "hexa" }),
-            border: `1px solid ${formatColor(resolvedColor, { format: "hexa" })}`,
+            color: formatColor(resolvedColor, { format: "rgba" }),
+            borderWidth: 1,
+            borderColor: formatColor(resolvedColor, { format: "rgba" }),
+            borderStyle: "solid",
         },
         plain: {
             backgroundColor: "transparent",
-            color: formatColor(resolvedColor, { format: "hexa" }),
-            border: "none",
+            color: formatColor(resolvedColor, { format: "rgba" }),
+            borderWidth: 0,
         },
         soft: {
             backgroundColor: formatColor(resolvedColor, {
                 alpha: 40,
             }),
-            color: formatColor(resolvedColor, { format: "hexa" }),
-            border: "none",
+            color: formatColor(resolvedColor, { format: "rgba" }),
+            borderWidth: 0,
         },
         none: {
             backgroundColor: "transparent",
-            border: "none",
+            borderWidth: 0,
             color: textColorFinal,
         },
     };

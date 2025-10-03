@@ -2,7 +2,8 @@ import styled from "@emotion/native";
 import type { Size } from "@mutualzz/ui-core";
 import { resolveSize } from "@mutualzz/ui-core";
 import { forwardRef } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { Typography } from "../Typography/Typography";
 import {
     resolveIconButtonContainerStyles,
     resolveIconButtonTextStyles,
@@ -48,7 +49,7 @@ const IconButtonWrapper = styled(Pressable)<IconButtonProps>(
 
 IconButtonWrapper.displayName = "IconButtonWrapper";
 
-const IconButtonContent = styled(Text)<IconButtonProps>(
+const IconButtonContent = styled(Typography)<IconButtonProps>(
     ({
         theme,
         color = "primary",
@@ -116,7 +117,7 @@ const IconButton = forwardRef<View, IconButtonProps>(
                              *  Eventually we should replace it with a proper spinner component,
                              *  when we convert the web versison to native version
                              */
-                            <Text>Loading...</Text>
+                            <Typography>Loading...</Typography>
                         )}
                     </SpinnerOverlay>
                 )}
