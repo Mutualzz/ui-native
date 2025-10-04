@@ -1,9 +1,9 @@
 import { type Color, type ColorLike, type Variant } from "@mutualzz/ui-core";
-import type { ViewStyle } from "react-native";
+import type { ViewProps } from "react-native-svg/lib/typescript/fabric/utils";
 
 export type PaperVariant = Variant | "elevation";
 
-export interface PaperProps extends ViewStyle {
+export interface PaperProps extends ViewProps {
     /**
      * The color of the Paper component.
      * Can be a color name or a color value.

@@ -13,6 +13,8 @@ export * from "./DecoratorWrapper/DecoratorWrapper";
 export * from "./Divider/Divider";
 export type * from "./Divider/Divider.types";
 
+export * from "./NativeBaseline/NativeBaseline";
+
 export * from "./IconButton/IconButton";
 export type * from "./IconButton/IconButton.types";
 
@@ -24,6 +26,9 @@ export type * from "./Radio/Radio.types";
 
 export * from "./RadioGroup/RadioGroup";
 export type * from "./RadioGroup/RadioGroup.types";
+
+export * from "./Paper/Paper";
+export type * from "./Paper/Paper.types";
 
 export * from "./Select/Select";
 export type * from "./Select/Select.types";
