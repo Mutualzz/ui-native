@@ -1,6 +1,4 @@
-import { isValidGradient } from "@mutualzz/ui-core";
-import Color from "color";
-import gradientParser from "gradient-parser";
+import { addIntermediateStops } from "@mutualzz/ui-core";
 import { useMemo, type PropsWithChildren } from "react";
 import { StyleSheet, View } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
@@ -17,29 +15,18 @@ const styles = StyleSheet.create({
 
 export const NativeBasline = ({ children }: PropsWithChildren) => {
     const { theme } = useTheme();
-    const backgroundColor = theme.colors.background;
 
-    const parsed = useMemo(() => {
-        if (!isValidGradient(backgroundColor)) return null;
+    const gradient = useMemo(
+        () => addIntermediateStops(theme.colors.background),
+        [theme],
+    );
 
-        try {
-            return gradientParser.parse(backgroundColor)[0];
-        } catch {
-            return null;
-        }
-    }, [backgroundColor]);
-
-    if (parsed) {
-        const colors = parsed.colorStops.map((stop) =>
-            Color(stop.type === "hex" ? `#${stop.value}` : stop.value)
-                .rgb()
-                .string(),
-        );
-
+    if (gradient) {
         return (
             <View style={styles.container}>
                 <LinearGradient
-                    colors={colors}
+                    colors={gradient.colors}
+                    locations={gradient.locations}
                     style={styles.fill}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
@@ -50,6 +37,13 @@ export const NativeBasline = ({ children }: PropsWithChildren) => {
     }
 
     return (
-        <View style={[styles.container, { backgroundColor }]}>{children}</View>
+        <View
+            style={[
+                styles.container,
+                { backgroundColor: theme.colors.background },
+            ]}
+        >
+            {children}
+        </View>
     );
 };

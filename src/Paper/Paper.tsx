@@ -1,7 +1,5 @@
 import styled from "@emotion/native";
-import { isValidGradient } from "@mutualzz/ui-core";
-import Color from "color";
-import gradientParser from "gradient-parser";
+import { addIntermediateStops } from "@mutualzz/ui-core";
 import { useMemo, type PropsWithChildren } from "react";
 import { StyleSheet, View } from "react-native";
 import LinearGradient from "react-native-linear-gradient";
@@ -48,26 +46,12 @@ const Paper = ({
     const gradientStops = useMemo(() => {
         if (variant !== "elevation") return null;
 
-        const { surface } = theme.colors;
-        if (!isValidGradient(surface)) return null;
-
-        try {
-            const parsed = gradientParser.parse(surface)[0];
-
-            return parsed.colorStops.map((stop) =>
-                Color(stop.type === "hex" ? `#${stop.value}` : stop.value)
-                    .rgb()
-                    .string(),
-            );
-        } catch (err) {
-            console.error(err);
-            return null;
-        }
+        return addIntermediateStops(theme.colors.surface);
     }, [theme, variant]);
 
-    const gradientOpacity = nonTranslucent ? 1 : 0.2;
-
     if (gradientStops) {
+        const gradientOpacity = nonTranslucent ? 1 : 0.2;
+
         return (
             <PaperBase
                 variant={variant}
@@ -75,7 +59,8 @@ const Paper = ({
                 {...props}
             >
                 <LinearGradient
-                    colors={gradientStops}
+                    colors={gradientStops.colors}
+                    locations={gradientStops.locations}
                     style={[styles.fill, { opacity: gradientOpacity }]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
@@ -86,7 +71,12 @@ const Paper = ({
     }
 
     return (
-        <PaperBase variant={variant} nonTranslucent={nonTranslucent} {...props}>
+        <PaperBase
+            style={{ backgroundColor: theme.colors.surface }}
+            variant={variant}
+            nonTranslucent={nonTranslucent}
+            {...props}
+        >
             {children}
         </PaperBase>
     );
