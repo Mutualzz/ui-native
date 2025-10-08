@@ -28,6 +28,8 @@ export const NativeBasline = ({ children }: PropsWithChildren) => {
                     colors={gradient.colors}
                     locations={gradient.locations}
                     style={styles.fill}
+                    angle={gradient.angle}
+                    useAngle
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                 />

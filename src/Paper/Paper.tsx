@@ -46,7 +46,7 @@ const Paper = ({
     const gradientStops = useMemo(() => {
         if (variant !== "elevation") return null;
 
-        return addIntermediateStops(theme.colors.surface);
+        return addIntermediateStops(theme.colors.surface, 0);
     }, [theme, variant]);
 
     if (gradientStops) {
@@ -61,7 +61,9 @@ const Paper = ({
                 <LinearGradient
                     colors={gradientStops.colors}
                     locations={gradientStops.locations}
-                    style={[styles.fill, { opacity: gradientOpacity }]}
+                    style={[styles.fill, { opacity: 1 }]}
+                    angle={gradientStops.angle}
+                    useAngle
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 1 }}
                 />
