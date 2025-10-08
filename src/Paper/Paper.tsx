@@ -1,8 +1,6 @@
 import styled from "@emotion/native";
-import { addIntermediateStops } from "@mutualzz/ui-core";
-import { useMemo, type PropsWithChildren } from "react";
+import { type PropsWithChildren } from "react";
 import { StyleSheet, View } from "react-native";
-import LinearGradient from "react-native-linear-gradient";
 import { useTheme } from "../useTheme";
 import { resolvePaperStyles } from "./Paper.helpers";
 import type { PaperProps } from "./Paper.types";
@@ -42,35 +40,6 @@ const Paper = ({
     ...props
 }: PropsWithChildren<PaperProps>) => {
     const { theme } = useTheme();
-
-    const gradientStops = useMemo(() => {
-        if (variant !== "elevation") return null;
-
-        return addIntermediateStops(theme.colors.surface, 0);
-    }, [theme, variant]);
-
-    if (gradientStops) {
-        const gradientOpacity = nonTranslucent ? 1 : 0.2;
-
-        return (
-            <PaperBase
-                variant={variant}
-                nonTranslucent={nonTranslucent}
-                {...props}
-            >
-                <LinearGradient
-                    colors={gradientStops.colors}
-                    locations={gradientStops.locations}
-                    style={[styles.fill, { opacity: 1 }]}
-                    angle={gradientStops.angle}
-                    useAngle
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                />
-                {children}
-            </PaperBase>
-        );
-    }
 
     return (
         <PaperBase
