@@ -38,8 +38,10 @@ const NativeBaseline = ({ children }: PropsWithChildren) => {
     if (!gradient) {
         return (
             <SafeAreaView
+                edges={["left", "right"]}
                 style={[
                     styles.container,
+                    styles.fill,
                     { backgroundColor: theme.colors.background },
                 ]}
             >
@@ -49,7 +51,10 @@ const NativeBaseline = ({ children }: PropsWithChildren) => {
     }
 
     return (
-        <SafeAreaView edges={["left", "right"]} style={styles.fill}>
+        <SafeAreaView
+            edges={["left", "right"]}
+            style={[styles.container, styles.fill]}
+        >
             {width > 0 && height > 0 && gradient && (
                 <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
                     <Rect dither x={0} y={0} width={width} height={height}>
