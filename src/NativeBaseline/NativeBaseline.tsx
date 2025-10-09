@@ -6,7 +6,7 @@ import {
     vec,
 } from "@shopify/react-native-skia";
 import { useMemo, type PropsWithChildren } from "react";
-import { StyleSheet, useWindowDimensions } from "react-native";
+import { Platform, StyleSheet, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../useTheme";
 
@@ -21,6 +21,7 @@ const styles = StyleSheet.create({
 
 const NativeBaseline = ({ children }: PropsWithChildren) => {
     const { theme } = useTheme();
+
     const { width, height } = useWindowDimensions();
 
     const bg = theme.colors.background;
@@ -48,12 +49,15 @@ const NativeBaseline = ({ children }: PropsWithChildren) => {
     }
 
     return (
-        <SafeAreaView style={styles.fill}>
+        <SafeAreaView edges={["left", "right"]} style={styles.fill}>
             {width > 0 && height > 0 && gradient && (
                 <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
                     <Rect dither x={0} y={0} width={width} height={height}>
                         <SkiaLinearGradient
-                            start={vec(0, 0)}
+                            start={Platform.select({
+                                android: vec(width * 0.75, height * 0.75),
+                                default: vec(width * 0.5, height * 0.5),
+                            })}
                             end={vec(width, height)}
                             colors={gradient}
                         />
