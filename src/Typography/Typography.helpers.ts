@@ -60,6 +60,7 @@ export const resolveTypographStyles = (
         },
         soft: {
             backgroundColor: formatColor(resolvedColor, {
+                format: "rgba",
                 alpha: 40,
             }),
             color: formatColor(resolvedColor, { format: "rgba" }),
