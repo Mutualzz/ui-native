@@ -1,6 +1,5 @@
 import styled from "@emotion/native";
-import { DecoratorWrapper } from "DecoratorWrapper/DecoratorWrapper";
-import { forwardRef, useCallback, useEffect, useState } from "react";
+import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import {
     Dimensions,
     Modal,
@@ -9,7 +8,10 @@ import {
     View,
     type LayoutRectangle,
 } from "react-native";
+import Svg, { Path } from "react-native-svg";
+import { DecoratorWrapper } from "../DecoratorWrapper/DecoratorWrapper";
 import { Typography } from "../Typography/Typography";
+import { useTheme } from "../useTheme";
 import { SelectContext } from "./Select.context";
 import {
     resolveSelectContentStyles,
@@ -17,11 +19,6 @@ import {
     resolveSelectStyles,
 } from "./Select.helpers";
 import type { SelectProps } from "./Select.types";
-
-const Row = styled(View)({
-    flexDirection: "row",
-    alignItems: "center",
-});
 
 const SelectRoot = styled(Pressable)<SelectProps>(
     ({
@@ -35,25 +32,36 @@ const SelectRoot = styled(Pressable)<SelectProps>(
         overflow: "hidden",
         position: "relative",
         opacity: disabled ? 0.5 : 1,
+        flexDirection: "row",
+        alignItems: "center",
         ...resolveSelectSize(theme, size).container,
         ...resolveSelectStyles(theme, color)[variant].container,
     }),
 );
 
 const TriggerText = styled(Typography)<SelectProps & { hasValue: boolean }>(
-    ({ theme, size = "md", hasValue }) => ({
+    ({
+        theme,
+        color = "primary",
+        variant = "solid",
+        size = "md",
+        hasValue,
+    }) => ({
         flex: 1,
         opacity: hasValue ? 1 : 0.5,
+        ...resolveSelectStyles(theme, color)[variant].text,
         ...resolveSelectSize(theme, size).text,
     }),
 );
 
-const Chevron = styled(View)({
-    width: 18,
-    height: 18,
-    transform: [{ rotate: "90deg" }],
-    borderLeftWidth: 2,
-    borderBottomWidth: 2,
+const DropdownIcon = styled(Svg)({
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    width: 24,
+    height: 24,
+    flexShrink: 0,
+    opacity: 0.7,
 });
 
 const PopupContainer = styled(View)<SelectProps>(
@@ -96,6 +104,8 @@ const Select = forwardRef<View, SelectProps>(
         },
         ref,
     ) => {
+        const { theme } = useTheme();
+
         const [internalValue, setInternalValue] = useState(
             defaultValue ?? (multiple ? [] : ""),
         );
@@ -106,6 +116,9 @@ const Select = forwardRef<View, SelectProps>(
         const [anchorLayout, setAnchorLayout] =
             useState<LayoutRectangle | null>(null);
         const [placement, setPlacement] = useState<Placement>("bottom");
+        const anchorRef = useRef<View | null>(null);
+
+        const POPUP_VERTICAL_OFFSET = 56;
 
         useEffect(() => {
             if (!anchorLayout) return;
@@ -118,6 +131,30 @@ const Select = forwardRef<View, SelectProps>(
                     : "bottom",
             );
         }, [anchorLayout]);
+
+        const setAnchorRef = useCallback(
+            (node: View | null) => {
+                anchorRef.current = node;
+                if (!ref) return;
+                if (typeof ref === "function") {
+                    ref(node);
+                } else {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (ref as any).current = node;
+                }
+            },
+            [ref],
+        );
+
+        const measureAnchor = useCallback(() => {
+            const node = anchorRef.current;
+            if (!node || typeof node.measureInWindow !== "function") return;
+            node.measureInWindow(
+                (x: number, y: number, width: number, height: number) => {
+                    setAnchorLayout({ x, y, width, height });
+                },
+            );
+        }, []);
 
         const hasValue = multiple
             ? Array.isArray(currentValue) && currentValue.length > 0
@@ -144,6 +181,13 @@ const Select = forwardRef<View, SelectProps>(
             return sel ? <Typography>{sel.props.children}</Typography> : null;
         })();
 
+        useEffect(() => {
+            if (!isOpen) return;
+            requestAnimationFrame(() => {
+                measureAnchor();
+            });
+        }, [isOpen, measureAnchor]);
+
         const handleOptionSelect = useCallback(
             (optionValue: string | number) => {
                 if (disabled) return;
@@ -162,6 +206,8 @@ const Select = forwardRef<View, SelectProps>(
             },
             [disabled, multiple, currentValue, isControlled, onValueChange],
         );
+
+        const iconColor = resolveSelectStyles(theme, color)[variant].text.color;
 
         return (
             <SelectContext.Provider
@@ -183,29 +229,31 @@ const Select = forwardRef<View, SelectProps>(
                     variant={variant}
                     color={color}
                     disabled={disabled}
-                    ref={ref}
+                    ref={setAnchorRef}
                     {...props}
                 >
-                    <Row>
-                        {startDecorator && (
-                            <DecoratorWrapper>
-                                {startDecorator}
-                            </DecoratorWrapper>
+                    {startDecorator && (
+                        <DecoratorWrapper>{startDecorator}</DecoratorWrapper>
+                    )}
+
+                    <TriggerText
+                        color={color}
+                        variant={variant}
+                        size={size}
+                        hasValue={hasValue}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                    >
+                        {displayValue ? displayValue : placeholder}
+                    </TriggerText>
+
+                    <DecoratorWrapper>
+                        {endDecorator ?? (
+                            <DropdownIcon fill={iconColor} viewBox="0 0 24 24">
+                                <Path d="m12 5.83 2.46 2.46c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L12.7 3.7a.9959.9959 0 0 0-1.41 0L8.12 6.88c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0L12 5.83zm0 12.34-2.46-2.46a.9959.9959 0 0 0-1.41 0c-.39.39-.39 1.02 0 1.41l3.17 3.18c.39.39 1.02.39 1.41 0l3.17-3.17c.39-.39.39-1.02 0-1.41a.9959.9959 0 0 0-1.41 0L12 18.17z"></Path>
+                            </DropdownIcon>
                         )}
-
-                        <TriggerText
-                            size={size}
-                            hasValue={hasValue}
-                            numberOfLines={1}
-                            ellipsizeMode="tail"
-                        >
-                            {hasValue ? displayValue : placeholder}
-                        </TriggerText>
-
-                        <DecoratorWrapper>
-                            {endDecorator ?? <Chevron />}
-                        </DecoratorWrapper>
-                    </Row>
+                    </DecoratorWrapper>
                 </SelectRoot>
 
                 <Modal
@@ -234,7 +282,8 @@ const Select = forwardRef<View, SelectProps>(
                                     ? {
                                           top: anchorLayout
                                               ? anchorLayout.y +
-                                                (anchorLayout.height + 6)
+                                                anchorLayout.height +
+                                                POPUP_VERTICAL_OFFSET
                                               : 100,
                                       }
                                     : {
@@ -242,7 +291,7 @@ const Select = forwardRef<View, SelectProps>(
                                               ? Dimensions.get("window")
                                                     .height -
                                                 anchorLayout.y +
-                                                6
+                                                POPUP_VERTICAL_OFFSET
                                               : undefined,
                                       }),
                             }}

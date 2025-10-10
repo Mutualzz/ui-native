@@ -125,11 +125,13 @@ export const resolveSelectContentStyles = (
         soft: {
             surface: {
                 backgroundColor: formatColor(resolvedColor, {
+                    format: "rgba",
                     darken: 50,
                 }),
             },
             itemTeitemxt: {
                 color: formatColor(resolvedColor, {
+                    format: "rgba",
                     lighten: 20,
                 }),
             },
