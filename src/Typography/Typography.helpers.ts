@@ -1,5 +1,6 @@
 import type { Theme } from "@emotion/react";
 import {
+    createColor,
     formatColor,
     isValidColorInput,
     resolveColor,
@@ -8,7 +9,6 @@ import {
     type ColorLike,
     type TypographyColor,
 } from "@mutualzz/ui-core";
-import ColorPkg from "color";
 import type { TextStyle } from "react-native";
 import type { TypographyVariant } from "./Typography.types";
 
@@ -26,14 +26,13 @@ export const resolveTypographStyles = (
             : resolveTypographyColor(textColor, theme);
 
     const isColorLike = isValidColorInput(parsedTextColor);
-    const luminance = ColorPkg(resolvedColor).luminosity();
-    const solidTextColor =
-        luminance < 0.5
-            ? formatColor(colors.common.white)
-            : formatColor(resolvedColor, {
-                  darken: 70,
-                  format: "rgba",
-              });
+    const isDark = createColor(resolvedColor).isDark();
+    const solidTextColor = isDark
+        ? formatColor(colors.common.white)
+        : formatColor(resolvedColor, {
+              darken: 70,
+              format: "rgba",
+          });
 
     const textColorFinal = formatColor(
         isColorLike ? parsedTextColor : theme.typography.colors.primary,
