@@ -87,7 +87,7 @@ const Paper = ({
             nonTranslucent={nonTranslucent}
             {...props}
         >
-            <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
+            <Canvas style={StyleSheet.absoluteFillObject} pointerEvents="none">
                 <Rect
                     opacity={gradientOpacity}
                     dither

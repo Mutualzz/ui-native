@@ -56,7 +56,10 @@ const NativeBaseline = ({ children }: PropsWithChildren) => {
             style={[styles.container, styles.fill]}
         >
             {width > 0 && height > 0 && gradient && (
-                <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
+                <Canvas
+                    style={StyleSheet.absoluteFillObject}
+                    pointerEvents="none"
+                >
                     <Rect dither x={0} y={0} width={width} height={height}>
                         <SkiaLinearGradient
                             start={Platform.select({
