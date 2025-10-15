@@ -81,7 +81,6 @@ const PopupList = styled(ScrollView)({
 
 type Placement = "top" | "bottom";
 
-// TODO: Fix the select and the option components
 const Select = forwardRef<View, SelectProps>(
     (
         {
@@ -118,7 +117,7 @@ const Select = forwardRef<View, SelectProps>(
         const [placement, setPlacement] = useState<Placement>("bottom");
         const anchorRef = useRef<View | null>(null);
 
-        const POPUP_VERTICAL_OFFSET = 56;
+        const POPUP_VERTICAL_OFFSET = (anchorLayout?.height ?? 0) / 6;
 
         useEffect(() => {
             if (!anchorLayout) return;
