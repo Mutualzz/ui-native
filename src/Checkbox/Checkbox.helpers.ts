@@ -35,7 +35,9 @@ export const resolveCheckboxStyles = (
     checked?: boolean,
 ): Record<Variant, ViewStyle> => {
     const resolvedColor = resolveColor(color, theme);
-    const hexColor = formatColor(resolvedColor);
+    const hexColor = formatColor(resolvedColor, {
+        format: "rgba",
+    });
 
     return {
         solid: {

@@ -28,7 +28,9 @@ export const resolveTypographStyles = (
     const isColorLike = isValidColorInput(parsedTextColor);
     const isDark = createColor(resolvedColor).isDark();
     const solidTextColor = isDark
-        ? formatColor(colors.common.white)
+        ? formatColor(colors.common.white, {
+              format: "rgba",
+          })
         : formatColor(resolvedColor, {
               darken: 70,
               format: "rgba",
