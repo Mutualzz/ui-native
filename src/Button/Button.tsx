@@ -105,8 +105,8 @@ const Button = forwardRef<View, ButtonProps>(
                 variant={variant}
                 color={color}
                 size={size}
-                disabled={loading || disabled}
-                loading={loading}
+                disabled={Boolean(loading || disabled)}
+                loading={Boolean(loading)}
             >
                 {loading && (
                     <SpinnerOverlay>
@@ -131,7 +131,7 @@ const Button = forwardRef<View, ButtonProps>(
                     color={color}
                     variant={variant}
                     size={size}
-                    loading={loading}
+                    loading={Boolean(loading)}
                 >
                     {children}
                 </ButtonContent>
