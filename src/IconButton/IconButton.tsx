@@ -105,8 +105,8 @@ const IconButton = forwardRef<View, IconButtonProps>(
                 variant={variant}
                 color={color}
                 size={size}
-                disabled={loading || disabled}
-                loading={loading}
+                disabled={Boolean(loading || disabled)}
+                loading={Boolean(loading)}
             >
                 {loading && (
                     <SpinnerOverlay>
@@ -125,7 +125,7 @@ const IconButton = forwardRef<View, IconButtonProps>(
                     color={color}
                     variant={variant}
                     size={size}
-                    loading={loading}
+                    loading={Boolean(loading)}
                 >
                     {children}
                 </IconButtonContent>
