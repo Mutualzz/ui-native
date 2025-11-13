@@ -4,6 +4,9 @@
         "@mutualzz/ui-core": "workspace:*",
         "color": "^5.0.2"
     },
+    "devDependencies": {
+        "bunchee": "^6.6.2"
+    },
     "exports": {
         ".": {
             "import": "./dist/index.mjs",
