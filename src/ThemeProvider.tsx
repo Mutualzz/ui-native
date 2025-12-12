@@ -2,12 +2,8 @@ import {
     ThemeProvider as EmotionThemeProvder,
     type Theme,
 } from "@emotion/react";
-import type { ThemeStyle, ThemeType } from "@mutualzz/ui-core";
-import {
-    baseDarkTheme,
-    baseLightTheme,
-    themes as baseThemes,
-} from "@mutualzz/ui-core";
+import type { ThemeType } from "@mutualzz/ui-core";
+import { baseDarkTheme, baseLightTheme } from "@mutualzz/ui-core";
 import {
     createContext,
     forwardRef,
@@ -20,130 +16,78 @@ import {
 import { useColorScheme } from "react-native";
 
 export const ThemeContext = createContext({
-    theme: baseThemes.find((theme) => theme.id === "baseDark") ?? baseThemes[0],
-    changeTheme: (_theme: Theme) => {
+    theme: baseDarkTheme as Theme,
+    changeTheme: (_theme: Theme | null) => {
         return;
     },
-    type: "system" as ThemeType,
-    changeType: (_type: ThemeType) => {
-        return;
-    },
-    style: "normal" as ThemeStyle,
-    changeStyle: (_style: ThemeStyle) => {
-        return;
-    },
+    type: null as ThemeType | null,
 });
 
 export interface ThemeProviderRef {
-    changeTheme: (theme: Theme) => void;
-    changeType: (type: ThemeType) => void;
-    changeStyle: (style: ThemeStyle) => void;
+    theme: Theme;
+    type: ThemeType | null;
+    changeTheme: (theme: Theme | null) => void;
 }
 
 const ThemeProvider = forwardRef<
     ThemeProviderRef,
     PropsWithChildren & {
-        onThemeChange?: (theme: Theme) => void;
-        onTypeChange?: (type: ThemeType) => void;
-        onStyleChange?: (style: ThemeStyle) => void;
-        disableDefaultThemeOnTypeChange?: boolean;
-        disableDefaultThemeOnStyleChange?: boolean;
+        onThemeChange?: (theme: Theme, type: ThemeType | null) => void;
     }
->(
-    (
-        {
-            children,
-            onThemeChange,
-            onTypeChange,
-            onStyleChange,
-            disableDefaultThemeOnTypeChange = false,
-            disableDefaultThemeOnStyleChange = false,
-        },
-        ref,
-    ) => {
-        const colorScheme = useColorScheme();
-        const prefersDark = colorScheme === "dark";
+>(({ children, onThemeChange }, ref) => {
+    const colorScheme = useColorScheme();
+    const prefersDark = colorScheme === "dark";
+    const [type, setType] = useState<ThemeType | null>(null);
 
-        const [theme, setTheme] = useState<Theme | null>(null);
-        const [type, setType] = useState<ThemeType>("system");
-        const [style, setStyle] = useState<ThemeStyle>("normal");
+    const [theme, setTheme] = useState<Theme>(baseDarkTheme);
 
-        useEffect(() => {
-            if (type !== "system") return;
-            // follow system
-            setTheme(prefersDark ? baseDarkTheme : baseLightTheme);
-        }, [type, prefersDark]);
+    useEffect(() => {
+        if (type) return;
+        // follow system
+        setTheme(prefersDark ? baseDarkTheme : baseLightTheme);
+    }, [type, prefersDark]);
 
-        const changeType = (type: ThemeType) => {
-            setType(type);
+    const changeTheme = (newTheme: Theme | null) => {
+        if (!newTheme) {
+            const mediaQuery = window.matchMedia(
+                "(prefers-color-scheme: dark)",
+            );
+            const preferredTheme = mediaQuery.matches
+                ? baseDarkTheme
+                : baseLightTheme;
+            setTheme(preferredTheme);
+            setType(null);
+            onThemeChange?.(preferredTheme, null);
+            return;
+        }
 
-            if (!disableDefaultThemeOnTypeChange) {
-                if (type === "system" && prefersDark !== null)
-                    setTheme(prefersDark ? baseDarkTheme : baseLightTheme);
-                else if (type === "dark") setTheme(baseDarkTheme);
-                else setTheme(baseLightTheme);
-                setStyle("normal");
-            }
+        setTheme(newTheme);
+        setType(newTheme.type);
 
-            onTypeChange?.(type);
-            onStyleChange?.("normal");
-        };
+        onThemeChange?.(newTheme, newTheme.type);
+    };
 
-        const changeTheme = (theme: Theme) => {
-            setTheme(theme);
-            setStyle(theme.style);
+    useImperativeHandle(ref, () => ({
+        theme,
+        type,
+        changeTheme,
+    }));
 
-            onThemeChange?.(theme);
-            onStyleChange?.(theme.style);
-        };
-
-        const changeStyle = (style: ThemeStyle) => {
-            if (!disableDefaultThemeOnStyleChange && style === "normal") {
-                if (type === "system" && prefersDark !== null)
-                    setTheme(prefersDark ? baseDarkTheme : baseLightTheme);
-                else if (type === "dark") setTheme(baseDarkTheme);
-                else setTheme(baseLightTheme);
-            }
-
-            setStyle(style);
-            onStyleChange?.(style);
-        };
-
-        useImperativeHandle(ref, () => ({
+    const value = useMemo(
+        () => ({
+            theme,
             changeTheme,
-            changeType,
-            changeStyle,
-        }));
+            type,
+        }),
+        [type, theme],
+    );
 
-        const themeObject =
-            theme ??
-            (prefersDark != null
-                ? prefersDark
-                    ? baseDarkTheme
-                    : baseLightTheme
-                : baseDarkTheme);
-
-        const value = useMemo(
-            () => ({
-                theme: themeObject,
-                changeTheme,
-                type,
-                changeType,
-                style,
-                changeStyle,
-            }),
-            [type, style, themeObject],
-        );
-
-        return (
-            <ThemeContext.Provider value={value}>
-                <EmotionThemeProvder theme={themeObject}>
-                    {children}
-                </EmotionThemeProvder>
-            </ThemeContext.Provider>
-        );
-    },
-);
+    return (
+        <ThemeContext.Provider value={value}>
+            <EmotionThemeProvder theme={theme}>{children}</EmotionThemeProvder>
+        </ThemeContext.Provider>
+    );
+});
 
 ThemeProvider.displayName = "ThemeProvider";
 

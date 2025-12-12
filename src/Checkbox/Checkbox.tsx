@@ -79,7 +79,6 @@ const CheckIcon = ({ color }: { color: string }) => (
                 color,
                 fontSize: 12,
                 fontWeight: "bold",
-                textAlign: "center",
             }}
         >
             ✓

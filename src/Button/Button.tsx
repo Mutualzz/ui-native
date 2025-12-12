@@ -123,9 +123,7 @@ const Button = forwardRef<View, ButtonProps>(
                 )}
 
                 {startDecorator && (
-                    <DecoratorWrapper position="start">
-                        {startDecorator}
-                    </DecoratorWrapper>
+                    <DecoratorWrapper>{startDecorator}</DecoratorWrapper>
                 )}
                 <ButtonContent
                     color={color}
@@ -136,9 +134,7 @@ const Button = forwardRef<View, ButtonProps>(
                     {children}
                 </ButtonContent>
                 {endDecorator && (
-                    <DecoratorWrapper position="end">
-                        {endDecorator}
-                    </DecoratorWrapper>
+                    <DecoratorWrapper>{endDecorator}</DecoratorWrapper>
                 )}
             </ButtonWrapper>
         );
