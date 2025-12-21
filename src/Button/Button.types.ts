@@ -1,6 +1,7 @@
 import {
     type Color,
     type ColorLike,
+    type Orientation,
     type Size,
     type SizeValue,
     type Variant,
@@ -8,7 +9,13 @@ import {
 import { type ReactNode } from "react";
 import type { PressableProps } from "react-native";
 
-export interface ButtonProps extends PressableProps {
+export type VerticalButtonAlign = "top" | "center" | "bottom";
+export type HorizontalButtonAlign = "left" | "center" | "right";
+
+export interface ButtonProps extends Omit<
+    PressableProps,
+    "children" | "disabled"
+> {
     /**
      * The variant of the button, which determines its style.
      * @default "solid"
@@ -27,6 +34,14 @@ export interface ButtonProps extends PressableProps {
      * @example "sm", "md", "lg", 20
      */
     size?: Size | SizeValue | number;
+
+    verticalAlign?: VerticalButtonAlign;
+    horizontalAlign?: HorizontalButtonAlign;
+    orientation?: Orientation;
+
+    fullWidth?: boolean;
+
+    disabled?: boolean;
 
     /**
      * Indicates whether the button is in a loading state.
@@ -53,4 +68,16 @@ export interface ButtonProps extends PressableProps {
      * Content to display inside the button.
      */
     children?: ReactNode;
+
+    /**
+     * Padding override
+     */
+    padding?: number;
+
+    selected?: boolean;
+
+    /**
+     * Optional value used by ButtonGroup selection logic
+     */
+    value?: any;
 }

@@ -6,10 +6,12 @@ import type {
     Variant,
 } from "@mutualzz/ui-core";
 import type { ReactNode } from "react";
-import type { ViewProps } from "react-native";
+import type { PressableProps } from "react-native";
 
-export interface SelectProps<T = string | number>
-    extends Omit<ViewProps, "onLayout"> {
+export interface SelectProps<T = string | number> extends Omit<
+    PressableProps,
+    "onPress"
+> {
     size?: Size | SizeValue | number;
     variant?: Variant;
     color?: Color | ColorLike;
@@ -21,12 +23,13 @@ export interface SelectProps<T = string | number>
 
     multiple?: boolean;
     disabled?: boolean;
-    required?: boolean;
-    autoFocus?: boolean;
 
     value?: T | T[];
     defaultValue?: T | T[];
+
     onValueChange?: (value: T | T[]) => void;
 
     closeOnClickOutside?: boolean;
+
+    children?: ReactNode;
 }

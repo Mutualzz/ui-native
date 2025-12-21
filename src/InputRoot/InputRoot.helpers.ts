@@ -1,111 +1,73 @@
 import type { Theme } from "@emotion/react";
-import type {
-    Color,
-    ColorLike,
-    Size,
-    SizeValue,
-    TypographyColor,
-    Variant,
-} from "@mutualzz/ui-core";
+import type { Color, ColorLike, Variant } from "@mutualzz/ui-core";
 import {
-    createColor,
     formatColor,
-    isValidColorInput,
     resolveColor,
     resolveSize,
-    resolveTypographyColor,
+    type Size,
+    type SizeValue,
 } from "@mutualzz/ui-core";
-import type { TextStyle } from "react-native";
+import type { ViewStyle } from "react-native";
 
-export const baseSizeMap: Record<Size, number> = {
-    sm: 12,
-    md: 14,
-    lg: 16,
-};
+const basePadY: Record<Size, number> = { sm: 10, md: 14, lg: 18 };
+const basePadX: Record<Size, number> = { sm: 14, md: 18, lg: 22 };
 
-export const resolveInputRootSize = (
+export const resolveInputRootLayout = (
     theme: Theme,
     size: Size | SizeValue | number,
-    fullWidth?: boolean,
-): TextStyle => {
-    const resolvedSize = resolveSize(theme, size, baseSizeMap);
+): ViewStyle => {
+    const py = resolveSize(theme, size, basePadY);
+    const px = resolveSize(theme, size, basePadX);
 
     return {
-        width: fullWidth ? "100%" : resolvedSize * 16,
-        maxWidth: "100%",
-        fontSize: resolvedSize,
-        lineHeight: 1.2,
-        minHeight: resolvedSize * 2.2,
-        paddingVertical: resolvedSize * 0.4,
-        paddingHorizontal: resolvedSize * 0.6,
+        paddingVertical: py,
+        paddingHorizontal: px,
+        borderRadius: 8,
     };
 };
 
 export const resolveInputRootStyles = (
     theme: Theme,
     color: Color | ColorLike,
-    textColor: TypographyColor | ColorLike | "inherit",
     error: boolean,
-): Record<Variant, TextStyle> => {
-    const { colors } = theme;
-    const resolvedColor = resolveColor(color, theme);
+    readOnly: boolean,
+): Record<Variant, ViewStyle> => {
+    const baseColor = resolveColor(color, theme);
+    const hex = formatColor(baseColor, { format: "hexa" });
 
-    const parsedTextColor =
-        textColor === "inherit"
-            ? theme.typography.colors.primary
-            : resolveTypographyColor(textColor, theme);
+    const danger = formatColor(resolveColor("danger", theme), {
+        format: "hexa",
+    });
 
-    const errorColor = colors.danger;
-    const activeColor = error ? errorColor : resolvedColor;
-    const isColorLike = isValidColorInput(parsedTextColor);
+    const borderColor = error ? danger : hex;
 
-    const isDark = createColor(activeColor).isDark();
-    const solidTextColor = isDark
-        ? formatColor(theme.typography.colors.primary, {
-              format: "rgba",
-          })
-        : formatColor(activeColor, {
-              darken: 70,
-              format: "rgba",
-          });
-
-    const textColorFinal = formatColor(
-        isColorLike ? parsedTextColor : theme.typography.colors.primary,
-        {
-            format: "rgba",
-        },
-    );
+    const common: ViewStyle = {
+        ...(readOnly ? { opacity: 0.9 } : null),
+    };
 
     return {
         outlined: {
+            ...common,
             backgroundColor: "transparent",
-            color: textColorFinal,
             borderWidth: 1,
-            borderStyle: "solid",
-            borderColor: formatColor(activeColor, {
-                format: "rgba",
-            }),
+            borderColor,
         },
         solid: {
-            backgroundColor: formatColor(activeColor, {
-                format: "rgba",
-            }),
-            color: solidTextColor,
+            ...common,
+            backgroundColor: hex,
             borderWidth: 0,
         },
         soft: {
-            backgroundColor: formatColor(activeColor, {
-                alpha: 10,
-                format: "rgba",
-            }),
-            color: formatColor(activeColor, {
-                format: "rgba",
+            ...common,
+            backgroundColor: formatColor(baseColor, {
+                alpha: 12,
+                format: "hexa",
             }),
             borderWidth: 0,
         },
         plain: {
+            ...common,
             backgroundColor: "transparent",
-            color: textColorFinal,
             borderWidth: 0,
         },
     };

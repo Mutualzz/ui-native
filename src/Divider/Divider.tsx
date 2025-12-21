@@ -1,78 +1,85 @@
 import styled from "@emotion/native";
+import {
+    resolveSize,
+    type Size,
+    type SizeValue,
+    type TypographyLevel,
+} from "@mutualzz/ui-core";
 import { forwardRef } from "react";
 import { View } from "react-native";
-import { Typography } from "../Typography/Typography";
 import { useTheme } from "../useTheme";
 import { resolveDividerColor, resolveDividerStyles } from "./Divider.helpers";
-import type { DividerProps, DividerVariant } from "./Divider.types";
+import type { DividerProps } from "./Divider.types";
 
-const DividerWrapper = styled(View)<{ isVertical?: boolean }>(
+const DividerWrapper = styled.View<{ isVertical?: boolean }>(
     ({ isVertical }) => ({
         position: "relative",
-        display: "flex",
         flexDirection: isVertical ? "column" : "row",
         alignItems: "center",
-
-        ...(isVertical
-            ? {
-                  width: "auto",
-                  flex: 0,
-                  marginHorizontal: 8,
-                  marginVertical: 0,
-              }
-            : {
-                  width: "100%",
-                  marginHorizontal: 0,
-                  marginVertical: 8,
-              }),
+        justifyContent: "center",
+        alignSelf: "stretch",
+        minWidth: isVertical ? undefined : 0,
+        width: isVertical ? undefined : "100%",
     }),
 );
 
 DividerWrapper.displayName = "DividerWrapper";
 
-const DividerLine = styled(View)<{
+const DividerLine = styled.View<{
     isVertical: boolean;
     lineColor: string;
-    variant: DividerVariant;
+    variant: "solid" | "dashed" | "dotted";
     grow?: boolean;
-}>(({ isVertical, variant, lineColor, grow }) => ({
-    flexGrow: grow ? 1 : 0,
-
-    ...(isVertical ? { minHeight: 32 } : { minWidth: 32 }),
+}>(({ isVertical, lineColor, variant, grow }) => ({
+    alignSelf: "center",
+    ...(isVertical
+        ? {
+              width: 1,
+              flexGrow: grow ? 1 : 0,
+              minHeight: 16,
+          }
+        : {
+              height: 1,
+              flexGrow: grow ? 1 : 0,
+              flexShrink: grow ? 1 : 0,
+              minWidth: 16,
+          }),
     ...resolveDividerStyles(isVertical, lineColor)[variant],
 }));
 
 DividerLine.displayName = "DividerLine";
 
-const DividerText = styled(Typography)<{
+const DividerText = styled.Text<{
     textColor: string;
     isVertical: boolean;
-}>(({ theme, isVertical, textColor }) => ({
-    color: textColor,
-    ...(isVertical
-        ? {
-              paddingVertical: 8,
-              paddingHorizontal: 0,
-          }
-        : {
-              paddingVertical: 0,
-              paddingHorizontal: 8,
-          }),
-    fontSize: theme.typography.levels["body-md"].fontSize,
-}));
+    textPadding?: Size | SizeValue | number;
+    textLevel?: TypographyLevel;
+}>(
+    ({
+        theme,
+        isVertical,
+        textColor,
+        textLevel = "body-md",
+        textPadding = 5,
+    }) => {
+        const paddingValue = resolveSize(theme, textPadding, {
+            sm: 4,
+            md: 6,
+            lg: 12,
+        });
+
+        return {
+            color: textColor,
+            paddingVertical: isVertical ? paddingValue : 0,
+            paddingHorizontal: isVertical ? 0 : paddingValue,
+            lineHeight: 1,
+            fontSize: theme.typography.levels[textLevel].fontSize,
+        };
+    },
+);
 
 DividerText.displayName = "DividerText";
 
-/**
- * Divider component for separating content.
- * It can be oriented horizontally or vertically.
- * It can also have different visual styles and colors.
- * It supports text content that can be placed in the middle of the divider.
- * The divider can be styled with different variants and colors.
- * The `inset` prop allows for controlling the placement of the text relative to the divider.
- * The `lineColor` and `textColor` props allow for customizing the colors of the divider line and text, respectively.
- * The `variant` prop allows for different visual styles of the divider.
- */
 const Divider = forwardRef<View, DividerProps>(
     (
         {
@@ -81,7 +88,10 @@ const Divider = forwardRef<View, DividerProps>(
             lineColor = "neutral",
             textColor = "neutral",
             variant = "solid",
+            textPadding = 5,
+            textLevel = "body-md",
             children,
+            style,
             ...props
         },
         ref,
@@ -93,35 +103,47 @@ const Divider = forwardRef<View, DividerProps>(
         const resolvedLineColor = resolveDividerColor(theme, lineColor);
         const resolvedTextColor = resolveDividerColor(theme, textColor);
 
+        const showFirstLine = inset !== "start";
+        const showSecondLine = inset !== "end";
+        const firstLineGrow = inset !== "half-start";
+        const secondLineGrow = inset !== "half-end";
+
         return (
             <DividerWrapper
                 ref={ref}
                 isVertical={isVertical}
                 accessibilityRole="none"
                 {...props}
+                style={style}
             >
-                <DividerLine
-                    isVertical={isVertical}
-                    lineColor={resolvedLineColor}
-                    variant={variant}
-                    grow={inset !== "start"}
-                />
-
-                {children && (
-                    <DividerText
-                        textColor={resolvedTextColor as any}
+                {showFirstLine && (
+                    <DividerLine
                         isVertical={isVertical}
+                        lineColor={resolvedLineColor}
+                        variant={variant}
+                        grow={firstLineGrow}
+                    />
+                )}
+
+                {children ? (
+                    <DividerText
+                        textColor={resolvedTextColor}
+                        isVertical={isVertical}
+                        textLevel={textLevel}
+                        textPadding={textPadding}
                     >
                         {children}
                     </DividerText>
-                )}
+                ) : null}
 
-                <DividerLine
-                    isVertical={isVertical}
-                    lineColor={resolvedLineColor}
-                    variant={variant}
-                    grow={inset !== "end"}
-                />
+                {showSecondLine && (
+                    <DividerLine
+                        isVertical={isVertical}
+                        lineColor={resolvedLineColor}
+                        variant={variant}
+                        grow={secondLineGrow}
+                    />
+                )}
             </DividerWrapper>
         );
     },

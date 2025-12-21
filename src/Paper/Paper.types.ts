@@ -1,9 +1,9 @@
 import { type Color, type ColorLike, type Variant } from "@mutualzz/ui-core";
-import type { ViewProps } from "react-native-svg/lib/typescript/fabric/utils";
+import type { BoxProps } from "../Box/Box.types";
 
 export type PaperVariant = Variant | "elevation";
 
-export interface PaperProps extends ViewProps {
+export interface PaperProps extends Omit<BoxProps, "color"> {
     /**
      * The color of the Paper component.
      * Can be a color name or a color value.
@@ -26,10 +26,7 @@ export interface PaperProps extends ViewProps {
      */
     elevation?: number;
 
-    /**
-     * If true, the Paper will not have a translucent background.
-     * Only applicable when a gradient theme is preset
-     * @default false
-     */
-    nonTranslucent?: boolean;
+    transparency?: number;
+
+    onPress?: () => void;
 }

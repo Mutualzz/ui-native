@@ -1,235 +1,232 @@
 import styled from "@emotion/native";
-import type { Size, SizeValue } from "@mutualzz/ui-core";
-import { forwardRef, useContext, useRef, useState } from "react";
+import { forwardRef, useContext, useMemo, useState } from "react";
 import { Pressable, View } from "react-native";
-import { useTheme } from "useTheme";
+import Svg, { Line, Polyline } from "react-native-svg";
 import { CheckboxGroupContext } from "../CheckboxGroup/CheckboxGroup.context";
-import { Typography } from "../Typography/Typography";
+import { useTheme } from "../useTheme";
 import {
-    resolveCheckboxColor,
     resolveCheckboxSize,
     resolveCheckboxStyles,
     resolveIconScaling,
 } from "./Checkbox.helpers";
-import { type CheckboxProps } from "./Checkbox.types";
+import type { CheckboxProps } from "./Checkbox.types";
 
-const CheckboxWrapper = styled(Pressable)<CheckboxProps>(
-    ({ theme, disabled, size = "md" }) => ({
-        position: "relative",
-        display: "flex",
-        alignItems: "center",
-        userSelect: "none",
-        ...(disabled && {
-            opacity: 0.5,
-            pointerEvents: "none",
-        }),
-        ...resolveCheckboxSize(theme, size),
-    }),
-);
-
-CheckboxWrapper.displayName = "CheckboxWrapper";
-
-const CheckboxBox = styled(View)<Omit<CheckboxProps, "value">>(
-    ({
-        theme,
-        color = "neutral",
-        variant = "solid",
-        size = "md",
-        checked,
-    }) => ({
-        justifyContent: "center",
-        alignItems: "center",
-        borderRadius: 4,
-        ...resolveCheckboxSize(theme, size),
-        ...resolveCheckboxStyles(theme, color, checked)[variant],
-    }),
-);
-
-const CheckboxLabel = styled(Typography)<{
-    rtl?: boolean;
-    disabled?: boolean;
-    color: string;
-}>(({ rtl, disabled, color }) => ({
-    color,
-    opacity: disabled ? 0.5 : 1,
-    ...(rtl ? { marginRight: 8 } : { marginLeft: 8 }),
-}));
-
-CheckboxLabel.displayName = "CheckboxLabel";
-
-const IconWrapper = styled(View)<{
-    size?: Size | SizeValue | number;
-}>(({ theme, size = "md" }) => ({
-    justifyContent: "center",
+const Wrapper = styled.View({
+    flexDirection: "row",
     alignItems: "center",
-    ...resolveIconScaling(theme, size),
-}));
+});
 
-const CheckIcon = ({ color }: { color: string }) => (
-    <View
-        style={{
-            width: "100%",
-            height: "100%",
-            justifyContent: "center",
-            alignItems: "center",
-        }}
-    >
-        <Typography
-            style={{
-                color,
-                fontSize: 12,
-                fontWeight: "bold",
-            }}
-        >
-            ✓
-        </Typography>
-    </View>
-);
+const Box = styled.View({
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 4,
+});
 
-const IndeterminateIcon = ({ color }: { color: string }) => (
-    <View
-        style={{
-            width: "60%",
-            height: 2,
-            backgroundColor: color,
-            borderRadius: 1,
-        }}
-    />
-);
+const IconSlot = styled.View({
+    alignItems: "center",
+    justifyContent: "center",
+});
 
-IconWrapper.displayName = "IconWrapper";
+const Label = styled.Text({});
 
-/**
- * Checkbox component that renders a styled checkbox input with label support.
- * It supports various properties such as checked state, disabled state, color, variant, size,
- * and custom icons for checked, unchecked, and indeterminate states.
- * The component can be controlled via props or managed internally.
- * It also supports RTL label alignment.
- */
 const Checkbox = forwardRef<View, CheckboxProps>(
     (
         {
             checked: controlledChecked,
-            onChange: propOnChange,
             defaultChecked,
+            onChange,
             label,
             disabled: propDisabled,
             color: colorProp,
             variant: variantProp,
             size: sizeProp,
+            name: propName,
             value,
             uncheckedIcon,
             checkedIcon,
             indeterminate,
             indeterminateIcon,
             rtl,
+            style,
             ...props
-        }: CheckboxProps,
+        },
         ref,
     ) => {
         const { theme } = useTheme();
-
         const group = useContext(CheckboxGroupContext);
+
         const [uncontrolledChecked, setUncontrolledChecked] = useState(
             defaultChecked ?? false,
         );
-        const inputRef = useRef<HTMLInputElement>(null);
+
+        const color = colorProp ?? group?.color ?? "neutral";
+        const variant = variantProp ?? group?.variant ?? "solid";
+        const size = sizeProp ?? group?.size ?? "md";
+        const name = group?.name ?? propName;
+        const disabled = Boolean(group?.disabled ?? propDisabled);
 
         const isChecked =
-            group && value
+            group && value !== undefined
                 ? Array.isArray(group.value) && group.value.includes(value)
                 : controlledChecked !== undefined
                   ? controlledChecked
                   : uncontrolledChecked;
 
-        const handlePress = () => {
-            if (disabled) return;
+        const { fontSize } = resolveCheckboxSize(theme, size);
 
-            const newChecked = !isChecked;
+        const iconSize = resolveIconScaling(theme, size);
 
+        const baseStyles = useMemo(
+            () => resolveCheckboxStyles(theme, color, isChecked)[variant],
+            [theme, color, isChecked, variant],
+        );
+
+        const activeStyles = useMemo(
+            () => resolveCheckboxStyles(theme, color, true)[variant],
+            [theme, color, variant],
+        );
+
+        const toggle = (next: boolean) => {
             if (!group && controlledChecked === undefined) {
-                setUncontrolledChecked(newChecked);
+                setUncontrolledChecked(next);
             }
 
-            if (group?.onChange && value) {
-                group.onChange(value);
+            if (group?.onChange && value !== undefined) {
+                const currentValues = group.value || [];
+                const newValues = next
+                    ? [...currentValues, value]
+                    : currentValues.filter((v) => v !== value);
+
+                group.onChange(undefined, newValues);
             }
 
-            propOnChange?.(newChecked);
+            onChange?.(next);
         };
 
-        const color = colorProp ?? group?.color ?? "neutral";
-        const variant = variantProp ?? group?.variant ?? "solid";
-        const size = sizeProp ?? group?.size ?? "md";
-        const disabled = group?.disabled ?? propDisabled;
+        const renderDefaultIcon = (kind: "checked" | "indeterminate") => {
+            const stroke = baseStyles.iconColor;
 
-        const textColor = resolveCheckboxColor(theme, color)[variant];
-        const iconColor = resolveCheckboxColor(theme, color)[variant];
+            if (kind === "indeterminate") {
+                return (
+                    <Svg
+                        width={iconSize.width}
+                        height={iconSize.height}
+                        viewBox="0 0 24 24"
+                    >
+                        <Line
+                            x1="6"
+                            y1="12"
+                            x2="18"
+                            y2="12"
+                            stroke={stroke}
+                            strokeWidth={3}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                        />
+                    </Svg>
+                );
+            }
+
+            return (
+                <Svg
+                    width={iconSize.width}
+                    height={iconSize.height}
+                    viewBox="0 0 24 24"
+                >
+                    <Polyline
+                        points="4 12 10 18 20 6"
+                        fill="none"
+                        stroke={stroke}
+                        strokeWidth={3}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    />
+                </Svg>
+            );
+        };
+
+        const labelNode = label ? (
+            <Label
+                style={[{ marginLeft: rtl ? 0 : 8, marginRight: rtl ? 8 : 0 }]}
+            >
+                {label}
+            </Label>
+        ) : null;
 
         return (
-            <CheckboxWrapper
-                ref={ref}
-                disabled={disabled}
-                size={size}
-                onPress={handlePress}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: isChecked }}
-                style={({ pressed }) => ({
-                    opacity: pressed && !disabled ? 0.8 : disabled ? 0.5 : 1,
-                })}
+            <Pressable
                 {...props}
+                ref={ref}
+                accessibilityRole="checkbox"
+                accessibilityState={{
+                    disabled,
+                    checked: indeterminate ? "mixed" : Boolean(isChecked),
+                }}
+                disabled={disabled}
+                onPress={() => toggle(!isChecked)}
+                style={({ pressed }) => {
+                    const visual = pressed ? activeStyles : baseStyles;
+
+                    const focusRing = !disabled
+                        ? {
+                              shadowColor:
+                                  activeStyles.box.backgroundColor ?? "#000",
+                              shadowOpacity: 0.35,
+                              shadowRadius: 6,
+                              shadowOffset: { width: 0, height: 0 },
+                              elevation: 2,
+                          }
+                        : {};
+
+                    const resolvedStyle =
+                        typeof style === "function"
+                            ? style({ pressed })
+                            : style;
+
+                    return [
+                        { opacity: disabled ? 0.5 : 1 },
+                        visual.box ?? {},
+                        focusRing,
+                        resolvedStyle,
+                    ];
+                }}
             >
-                {rtl && label && (
-                    <CheckboxLabel
-                        disabled={disabled}
-                        rtl={rtl}
-                        color={textColor}
+                <Wrapper>
+                    {rtl ? labelNode : null}
+                    <Box
+                        style={[
+                            {
+                                width: fontSize,
+                                height: fontSize,
+                            },
+                            baseStyles.box,
+                        ]}
                     >
-                        {label}
-                    </CheckboxLabel>
-                )}
-                <CheckboxBox
-                    color={color}
-                    variant={variant}
-                    checked={isChecked}
-                    size={size}
-                >
-                    {indeterminate ? (
-                        indeterminateIcon ? (
-                            <IconWrapper size={size}>
-                                {indeterminateIcon}
-                            </IconWrapper>
-                        ) : (
-                            <IconWrapper size={size}>
-                                <IndeterminateIcon color={iconColor} />
-                            </IconWrapper>
-                        )
-                    ) : isChecked ? (
-                        checkedIcon ? (
-                            <IconWrapper size={size}>{checkedIcon}</IconWrapper>
-                        ) : (
-                            <IconWrapper size={size}>
-                                <CheckIcon color={iconColor} />
-                            </IconWrapper>
-                        )
-                    ) : uncheckedIcon ? (
-                        <IconWrapper size={size}>{uncheckedIcon}</IconWrapper>
-                    ) : null}
-                </CheckboxBox>
-                {!rtl && label && (
-                    <CheckboxLabel
-                        disabled={disabled}
-                        rtl={rtl}
-                        color={textColor}
-                    >
-                        {label}
-                    </CheckboxLabel>
-                )}
-            </CheckboxWrapper>
+                        <IconSlot
+                            style={{
+                                width: iconSize.width,
+                                height: iconSize.height,
+                            }}
+                        >
+                            {indeterminate
+                                ? indeterminateIcon
+                                    ? indeterminateIcon
+                                    : renderDefaultIcon("indeterminate")
+                                : isChecked
+                                  ? checkedIcon
+                                      ? checkedIcon
+                                      : renderDefaultIcon("checked")
+                                  : uncheckedIcon
+                                    ? uncheckedIcon
+                                    : null}
+                        </IconSlot>
+                    </Box>
+
+                    {!rtl ? labelNode : null}
+                </Wrapper>
+            </Pressable>
         );
     },
 );
 
 Checkbox.displayName = "Checkbox";
-
-export { Checkbox };

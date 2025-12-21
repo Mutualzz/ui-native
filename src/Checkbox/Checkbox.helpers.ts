@@ -1,5 +1,6 @@
-import { type Theme } from "@emotion/react";
+import type { Theme } from "@emotion/react";
 import {
+    createColor,
     formatColor,
     resolveColor,
     resolveSize,
@@ -12,55 +13,78 @@ import {
 import type { ViewStyle } from "react-native";
 
 export const baseSizeMap: Record<Size, number> = {
-    sm: 12,
-    md: 16,
-    lg: 20,
+    sm: 20,
+    md: 24,
+    lg: 32,
 };
 
 export const resolveCheckboxSize = (
     theme: Theme,
     size: Size | SizeValue | number,
-): ViewStyle => {
+) => {
     const resolvedSize = resolveSize(theme, size, baseSizeMap);
 
     return {
-        width: resolvedSize,
-        height: resolvedSize,
+        fontSize: resolvedSize,
     };
+};
+
+export type CheckboxVisualStyle = {
+    box: ViewStyle;
+    iconColor: string;
 };
 
 export const resolveCheckboxStyles = (
     theme: Theme,
     color: Color | ColorLike,
     checked?: boolean,
-): Record<Variant, ViewStyle> => {
+): Record<Variant, CheckboxVisualStyle> => {
     const resolvedColor = resolveColor(color, theme);
-    const hexColor = formatColor(resolvedColor, {
-        format: "rgba",
+    const hexColor = formatColor(resolvedColor, { format: "hexa" });
+
+    const solidTextColor = formatColor(theme.typography.colors.primary, {
+        format: "hexa",
+        negate: createColor(resolvedColor).isLight(),
     });
 
     return {
         solid: {
-            backgroundColor: hexColor,
-            borderColor: hexColor,
-            borderWidth: 1,
+            box: {
+                backgroundColor: hexColor,
+                borderWidth: 1,
+                borderColor: hexColor,
+            },
+            iconColor: solidTextColor,
         },
+
         outlined: {
-            backgroundColor: checked
-                ? formatColor(resolvedColor, { alpha: 10, format: "rgba" })
-                : "transparent",
-            borderColor: hexColor,
-            borderWidth: 1,
+            box: {
+                backgroundColor: checked
+                    ? formatColor(resolvedColor, { alpha: 10, format: "hexa" })
+                    : "transparent",
+                borderWidth: 1,
+                borderColor: formatColor(resolvedColor, { format: "hexa" }),
+            },
+            iconColor: formatColor(resolvedColor, { format: "hexa" }),
         },
+
         soft: {
-            backgroundColor: checked
-                ? formatColor(resolvedColor, { alpha: 30, format: "rgba" })
-                : formatColor(resolvedColor, { alpha: 10, format: "rgba" }),
-            borderWidth: 0,
+            box: {
+                backgroundColor: formatColor(resolvedColor, {
+                    alpha: checked ? 30 : 10,
+                    format: "hexa",
+                }),
+                borderWidth: 0,
+            },
+            iconColor: formatColor(resolvedColor, { format: "hexa" }),
         },
+
         plain: {
-            backgroundColor: "transparent",
-            borderWidth: 0,
+            box: {
+                backgroundColor: "transparent",
+                borderWidth: 0,
+            },
+            iconColor: formatColor(resolvedColor, { format: "hexa" }),
         },
     };
 };
@@ -68,26 +92,11 @@ export const resolveCheckboxStyles = (
 export const resolveIconScaling = (
     theme: Theme,
     size: Size | SizeValue | number,
-): ViewStyle => {
+) => {
     const resolvedSize = resolveSize(theme, size, baseSizeMap);
 
     return {
         width: resolvedSize * 0.5,
         height: resolvedSize * 0.5,
-    };
-};
-
-export const resolveCheckboxColor = (
-    theme: Theme,
-    color: Color | ColorLike,
-) => {
-    const resolvedColor = resolveColor(color, theme);
-    const hexColor = formatColor(resolvedColor, { format: "rgba" });
-
-    return {
-        solid: theme.typography.colors.primary,
-        outlined: hexColor,
-        soft: hexColor,
-        plain: hexColor,
     };
 };

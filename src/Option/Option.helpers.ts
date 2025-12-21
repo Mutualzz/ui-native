@@ -1,33 +1,22 @@
 import type { Theme } from "@emotion/react";
-import {
-    formatColor,
-    resolveColor,
-    resolveSize,
-    type Color,
-    type ColorLike,
-    type Size,
-    type SizeValue,
-} from "@mutualzz/ui-core";
+import type { Color, ColorLike, Size, SizeValue } from "@mutualzz/ui-core";
+import { formatColor, resolveColor, resolveSize } from "@mutualzz/ui-core";
+import type { ViewStyle } from "react-native";
 
-const baseSizeMap: Record<Size, number> = {
-    sm: 32,
-    md: 40,
-    lg: 48,
-};
+const padYMap: Record<Size, number> = { sm: 12, md: 16, lg: 20 };
+const padXMap: Record<Size, number> = { sm: 16, md: 20, lg: 24 };
 
 export const resolveOptionSize = (
     theme: Theme,
     size: Size | SizeValue | number,
-) => {
-    const resolved = resolveSize(theme, size, baseSizeMap);
+): ViewStyle => {
+    const py = resolveSize(theme, size, padYMap);
+    const px = resolveSize(theme, size, padXMap);
+
     return {
-        container: {
-            paddingHorizontal: resolved * 0.25,
-            paddingVertical: resolved * 0.15,
-        },
-        text: {
-            fontSize: resolved * 0.32,
-        },
+        paddingVertical: py,
+        paddingHorizontal: px,
+        borderRadius: 8,
     };
 };
 
@@ -35,77 +24,30 @@ export const resolveOptionStyles = (
     theme: Theme,
     color: Color | ColorLike,
     isSelected: boolean,
-) => {
-    const resolvedColor = resolveColor(color, theme);
+): Record<"plain" | "outlined" | "soft" | "solid", ViewStyle> => {
+    const resolved = resolveColor(color, theme);
+    const hex = formatColor(resolved, { format: "hexa" });
+
+    const selectedBg = formatColor(resolved, { alpha: 20, format: "hexa" });
 
     return {
-        solid: {
-            container: {
-                backgroundColor: isSelected
-                    ? formatColor(resolvedColor, { alpha: 18, format: "rgba" })
-                    : formatColor(resolvedColor, { format: "rgba" }),
-            },
-            text: {
-                color: formatColor(theme.typography.colors.primary, {
-                    format: "rgba",
-                }),
-            },
+        plain: {
+            backgroundColor: isSelected ? selectedBg : "transparent",
         },
         outlined: {
-            container: {
-                backgroundColor: isSelected
-                    ? formatColor(resolvedColor, {
-                          alpha: 70,
-                          format: "rgba",
-                          lighten: 15,
-                      })
-                    : "transparent",
-                borderTopWidth: 0,
-            },
-            text: {
-                color: formatColor(resolvedColor, {
-                    format: "rgba",
-                    lighten: 80,
-                }),
-            },
+            backgroundColor: isSelected ? selectedBg : "transparent",
+            borderWidth: 1,
+            borderColor: hex,
         },
         soft: {
-            container: {
-                backgroundColor: isSelected
-                    ? formatColor(resolvedColor, {
-                          alpha: 70,
-                          format: "rgba",
-                          lighten: 15,
-                      })
-                    : formatColor(resolvedColor, {
-                          format: "rgba",
-                          lighten: 8,
-                      }),
-            },
-            text: {
-                color: formatColor(resolvedColor, {
-                    format: "rgba",
-                    lighten: 80,
-                }),
-            },
+            backgroundColor: isSelected
+                ? formatColor(resolved, { alpha: 30, format: "hexa" })
+                : formatColor(resolved, { alpha: 12, format: "hexa" }),
         },
-        plain: {
-            container: {
-                backgroundColor: isSelected
-                    ? formatColor(resolvedColor, {
-                          alpha: 70,
-                          format: "rgba",
-                          lighten: 15,
-                      })
-                    : "transparent",
-                borderTopWidth: 0,
-            },
-            text: {
-                color: formatColor(resolvedColor, {
-                    format: "rgba",
-                    lighten: 80,
-                }),
-            },
+        solid: {
+            backgroundColor: isSelected
+                ? hex
+                : formatColor(resolved, { alpha: 80, format: "hexa" }),
         },
     };
 };

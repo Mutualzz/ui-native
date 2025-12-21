@@ -1,6 +1,7 @@
 import type { Theme } from "@emotion/react";
 import {
     dynamicElevation,
+    flipNumber,
     formatColor,
     isValidGradient,
     resolveColor,
@@ -13,47 +14,76 @@ import type { PaperVariant } from "./Paper.types";
 export const resolvePaperStyles = (
     theme: Theme,
     color: Color | ColorLike,
+
+    variant: PaperVariant,
     elevation: number,
-    nonTranslucent: boolean,
+    transparency: number,
 ): Record<PaperVariant, ViewStyle> => {
     const { colors } = theme;
     const resolvedColor = resolveColor(color, theme);
 
+    const elevatedColor = dynamicElevation(
+        variant === "solid" ? resolvedColor : colors.surface,
+        elevation,
+    );
+
+    const isGradient = isValidGradient(elevatedColor);
+    const gradientLayer = isGradient
+        ? formatColor(elevatedColor, {
+              alpha: flipNumber(transparency),
+              format: "hexa",
+          })
+        : null;
+
+    const opaqueBase =
+        formatColor(colors.background, { format: "hexa" }) ??
+        formatColor(colors.neutral, { darken: 20, format: "hexa" });
+
+    const elevatedBackgroundStyles: ViewStyle = isGradient
+        ? {
+              backgroundColor: opaqueBase,
+          }
+        : {
+              backgroundColor: elevatedColor,
+          };
+
     return {
         elevation: {
-            backgroundColor: isValidGradient(colors.surface)
-                ? nonTranslucent
-                    ? colors.surface
-                    : formatColor(colors.surface, {
-                          alpha: 20,
-                          format: "rgba",
-                      })
-                : dynamicElevation(colors.surface, elevation),
+            ...elevatedBackgroundStyles,
             boxShadow: `0 ${2 + elevation}px ${8 + elevation * 2}px rgba(0,0,0,${0.1 + elevation * 0.05})`,
         },
         solid: {
-            backgroundColor: formatColor(resolvedColor, {
-                format: "rgba",
-            }),
-            borderWidth: 0,
+            backgroundColor:
+                formatColor(elevatedColor, {
+                    format: "hexa",
+                }) ?? theme.colors.primary,
         },
         outlined: {
+            ...(elevation === 0
+                ? { backgroundColor: "transparent" }
+                : elevatedBackgroundStyles),
             borderWidth: 1,
-            borderColor:
-                formatColor(resolvedColor, { alpha: 30, format: "rgba" }) ||
-                "transparent",
+            borderColor: formatColor(resolvedColor, {
+                alpha: 20,
+                format: "hexa",
+            }),
             borderStyle: "solid",
         },
         plain: {
-            backgroundColor: "transparent",
-            borderWidth: 0,
+            ...(elevation === 0
+                ? { backgroundColor: "transparent" }
+                : elevatedBackgroundStyles),
         },
         soft: {
-            backgroundColor: formatColor(resolvedColor, {
-                alpha: 20,
-                format: "rgba",
-            }),
-            borderWidth: 0,
+            backgroundColor: formatColor(
+                elevation === 0
+                    ? resolvedColor
+                    : (gradientLayer ?? resolvedColor),
+                {
+                    alpha: 10,
+                    format: "hexa",
+                },
+            ),
         },
     };
 };

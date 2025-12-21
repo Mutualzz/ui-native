@@ -1,37 +1,36 @@
 import styled from "@emotion/native";
-import { TextInput } from "react-native";
 import {
-    resolveInputRootSize,
+    resolveInputRootLayout,
     resolveInputRootStyles,
 } from "./InputRoot.helpers";
 import type { InputRootProps } from "./InputRoot.types";
 
-const InputRoot = styled(TextInput)<InputRootProps>(
+const InputRoot = styled.View<InputRootProps>(
     ({
         theme,
         color = "neutral",
-        textColor = "inherit",
         size = "md",
         variant = "outlined",
         error = false,
+        readOnly = false,
         fullWidth,
         disabled,
     }) => ({
-        ...resolveInputRootSize(theme, size, fullWidth),
-        ...resolveInputRootStyles(theme, color, textColor, error)[variant],
-        ...(disabled && { opacity: 0.5 }),
+        ...resolveInputRootLayout(theme, size),
+        ...resolveInputRootStyles(theme, color, error, readOnly)[variant],
 
-        display: "flex",
+        ...(disabled ? { opacity: 0.5 } : null),
+
+        flexDirection: "row",
         alignItems: "center",
+        columnGap: 4,
 
+        width: fullWidth ? "100%" : undefined,
         minWidth: 0,
         flexShrink: 1,
         flexGrow: fullWidth ? 1 : 0,
-        boxSizing: "border-box",
-        overflow: "hidden",
 
-        gap: 6,
-        borderRadius: 8,
+        overflow: "hidden",
     }),
 );
 

@@ -1,111 +1,79 @@
 import styled from "@emotion/native";
-import { forwardRef, useContext, useMemo } from "react";
-import { Pressable, View } from "react-native";
-import { SelectContext } from "Select/Select.context";
-import { Typography } from "../Typography/Typography";
+import type {
+    Color,
+    ColorLike,
+    Size,
+    SizeValue,
+    Variant,
+} from "@mutualzz/ui-core";
+import { useContext, type FC } from "react";
+import { Pressable, Text } from "react-native";
+import { SelectContext } from "../Select/Select.context";
 import { resolveOptionSize, resolveOptionStyles } from "./Option.helpers";
 import type { OptionProps } from "./Option.types";
 
-const OptionRoot = styled(View)<
-    Omit<OptionProps, "value"> & { pressed: boolean }
->(
-    ({
-        theme,
-        size = "md",
-        variant = "outlined",
-        color = "neutral",
-        selected,
-        disabled,
-        pressed,
-    }) => ({
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 8,
-        ...resolveOptionStyles(theme, color, !!selected)[variant].container,
-        ...resolveOptionSize(theme, size).container,
-        opacity: disabled ? 0.5 : pressed ? 0.7 : 1,
-    }),
-);
+const OptionWrapper = styled(Pressable)<{
+    color: Color | ColorLike;
+    variant: Variant;
+    size: Size | SizeValue | number;
+    isSelected: boolean;
+    disabled?: boolean;
+}>(({ theme, color, variant, size, isSelected, disabled }) => ({
+    ...resolveOptionStyles(theme, color, isSelected)[variant],
+    ...resolveOptionSize(theme, size),
 
-const OptionText = styled(Typography)<Omit<OptionProps, "value">>(
-    ({ theme, size = "md", variant = "outlined", color = "neutral" }) => ({
-        flexShrink: 1,
-        ...resolveOptionStyles(theme, color, false)[variant].text,
-        ...resolveOptionSize(theme, size).text,
-    }),
-);
+    opacity: disabled ? 0.5 : 1,
 
-const Bullet = styled(View)<{
-    selected?: boolean;
-}>(({ selected }) => ({
-    width: 8,
-    height: 8,
-    borderRadius: 9999,
-    opacity: selected ? 1 : 0.2,
-    backgroundColor: "#000",
+    flexDirection: "row",
+    alignItems: "center",
 }));
 
-const Option = forwardRef<View, OptionProps>(
-    (
-        {
-            value,
-            disabled: disabledProp,
-            color: colorProp,
-            variant: variantProp,
-            size: sizeProp,
-            label,
-            children,
-            onPress,
-            android_ripple,
-            ...props
-        },
-        ref,
-    ) => {
-        const parent = useContext(SelectContext);
+const Option: FC<OptionProps> = ({
+    value,
+    disabled: disabledProp,
+    color: colorProp,
+    variant: variantProp,
+    size: sizeProp,
+    label,
+    children,
+    style,
+    ...props
+}) => {
+    const parent = useContext(SelectContext);
 
-        const color = colorProp ?? parent?.color ?? "neutral";
-        const variant = variantProp ?? parent?.variant ?? "outlined";
-        const size = sizeProp ?? parent?.size ?? "md";
-        const disabled = disabledProp ?? parent?.disabled ?? false;
+    const color = colorProp ?? parent?.color ?? "primary";
+    const variant = variantProp ?? parent?.variant ?? "solid";
+    const size = sizeProp ?? parent?.size ?? "md";
+    const disabled = parent?.disabled ?? disabledProp;
 
-        const isSelected = useMemo(() => {
-            return parent?.multiple
-                ? Array.isArray(parent.value) && parent.value.includes(value)
-                : parent?.value === value;
-        }, [parent?.multiple, parent?.value, value]);
+    const isSelected = parent?.multiple
+        ? Array.isArray(parent.value) && parent.value.includes(value)
+        : parent?.value === value;
 
-        return (
-            <Pressable
-                accessibilityRole="button"
-                accessibilityState={{ disabled, selected: isSelected }}
-                disabled={disabled}
-                android_ripple={android_ripple ?? { borderless: false }}
-                onPress={(e) => {
-                    if (disabled) return;
-                    parent?.onSelect(value);
-                    onPress?.(e);
-                }}
-                {...props}
-            >
-                {({ pressed }) => (
-                    <OptionRoot
-                        size={size}
-                        variant={variant}
-                        color={color}
-                        selected={isSelected}
-                        disabled={disabled}
-                        pressed={pressed}
-                    >
-                        <Bullet selected={isSelected} />
-                        <OptionText size={size} variant={variant} color={color}>
-                            {children ?? label ?? String(value)}
-                        </OptionText>
-                    </OptionRoot>
-                )}
-            </Pressable>
-        );
-    },
-);
+    const handlePress = () => {
+        if (!disabled) parent?.onSelect(value);
+    };
+
+    return (
+        <OptionWrapper
+            {...props}
+            color={color}
+            variant={variant}
+            size={size}
+            isSelected={isSelected}
+            disabled={disabled}
+            onPress={handlePress}
+            accessibilityRole="menuitem"
+            accessibilityState={{ selected: isSelected, disabled }}
+            style={({ pressed }) => [
+                pressed && !disabled ? { opacity: 0.85 } : null,
+                style,
+            ]}
+        >
+            <Text>{children ?? label ?? String(value)}</Text>
+        </OptionWrapper>
+    );
+};
 
 Option.displayName = "Option";
 

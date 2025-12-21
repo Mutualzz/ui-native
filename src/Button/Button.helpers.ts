@@ -1,65 +1,147 @@
-import { type Theme } from "@emotion/react";
-import type { Color, ColorLike, Variant } from "@mutualzz/ui-core";
-import { formatColor, resolveColor } from "@mutualzz/ui-core";
+import type { Theme } from "@emotion/react";
+import type {
+    Color,
+    ColorLike,
+    Size,
+    SizeValue,
+    Variant,
+} from "@mutualzz/ui-core";
+import {
+    createColor,
+    formatColor,
+    resolveColor,
+    resolveSize,
+} from "@mutualzz/ui-core";
 import type { TextStyle, ViewStyle } from "react-native";
 
-export function resolveButtonContainerStyles(
+const baseSizeMap: Record<Size, number> = {
+    sm: 14,
+    md: 16,
+    lg: 18,
+};
+
+export const resolveButtonContainerSize = (
+    theme: Theme,
+    size: Size | SizeValue | number,
+    padding?: number,
+) => {
+    const resolvedSize = resolveSize(theme, size, baseSizeMap);
+
+    const pad =
+        typeof padding === "number" ? padding : (padding ?? resolvedSize * 0.6);
+
+    return {
+        fontSize: resolvedSize,
+        padding: pad,
+        gap: resolvedSize * 0.5,
+    };
+};
+
+type ButtonContainerState = {
+    disabled?: boolean;
+    selected?: boolean;
+    pressed?: boolean;
+};
+
+export const resolveButtonContainerStyles = (
     theme: Theme,
     color: Color | ColorLike,
-): Record<Variant, ViewStyle> {
+    state: ButtonContainerState,
+): Record<Variant, ViewStyle> => {
+    const { disabled, selected, pressed } = state;
+
     const resolvedColor = resolveColor(color, theme);
-    const hexColor = formatColor(resolvedColor, { format: "rgba" });
+    const hexColor = formatColor(resolvedColor, { format: "hexa" });
+
+    const disabledSolidBg = formatColor(resolvedColor, {
+        alpha: 50,
+        format: "hexa",
+    });
+
+    const disabledBgSoft = formatColor(resolvedColor, {
+        alpha: 5,
+        format: "hexa",
+    });
+
+    const disabledBorder = formatColor(resolvedColor, {
+        alpha: 30,
+        format: "hexa",
+    });
 
     return {
         solid: {
-            backgroundColor: hexColor,
+            backgroundColor: disabled
+                ? disabledSolidBg
+                : selected || pressed
+                  ? formatColor(resolvedColor, { alpha: 70, format: "hexa" })
+                  : hexColor,
             borderWidth: 0,
-            borderStyle: undefined,
-            borderColor: "transparent",
+            ...(disabled && { opacity: 0.5 }),
         },
+
         outlined: {
-            backgroundColor: "transparent",
+            backgroundColor: selected
+                ? formatColor(resolvedColor, { alpha: 30, format: "hexa" })
+                : pressed
+                  ? formatColor(resolvedColor, { alpha: 30, format: "hexa" })
+                  : "transparent",
             borderWidth: 1,
-            borderStyle: "solid",
-            borderColor: hexColor,
+            borderColor: disabled
+                ? disabledBorder
+                : formatColor(resolvedColor, { format: "hexa" }),
+            ...(disabled && { opacity: 0.5 }),
         },
+
         plain: {
-            backgroundColor: "transparent",
+            backgroundColor: selected
+                ? formatColor(resolvedColor, { alpha: 30, format: "hexa" })
+                : pressed
+                  ? formatColor(resolvedColor, { alpha: 30, format: "hexa" })
+                  : "transparent",
             borderWidth: 0,
-            borderStyle: undefined,
-            borderColor: "transparent",
+            ...(disabled && { opacity: 0.5 }),
         },
+
         soft: {
-            backgroundColor: formatColor(resolvedColor, {
-                alpha: 15,
-                format: "rgba",
-            }),
+            backgroundColor: disabled
+                ? disabledBgSoft
+                : selected || pressed
+                  ? formatColor(resolvedColor, { alpha: 40, format: "hexa" })
+                  : formatColor(resolvedColor, { alpha: 15, format: "hexa" }),
             borderWidth: 0,
-            borderStyle: undefined,
-            borderColor: "transparent",
+            ...(disabled && { opacity: 0.5 }),
         },
     };
-}
+};
 
 export const resolveButtonTextStyles = (
     theme: Theme,
     color: Color | ColorLike,
+    state?: { disabled?: boolean },
 ): Record<Variant, TextStyle> => {
     const resolvedColor = resolveColor(color, theme);
-    const hexColor = formatColor(resolvedColor, { format: "rgba" });
+    const hexColor = formatColor(resolvedColor, { format: "hexa" });
+
+    const solidTextColor = formatColor(theme.typography.colors.primary, {
+        format: "hexa",
+        negate: createColor(resolvedColor).isLight(),
+    });
+
+    const disabledSolidFg = formatColor(theme.typography.colors.primary, {
+        alpha: 60,
+        format: "hexa",
+    });
+    const disabledFg = formatColor(resolvedColor, {
+        alpha: 50,
+        format: "hexa",
+    });
+
+    const disabled = state?.disabled;
 
     return {
-        solid: {
-            color: theme.typography.colors.primary,
-        },
-        outlined: {
-            color: hexColor,
-        },
-        plain: {
-            color: hexColor,
-        },
-        soft: {
-            color: hexColor,
-        },
+        solid: { color: disabled ? disabledSolidFg : solidTextColor },
+        outlined: { color: disabled ? disabledFg : hexColor },
+        plain: { color: disabled ? disabledFg : hexColor },
+        soft: { color: disabled ? disabledFg : hexColor },
     };
 };

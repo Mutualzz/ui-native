@@ -1,9 +1,17 @@
 import styled from "@emotion/native";
-import type { Size } from "@mutualzz/ui-core";
+import type { ColorLike, Size } from "@mutualzz/ui-core";
 import { resolveSize } from "@mutualzz/ui-core";
-import { forwardRef } from "react";
-import { Pressable, View } from "react-native";
-import { Typography } from "../Typography/Typography";
+import {
+    cloneElement,
+    forwardRef,
+    isValidElement,
+    useContext,
+    useMemo,
+} from "react";
+import { Pressable, View, type GestureResponderEvent } from "react-native";
+import { ButtonGroupContext } from "../ButtonGroup/ButtonGroup.context";
+import { CircularProgress } from "../CircularProgress/CircularProgress";
+import { useTheme } from "../useTheme";
 import {
     resolveIconButtonContainerStyles,
     resolveIconButtonTextStyles,
@@ -16,124 +24,200 @@ const baseSizeMap: Record<Size, number> = {
     lg: 24,
 };
 
-const IconButtonWrapper = styled(Pressable)<IconButtonProps>(
-    ({
-        theme,
-        color = "primary",
-        variant = "plain",
-        size = "md",
-        disabled,
-    }) => ({
-        position: "relative",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        boxSizing: "border-box",
-        borderRadius: "6px",
-        flexShrink: 0,
-        lineHeight: 1.2,
-        padding: 4,
-        ...(disabled && {
-            opacity: 0.5,
-            pointerEvents: "none",
-        }),
-        ...() => {
-            const resolvedSize = resolveSize(theme, size, baseSizeMap);
-            return {
-                fontSize: resolvedSize,
-                ...resolveIconButtonContainerStyles(theme, color)[variant],
-            };
-        },
-    }),
-);
+const ContentRow = styled.View({
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 0,
+});
 
-IconButtonWrapper.displayName = "IconButtonWrapper";
-
-const IconButtonContent = styled(Typography)<IconButtonProps>(
-    ({
-        theme,
-        color = "primary",
-        variant = "plain",
-        size = "md",
-        loading,
-    }) => ({
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexGrow: 0,
-        flexShrink: 0,
-        width: "auto",
-        height: "100%",
-        opacity: loading ? 0 : 1,
-        boxSizing: "border-box",
-        fontSize: resolveSize(theme, size, baseSizeMap),
-        ...resolveIconButtonTextStyles(theme, color)[variant],
-    }),
-);
-
-IconButtonContent.displayName = "IconButtonContent";
-
-const SpinnerOverlay = styled(View)({
+const SpinnerOverlay = styled.View({
     position: "absolute",
-    inset: 0,
-    display: "flex",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
     alignItems: "center",
     justifyContent: "center",
     pointerEvents: "none",
 });
 
-SpinnerOverlay.displayName = "SpinnerOverlay";
+const ButtonText = styled.Text();
 
 const IconButton = forwardRef<View, IconButtonProps>(
     (
         {
-            variant = "plain",
-            color = "primary",
-            size = "md",
-            loading,
+            variant: propVariant,
+            color: propColor,
+            size: propSize,
+            loading: propLoading,
             loadingIndicator,
-            disabled,
+            disabled: propDisabled,
+            padding,
+            fullWidth: propFullWidth,
             children,
+            style,
+            selected: selectedProp,
+            onPress: onPressProp,
+
+            value,
             ...props
         },
         ref,
     ) => {
+        const { theme } = useTheme();
+        const group = useContext(ButtonGroupContext);
+
+        const variant = propVariant ?? group?.variant ?? "solid";
+        const color = propColor ?? group?.color ?? "primary";
+        const size = propSize ?? group?.size ?? "md";
+        const loading = propLoading ?? group?.loading ?? false;
+        const disabled = propDisabled ?? group?.disabled ?? false;
+        const fullWidth = propFullWidth ?? group?.fullWidth ?? false;
+
+        const selected =
+            selectedProp !== undefined
+                ? selectedProp
+                : group?.exclusive
+                  ? group?.value === value
+                  : Array.isArray(group?.value) && group?.value.includes(value);
+
+        const resolvedSize = resolveSize(theme, size, baseSizeMap);
+
+        const handlePress = (e: GestureResponderEvent) => {
+            if (group?.toggleable && group?.onChange && value !== undefined) {
+                if (group.exclusive) {
+                    group.onChange(value);
+                    1;
+                } else {
+                    const arr = Array.isArray(group.value) ? group.value : [];
+                    const exists = arr.includes(value);
+                    const newArr = exists
+                        ? arr.filter((v) => v !== value)
+                        : [...arr, value];
+                    group.onChange(newArr);
+                }
+            }
+
+            onPressProp?.(e);
+        };
+
+        const isDisabled = Boolean(loading || disabled);
+
+        const textVariant = useMemo(
+            () =>
+                resolveIconButtonTextStyles(theme, color, {
+                    disabled: isDisabled,
+                })[variant],
+            [theme, color, isDisabled, variant],
+        );
+
+        const contentOpacity = loading ? 0 : 1;
+
         return (
-            <IconButtonWrapper
+            <Pressable
                 {...props}
                 ref={ref}
-                variant={variant}
-                color={color}
-                size={size}
-                disabled={Boolean(loading || disabled)}
-                loading={Boolean(loading)}
+                accessibilityRole="button"
+                disabled={isDisabled}
+                onPress={handlePress}
+                style={({ pressed }) => {
+                    const resolvedStyle =
+                        typeof style === "function"
+                            ? style({ pressed })
+                            : style;
+
+                    const containerVariant = resolveIconButtonContainerStyles(
+                        theme,
+                        color,
+                        {
+                            disabled: isDisabled,
+                            selected,
+                            pressed,
+                        },
+                    )[variant];
+
+                    return [
+                        {
+                            position: "relative",
+                            flexDirection: "row",
+                            borderRadius: 6,
+                            flexShrink: 0,
+                            flexGrow: fullWidth ? 1 : 0,
+                            alignSelf: fullWidth ? "stretch" : undefined,
+                            padding,
+                            fontSize: resolvedSize,
+                            justifyContent: "center",
+                            alignItems: "center",
+                        },
+                        containerVariant,
+                        resolvedStyle,
+                    ];
+                }}
             >
-                {loading && (
-                    <SpinnerOverlay>
-                        {loadingIndicator ? (
-                            loadingIndicator
-                        ) : (
-                            /** NOTE: For now we are gonna use a simple text as a default loading indicator
-                             *  Eventually we should replace it with a proper spinner component,
-                             *  when we convert the web versison to native version
-                             */
-                            <Typography>Loading...</Typography>
-                        )}
-                    </SpinnerOverlay>
-                )}
-                <IconButtonContent
-                    color={color}
-                    variant={variant}
-                    size={size}
-                    loading={Boolean(loading)}
+                <View
+                    style={{
+                        flexDirection: "row",
+                        minWidth: 0,
+                    }}
                 >
-                    {children}
-                </IconButtonContent>
-            </IconButtonWrapper>
+                    {loading && (
+                        <SpinnerOverlay>
+                            {loadingIndicator ? (
+                                loadingIndicator
+                            ) : (
+                                <CircularProgress
+                                    variant={
+                                        variant === "solid" ||
+                                        variant === "soft"
+                                            ? "plain"
+                                            : "soft"
+                                    }
+                                    color={color}
+                                    size="sm"
+                                />
+                            )}
+                        </SpinnerOverlay>
+                    )}
+
+                    <ContentRow style={{ opacity: contentOpacity }}>
+                        {typeof children === "string" ? (
+                            <ButtonText
+                                style={[
+                                    {
+                                        fontSize: resolvedSize,
+                                    },
+                                    textVariant,
+                                ]}
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
+                            >
+                                {children}
+                            </ButtonText>
+                        ) : isValidElement<IconButtonProps>(children) ? (
+                            cloneElement(children, {
+                                color:
+                                    (textVariant?.color as ColorLike) ??
+                                    undefined,
+                                size: resolvedSize,
+                                style: [
+                                    {
+                                        fontSize: resolvedSize,
+                                        color: textVariant?.color,
+                                    },
+                                    children.props.style as any,
+                                ],
+                            })
+                        ) : (
+                            children
+                        )}
+                    </ContentRow>
+                </View>
+            </Pressable>
         );
     },
 );
 
-IconButton.displayName = "IconButton";
+IconButton.displayName = "Button";
 
 export { IconButton };

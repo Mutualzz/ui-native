@@ -1,25 +1,23 @@
 import styled from "@emotion/native";
-import { normalizeTypography } from "@mutualzz/ui-core";
-import { Text, type TextStyle } from "react-native";
-import { resolveTypographStyles } from "./Typography.helpers";
+import { Text } from "react-native";
+
+import { normalizeTypography } from "../utils/normalize";
+import { resolveTypographyStyles } from "./Typography.helpers";
 import type { TypographyProps } from "./Typography.types";
 
-const Typography = styled(Text)<TypographyProps>(
+export const Typography = styled(Text)<TypographyProps>(
     ({
         theme,
-        level = "inherit",
+        level = "body-md",
         color = "primary",
         textColor = "primary",
         variant = "none",
-        weight,
+        weight = "normal",
     }) => ({
-        ...(weight && { fontWeight: weight }),
-        ...((level !== "inherit" &&
-            normalizeTypography(theme.typography.levels[level])) as TextStyle),
-        ...resolveTypographStyles(theme, color, textColor)[variant],
+        ...normalizeTypography(theme.typography.levels[level]),
+        ...resolveTypographyStyles(theme, color, textColor)[variant],
+        fontWeight: weight,
     }),
 );
 
 Typography.displayName = "Typography";
-
-export { Typography };

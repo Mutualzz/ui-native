@@ -19,14 +19,16 @@
     "module": "./dist/index.mjs",
     "name": "@mutualzz/ui-native",
     "peerDependencies": {
-        "@emotion/native": "^11.11.0",
-        "@emotion/react": "^11.14.0",
-        "@shopify/react-native-skia": "^2.3.0",
-        "@types/react": "^17.0.0 || ^18.0.0 || ^19.0.0",
-        "react": "^17.0.0 || ^18.0.0 || ^19.0.0",
-        "react-native": "^0.81.4",
-        "react-native-safe-area-context": "~5.6.1",
-        "react-native-svg": "^15.13.0"
+        "@emotion/native": "*",
+        "@emotion/react": "*",
+        "@shopify/react-native-skia": "*",
+        "@types/react": "*",
+        "react": "*",
+        "react-native": "*",
+        "react-native-gesture-handler": "*",
+        "react-native-reanimated": "*",
+        "react-native-safe-area-context": "*",
+        "react-native-svg": "*"
     },
     "react-native": "./dist/index.mjs",
     "scripts": {

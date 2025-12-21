@@ -7,6 +7,7 @@ import {
 } from "@shopify/react-native-skia";
 import { useMemo, type PropsWithChildren } from "react";
 import { Platform, StyleSheet, useWindowDimensions } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../useTheme";
 
@@ -15,6 +16,7 @@ const styles = StyleSheet.create({
         ...StyleSheet.absoluteFillObject,
     },
     container: {
+        position: "relative",
         flex: 1,
     },
 });
@@ -37,43 +39,47 @@ const NativeBaseline = ({ children }: PropsWithChildren) => {
 
     if (!gradient) {
         return (
-            <SafeAreaView
-                edges={["left", "right"]}
-                style={[
-                    styles.container,
-                    styles.fill,
-                    { backgroundColor: theme.colors.background },
-                ]}
-            >
-                {children}
-            </SafeAreaView>
+            <GestureHandlerRootView>
+                <SafeAreaView
+                    edges={["left", "right"]}
+                    style={[
+                        styles.container,
+                        styles.fill,
+                        { backgroundColor: theme.colors.background },
+                    ]}
+                >
+                    {children}
+                </SafeAreaView>
+            </GestureHandlerRootView>
         );
     }
 
     return (
-        <SafeAreaView
-            edges={["left", "right"]}
-            style={[styles.container, styles.fill]}
-        >
-            {width > 0 && height > 0 && gradient && (
-                <Canvas
-                    style={StyleSheet.absoluteFillObject}
-                    pointerEvents="none"
-                >
-                    <Rect dither x={0} y={0} width={width} height={height}>
-                        <SkiaLinearGradient
-                            start={Platform.select({
-                                android: vec(width * 0.75, height * 0.75),
-                                default: vec(width * 0.5, height * 0.5),
-                            })}
-                            end={vec(width, height)}
-                            colors={gradient}
-                        />
-                    </Rect>
-                </Canvas>
-            )}
-            {children}
-        </SafeAreaView>
+        <GestureHandlerRootView>
+            <SafeAreaView
+                edges={["left", "right"]}
+                style={[styles.container, styles.fill]}
+            >
+                {width > 0 && height > 0 && gradient && (
+                    <Canvas
+                        style={StyleSheet.absoluteFillObject}
+                        pointerEvents="none"
+                    >
+                        <Rect dither x={0} y={0} width={width} height={height}>
+                            <SkiaLinearGradient
+                                start={Platform.select({
+                                    android: vec(width * 0.75, height * 0.75),
+                                    default: vec(width * 0.5, height * 0.5),
+                                })}
+                                end={vec(width, height)}
+                                colors={gradient}
+                            />
+                        </Rect>
+                    </Canvas>
+                )}
+                {children}
+            </SafeAreaView>
+        </GestureHandlerRootView>
     );
 };
 

@@ -13,9 +13,13 @@ export interface CheckboxGroupContextType {
     variant?: Variant;
     size?: Size | SizeValue | number;
     orientation?: Orientation;
+    name?: string;
     value?: string[];
-    onChange?: (value: string) => void;
     disabled?: boolean;
+
+    toggle?: (val: string, checked: boolean) => void;
+
+    onChange?: (event: unknown, value: string[]) => void;
 }
 
 export const CheckboxGroupContext =

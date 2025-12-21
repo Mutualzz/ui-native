@@ -1,92 +1,73 @@
 import type { Theme } from "@emotion/react";
+import type {
+    Color,
+    ColorLike,
+    Size,
+    SizeValue,
+    Variant,
+} from "@mutualzz/ui-core";
 import {
+    createColor,
     formatColor,
     resolveColor,
     resolveSize,
-    type Color,
-    type ColorLike,
-    type Size,
-    type SizeValue,
 } from "@mutualzz/ui-core";
+import type { TextStyle } from "react-native";
 
 export const baseSizeMap: Record<Size, number> = {
-    sm: 32,
-    md: 40,
-    lg: 48,
+    sm: 40,
+    md: 48,
+    lg: 56,
 };
 
 export const resolveSelectSize = (
     theme: Theme,
     size: Size | SizeValue | number,
 ) => {
-    const resolvedSize = resolveSize(theme, size, baseSizeMap);
+    const s = resolveSize(theme, size, baseSizeMap);
 
     return {
-        container: {
-            minHeight: resolvedSize,
-            paddingHorizontal: resolvedSize * 0.25,
-            paddingVertical: resolvedSize * 0.12,
-            borderRadius: 6,
-        },
-        text: {
-            fontSize: resolvedSize * 0.32,
-        },
-        popup: {
-            minWidth: resolvedSize * 3,
-            gap: resolvedSize * 0.15,
-        },
+        minHeight: s,
+        fontSize: s * 0.32,
+        paddingHorizontal: s * 0.25,
+        paddingVertical: s * 0.12,
+        minWidth: s * 3,
+        gap: s * 0.15,
     };
 };
 
-export const resolveSelectStyles = (theme: Theme, color: Color | ColorLike) => {
+export const resolveSelectStyles = (
+    theme: Theme,
+    color: Color | ColorLike,
+): Record<Variant, TextStyle> => {
     const resolvedColor = resolveColor(color, theme);
+
+    const solidTextColor = formatColor(theme.typography.colors.primary, {
+        format: "hexa",
+        negate: createColor(resolvedColor).isLight(),
+    });
 
     return {
         solid: {
-            container: {
-                backgroundColor: formatColor(resolvedColor, { format: "rgba" }),
-            },
-            text: {
-                color: formatColor(theme.typography.colors.primary, {
-                    format: "rgba",
-                }),
-            },
+            backgroundColor: formatColor(resolvedColor, { format: "hexa" }),
+            color: solidTextColor,
         },
         outlined: {
-            container: {
-                borderWidth: 1,
-                borderColor: formatColor(resolvedColor, { format: "rgba" }),
-                backgroundColor: "transparent",
-            },
-            text: {
-                color: formatColor(resolvedColor, {
-                    format: "rgba",
-                    lighten: 75,
-                }),
-            },
+            borderWidth: 1,
+            borderColor: formatColor(resolvedColor, { format: "hexa" }),
+            backgroundColor: "transparent",
+            color: formatColor(resolvedColor, { format: "hexa", lighten: 75 }),
         },
         soft: {
-            container: {
-                backgroundColor: formatColor(resolvedColor, {
-                    darken: 15,
-                    format: "rgba",
-                }),
-            },
-            text: {
-                color: formatColor(resolvedColor, {
-                    lighten: 75,
-                    format: "rgba",
-                }),
-            },
+            backgroundColor: formatColor(resolvedColor, {
+                format: "hexa",
+                darken: 50,
+            }),
+            color: formatColor(resolvedColor, { format: "hexa", lighten: 75 }),
         },
         plain: {
-            container: { backgroundColor: "transparent" },
-            text: {
-                color: formatColor(resolvedColor, {
-                    lighten: 75,
-                    format: "rgba",
-                }),
-            },
+            backgroundColor: "transparent",
+            color: formatColor(resolvedColor, { format: "hexa", lighten: 75 }),
         },
     };
 };
@@ -100,45 +81,28 @@ export const resolveSelectContentStyles = (
 
     return {
         solid: {
-            surface: {
-                backgroundColor: formatColor(resolvedColor, { format: "rgba" }),
-            },
-            item: {
-                color: formatColor(theme.typography.colors.primary, {
-                    format: "rgba",
-                }),
-            },
+            backgroundColor: formatColor(resolvedColor, { format: "hexa" }),
+            color: formatColor(theme.typography.colors.primary, {
+                format: "hexa",
+                negate: createColor(resolvedColor).isLight(),
+            }),
         },
         outlined: {
-            surface: {
-                backgroundColor: colors.surface,
-                borderWidth: 1,
-                borderColor: formatColor(resolvedColor, { format: "rgba" }),
-            },
-            item: {
-                color: formatColor(resolvedColor, {
-                    format: "rgba",
-                    lighten: 20,
-                }),
-            },
+            backgroundColor: colors.background,
+            borderWidth: 1,
+            borderColor: formatColor(resolvedColor, { format: "hexa" }),
+            color: formatColor(resolvedColor, { format: "hexa", lighten: 20 }),
         },
         soft: {
-            surface: {
-                backgroundColor: formatColor(resolvedColor, {
-                    format: "rgba",
-                    darken: 50,
-                }),
-            },
-            itemTeitemxt: {
-                color: formatColor(resolvedColor, {
-                    format: "rgba",
-                    lighten: 20,
-                }),
-            },
+            backgroundColor: formatColor(resolvedColor, {
+                format: "hexa",
+                darken: 50,
+            }),
+            color: formatColor(resolvedColor, { format: "hexa", lighten: 20 }),
         },
         plain: {
-            surface: { backgroundColor: colors.surface },
-            item: { color: formatColor(resolvedColor, { format: "rgba" }) },
+            backgroundColor: colors.background,
+            color: formatColor(resolvedColor, { format: "hexa" }),
         },
     };
 };

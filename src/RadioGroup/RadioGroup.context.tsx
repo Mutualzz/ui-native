@@ -12,9 +12,15 @@ export interface RadioGroupContextType {
     color?: Color | ColorLike;
     variant?: Variant;
     size?: Size | SizeValue | number;
+
     orientation?: Orientation;
-    value?: string;
-    onChange?: (value: string) => void;
+    spacing?: Size | SizeValue | number;
+
+    name?: string;
+    value?: any;
+
+    onChange?: (value: any) => void;
+
     disabled?: boolean;
 }
 

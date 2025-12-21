@@ -35,26 +35,19 @@ const ThemeProvider = forwardRef<
         onThemeChange?: (theme: Theme, type: ThemeType | null) => void;
     }
 >(({ children, onThemeChange }, ref) => {
-    const colorScheme = useColorScheme();
-    const prefersDark = colorScheme === "dark";
     const [type, setType] = useState<ThemeType | null>(null);
 
     const [theme, setTheme] = useState<Theme>(baseDarkTheme);
+    const [mounted, setMounted] = useState(false);
+    const prefersDark = useColorScheme() === "dark";
 
     useEffect(() => {
-        if (type) return;
-        // follow system
-        setTheme(prefersDark ? baseDarkTheme : baseLightTheme);
-    }, [type, prefersDark]);
+        setMounted(true);
+    }, []);
 
     const changeTheme = (newTheme: Theme | null) => {
         if (!newTheme) {
-            const mediaQuery = window.matchMedia(
-                "(prefers-color-scheme: dark)",
-            );
-            const preferredTheme = mediaQuery.matches
-                ? baseDarkTheme
-                : baseLightTheme;
+            const preferredTheme = prefersDark ? baseDarkTheme : baseLightTheme;
             setTheme(preferredTheme);
             setType(null);
             onThemeChange?.(preferredTheme, null);
@@ -82,13 +75,13 @@ const ThemeProvider = forwardRef<
         [type, theme],
     );
 
+    if (!mounted) return null;
+
     return (
         <ThemeContext.Provider value={value}>
             <EmotionThemeProvder theme={theme}>{children}</EmotionThemeProvder>
         </ThemeContext.Provider>
     );
 });
-
-ThemeProvider.displayName = "ThemeProvider";
 
 export { ThemeProvider };

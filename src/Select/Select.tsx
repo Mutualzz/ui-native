@@ -1,17 +1,11 @@
 import styled from "@emotion/native";
-import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
-import {
-    Dimensions,
-    Modal,
-    Pressable,
-    ScrollView,
-    View,
-    type LayoutRectangle,
-} from "react-native";
+import { forwardRef, useCallback, useMemo, useRef, useState } from "react";
+import { Pressable, Text, View, type LayoutChangeEvent } from "react-native";
+import { useTheme } from "../useTheme";
+
+import { ScrollView } from "react-native-gesture-handler";
 import Svg, { Path } from "react-native-svg";
 import { DecoratorWrapper } from "../DecoratorWrapper/DecoratorWrapper";
-import { Typography } from "../Typography/Typography";
-import { useTheme } from "../useTheme";
 import { SelectContext } from "./Select.context";
 import {
     resolveSelectContentStyles,
@@ -20,68 +14,68 @@ import {
 } from "./Select.helpers";
 import type { SelectProps } from "./Select.types";
 
-const SelectRoot = styled(Pressable)<SelectProps>(
-    ({
-        theme,
-        color = "primary",
-        variant = "solid",
-        size = "md",
-        disabled,
-    }) => ({
-        width: "100%",
-        overflow: "hidden",
-        position: "relative",
-        opacity: disabled ? 0.5 : 1,
-        flexDirection: "row",
-        alignItems: "center",
-        ...resolveSelectSize(theme, size).container,
-        ...resolveSelectStyles(theme, color)[variant].container,
-    }),
-);
+const Backdrop = styled(Pressable)({
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 999,
+});
 
-const TriggerText = styled(Typography)<SelectProps & { hasValue: boolean }>(
-    ({
-        theme,
-        color = "primary",
-        variant = "solid",
-        size = "md",
-        hasValue,
-    }) => ({
-        flex: 1,
-        opacity: hasValue ? 1 : 0.5,
-        ...resolveSelectStyles(theme, color)[variant].text,
-        ...resolveSelectSize(theme, size).text,
-    }),
-);
-
-const DropdownIcon = styled(Svg)({
-    display: "flex",
-    justifyContent: "center",
+const SelectWrapper = styled(Pressable)<{
+    disabled?: boolean;
+}>(({ disabled }) => ({
+    flexDirection: "row",
     alignItems: "center",
-    width: 24,
-    height: 24,
-    flexShrink: 0,
-    opacity: 0.7,
+    width: "100%",
+    overflow: "hidden",
+    borderRadius: 6,
+    opacity: disabled ? 0.5 : 1,
+}));
+
+const PlaceholderText = styled(Text)({
+    flexGrow: 1,
 });
 
-const PopupContainer = styled(View)<SelectProps>(
-    ({ theme, size = "md", variant = "solid", color = "primary" }) => ({
-        maxHeight: 240,
-        borderRadius: 6,
-        overflow: "hidden",
-        elevation: 6,
-        ...resolveSelectSize(theme, size).popup,
-        ...resolveSelectContentStyles(theme, color)[variant].surface,
-    }),
+const ContentContainer = styled(ScrollView)({
+    borderRadius: 6,
+    paddingVertical: 4,
+    maxHeight: 200,
+    overflow: "hidden",
+});
+
+const DropdownPositioner = styled(View)<{
+    top: number;
+    left: number;
+    width: number;
+}>(({ theme, top, left, width }) => ({
+    position: "absolute",
+    top,
+    left,
+    width,
+    zIndex: theme.zIndex.modal,
+}));
+
+const ArrowIcon = ({ reverse }: { reverse: boolean }) => (
+    <Svg
+        style={{ transform: [{ rotate: reverse ? "180deg" : "0deg" }] }}
+        width={16}
+        height={16}
+        viewBox="0 0 24 24"
+    >
+        <Path
+            d="M6 9l6 6 6-6"
+            stroke="currentColor"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+        />
+    </Svg>
 );
 
-const PopupList = styled(ScrollView)({
-    maxHeight: 240,
-});
-
-type Placement = "top" | "bottom";
-
-const Select = forwardRef<View, SelectProps>(
+export const Select = forwardRef<View, SelectProps>(
     (
         {
             size = "md",
@@ -91,8 +85,6 @@ const Select = forwardRef<View, SelectProps>(
             endDecorator,
             multiple = false,
             disabled = false,
-            required = false,
-            autoFocus = false,
             placeholder = "Select an option",
             value,
             defaultValue,
@@ -105,92 +97,100 @@ const Select = forwardRef<View, SelectProps>(
     ) => {
         const { theme } = useTheme();
 
-        const [internalValue, setInternalValue] = useState(
+        const anchorRef = useRef<View>(null);
+        const [internalValue, setInternalValue] = useState<any>(
             defaultValue ?? (multiple ? [] : ""),
         );
         const isControlled = value !== undefined;
         const currentValue = isControlled ? value : internalValue;
 
-        const [isOpen, setIsOpen] = useState(false);
-        const [anchorLayout, setAnchorLayout] =
-            useState<LayoutRectangle | null>(null);
-        const [placement, setPlacement] = useState<Placement>("bottom");
-        const anchorRef = useRef<View | null>(null);
+        const [open, setOpen] = useState(false);
+        const [contentSize, setContentSize] = useState({ width: 0, height: 0 });
+        const [anchorLayout, setAnchorLayout] = useState({
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+        });
 
-        const POPUP_VERTICAL_OFFSET = (anchorLayout?.height ?? 0) / 6;
-
-        useEffect(() => {
-            if (!anchorLayout) return;
-            const { height: windowH } = Dimensions.get("window");
-            const spaceBelow = windowH - (anchorLayout.y + anchorLayout.height);
-            const estPopupH = 200;
-            setPlacement(
-                spaceBelow < estPopupH && anchorLayout.y > estPopupH
-                    ? "top"
-                    : "bottom",
-            );
-        }, [anchorLayout]);
-
-        const setAnchorRef = useCallback(
-            (node: View | null) => {
-                anchorRef.current = node;
-                if (!ref) return;
-                if (typeof ref === "function") {
-                    ref(node);
-                } else {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    (ref as any).current = node;
-                }
-            },
-            [ref],
+        const sizeStyles = useMemo(
+            () => resolveSelectSize(theme, size),
+            [theme, size],
         );
 
-        const measureAnchor = useCallback(() => {
-            const node = anchorRef.current;
-            if (!node || typeof node.measureInWindow !== "function") return;
-            node.measureInWindow(
-                (x: number, y: number, width: number, height: number) => {
-                    setAnchorLayout({ x, y, width, height });
-                },
-            );
-        }, []);
+        const wrapperStyle = useMemo(
+            () => ({
+                ...sizeStyles,
+                ...resolveSelectStyles(theme, color)[variant],
+            }),
+            [theme, color, variant, sizeStyles],
+        );
 
-        const hasValue = multiple
-            ? Array.isArray(currentValue) && currentValue.length > 0
-            : Boolean(currentValue);
+        const placeholderColorStyle = useMemo(
+            () => ({
+                color:
+                    resolveSelectContentStyles(theme, color)[variant].color ??
+                    wrapperStyle.color,
+            }),
+            [theme, color, variant, wrapperStyle.color],
+        );
 
-        const displayValue = (() => {
-            const kids = Array.isArray(children) ? children : [children];
-            if (multiple && Array.isArray(currentValue)) {
-                return kids
-                    .filter(
-                        (opt: any) =>
-                            opt?.props?.value &&
-                            currentValue.includes(opt.props.value),
-                    )
-                    .map((opt: any, i: number) => (
-                        <Typography key={`${opt?.props?.value}-${i}`}>
-                            {opt?.props?.children}
-                        </Typography>
-                    ));
-            }
-            const sel = kids.find(
-                (opt: any) => opt?.props?.value === currentValue,
-            );
-            return sel ? <Typography>{sel.props.children}</Typography> : null;
-        })();
+        const onAnchorLayout = (e: LayoutChangeEvent) => {
+            const { x, y, width, height } = e.nativeEvent.layout;
+            setAnchorLayout({ x, y, width, height });
+        };
 
-        useEffect(() => {
-            if (!isOpen) return;
-            requestAnimationFrame(() => {
-                measureAnchor();
-            });
-        }, [isOpen, measureAnchor]);
+        const computeDropdownPosition = useCallback(
+            (dropdownH = contentSize.height || 200) => {
+                const offset = 4;
+                const windowHeight = 8000;
+
+                const spaceBelow =
+                    windowHeight - (anchorLayout.y + anchorLayout.height);
+                const spaceAbove = anchorLayout.y;
+
+                let top = anchorLayout.y + anchorLayout.height + offset;
+
+                if (spaceBelow < dropdownH && spaceAbove > dropdownH)
+                    top = anchorLayout.y - dropdownH - offset;
+
+                return {
+                    top: Math.max(0, top),
+                    left: anchorLayout.x,
+                    width: anchorLayout.width,
+                };
+            },
+            [anchorLayout, contentSize.height],
+        );
+
+        const [dropdownPos, setDropdownPos] = useState({
+            top: 0,
+            left: 0,
+            width: 0,
+        });
+
+        const openDropdown = useCallback(() => {
+            if (disabled) return;
+            setOpen(true);
+            setTimeout(() => {
+                const pos = computeDropdownPosition();
+                setDropdownPos(pos);
+            }, 0);
+        }, [computeDropdownPosition, disabled]);
+
+        const closeDropdown = useCallback(() => setOpen(false), []);
+
+        const onBackdropPress = () => {
+            if (!closeOnClickOutside) return;
+            closeDropdown();
+        };
 
         const handleOptionSelect = useCallback(
             (optionValue: string | number) => {
                 if (disabled) return;
+
                 let newValue: any;
+
                 if (multiple) {
                     const arr = Array.isArray(currentValue) ? currentValue : [];
                     newValue = arr.includes(optionValue)
@@ -198,15 +198,44 @@ const Select = forwardRef<View, SelectProps>(
                         : [...arr, optionValue];
                 } else {
                     newValue = optionValue;
-                    setIsOpen(false);
                 }
+
                 if (!isControlled) setInternalValue(newValue);
                 onValueChange?.(newValue);
+
+                if (!multiple) closeDropdown();
             },
-            [disabled, multiple, currentValue, isControlled, onValueChange],
+            [
+                closeDropdown,
+                currentValue,
+                disabled,
+                isControlled,
+                multiple,
+                onValueChange,
+            ],
         );
 
-        const iconColor = resolveSelectStyles(theme, color)[variant].text.color;
+        const onContentLayout = (e: LayoutChangeEvent) => {
+            const { width, height } = e.nativeEvent.layout;
+            setContentSize((p) =>
+                p.width === width && p.height === height
+                    ? p
+                    : { width, height },
+            );
+            const pos = computeDropdownPosition(height);
+            setDropdownPos(pos);
+        };
+
+        const displayValue = useMemo(() => {
+            if (multiple && Array.isArray(currentValue)) {
+                return currentValue.length ? currentValue.join(", ") : null;
+            }
+            return currentValue !== undefined &&
+                currentValue !== null &&
+                currentValue !== ""
+                ? String(currentValue)
+                : null;
+        }, [currentValue, multiple]);
 
         return (
             <SelectContext.Provider
@@ -218,102 +247,70 @@ const Select = forwardRef<View, SelectProps>(
                     variant,
                     size,
                     disabled,
+                    closeOnSelect: !multiple,
+                    requestClose: closeDropdown,
                 }}
             >
-                <SelectRoot
-                    accessibilityRole="button"
-                    onPress={() => !disabled && setIsOpen(true)}
-                    onLayout={(e) => setAnchorLayout(e.nativeEvent.layout)}
-                    size={size}
-                    variant={variant}
-                    color={color}
-                    disabled={disabled}
-                    ref={setAnchorRef}
-                    {...props}
-                >
-                    {startDecorator && (
-                        <DecoratorWrapper>{startDecorator}</DecoratorWrapper>
-                    )}
-
-                    <TriggerText
-                        color={color}
-                        variant={variant}
-                        size={size}
-                        hasValue={hasValue}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                    >
-                        {displayValue ? displayValue : placeholder}
-                    </TriggerText>
-
-                    <DecoratorWrapper>
-                        {endDecorator ?? (
-                            <DropdownIcon fill={iconColor} viewBox="0 0 24 24">
-                                <Path d="m12 5.83 2.46 2.46c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L12.7 3.7a.9959.9959 0 0 0-1.41 0L8.12 6.88c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0L12 5.83zm0 12.34-2.46-2.46a.9959.9959 0 0 0-1.41 0c-.39.39-.39 1.02 0 1.41l3.17 3.18c.39.39 1.02.39 1.41 0l3.17-3.17c.39-.39.39-1.02 0-1.41a.9959.9959 0 0 0-1.41 0L12 18.17z"></Path>
-                            </DropdownIcon>
-                        )}
-                    </DecoratorWrapper>
-                </SelectRoot>
-
-                <Modal
-                    visible={isOpen}
-                    transparent
-                    animationType="fade"
-                    onRequestClose={() => setIsOpen(false)}
-                >
-                    <Pressable
-                        style={{ flex: 1 }}
-                        onPress={
-                            closeOnClickOutside
-                                ? () => setIsOpen(false)
-                                : undefined
-                        }
-                    >
-                        <View
-                            pointerEvents="box-none"
-                            style={{
-                                position: "absolute",
-                                left: anchorLayout ? anchorLayout.x : 16,
-                                width: anchorLayout
-                                    ? anchorLayout.width
-                                    : undefined,
-                                ...(placement === "bottom"
-                                    ? {
-                                          top: anchorLayout
-                                              ? anchorLayout.y +
-                                                anchorLayout.height +
-                                                POPUP_VERTICAL_OFFSET
-                                              : 100,
-                                      }
-                                    : {
-                                          bottom: anchorLayout
-                                              ? Dimensions.get("window")
-                                                    .height -
-                                                anchorLayout.y +
-                                                POPUP_VERTICAL_OFFSET
-                                              : undefined,
-                                      }),
-                            }}
+                <View ref={ref} style={{ position: "relative" }}>
+                    <View ref={anchorRef} onLayout={onAnchorLayout}>
+                        <SelectWrapper
+                            disabled={disabled}
+                            style={wrapperStyle}
+                            onPress={() =>
+                                open ? closeDropdown() : openDropdown()
+                            }
+                            {...props}
                         >
-                            <PopupContainer
-                                size={size}
-                                variant={variant}
-                                color={color}
+                            {startDecorator ? (
+                                <DecoratorWrapper>
+                                    {startDecorator}
+                                </DecoratorWrapper>
+                            ) : null}
+
+                            <PlaceholderText
+                                style={placeholderColorStyle}
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
                             >
-                                <PopupList>
-                                    <View style={{ paddingVertical: 4 }}>
-                                        {children}
-                                    </View>
-                                </PopupList>
-                            </PopupContainer>
-                        </View>
-                    </Pressable>
-                </Modal>
+                                {displayValue ?? placeholder}
+                            </PlaceholderText>
+
+                            <DecoratorWrapper>
+                                {endDecorator ?? <ArrowIcon reverse={open} />}
+                            </DecoratorWrapper>
+                        </SelectWrapper>
+                    </View>
+
+                    {open && (
+                        <>
+                            {closeOnClickOutside ? (
+                                <Backdrop onPress={onBackdropPress} />
+                            ) : null}
+
+                            <DropdownPositioner
+                                top={dropdownPos.top}
+                                left={dropdownPos.left}
+                                width={dropdownPos.width}
+                            >
+                                <ContentContainer
+                                    onLayout={onContentLayout}
+                                    style={{
+                                        ...resolveSelectContentStyles(
+                                            theme,
+                                            color,
+                                        )[variant],
+                                        shadowOpacity: 0.15,
+                                        shadowRadius: 6,
+                                        elevation: 6,
+                                    }}
+                                >
+                                    {children}
+                                </ContentContainer>
+                            </DropdownPositioner>
+                        </>
+                    )}
+                </View>
             </SelectContext.Provider>
         );
     },
 );
-
-Select.displayName = "Select";
-
-export { Select };

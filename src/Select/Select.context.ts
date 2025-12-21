@@ -16,6 +16,8 @@ export interface SelectContextValue {
     variant?: Variant;
     size?: Size | SizeValue | number;
     disabled?: boolean;
+    closeOnSelect?: boolean;
+    requestClose?: () => void;
 }
 
 export const SelectContext = createContext<SelectContextValue | null>(null);
