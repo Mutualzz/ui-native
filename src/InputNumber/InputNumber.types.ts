@@ -3,6 +3,7 @@ import type {
     ColorLike,
     Size,
     SizeValue,
+    TypographyColor,
     Variant,
 } from "@mutualzz/ui-core";
 import type { ReactNode } from "react";
@@ -15,7 +16,7 @@ export interface InputNumberProps extends Omit<
     "onChange" | "onChangeText" | "value" | "defaultValue"
 > {
     color?: Color | ColorLike;
-    textColor?: Color | ColorLike;
+    textColor?: TypographyColor | ColorLike;
 
     variant?: Variant;
     size?: Size | SizeValue | number;
