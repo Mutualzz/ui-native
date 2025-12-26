@@ -51,6 +51,13 @@ export const resolvePaperStyles = (
         elevation: {
             ...elevatedBackgroundStyles,
             boxShadow: `0 ${2 + elevation}px ${8 + elevation * 2}px rgba(0,0,0,${0.1 + elevation * 0.05})`,
+            elevation,
+            shadowColor: "#000",
+            shadowOpacity: Math.min(0.1 + elevation * 0.05, 0.5),
+            shadowOffset: { width: 0, height: 2 + elevation },
+            shadowRadius: 4 + elevation,
+            borderRadius: 12,
+            overflow: "hidden",
         },
         solid: {
             backgroundColor:

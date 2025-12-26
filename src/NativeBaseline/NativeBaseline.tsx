@@ -1,15 +1,17 @@
-import { extractColors } from "@mutualzz/ui-core";
+import { extractGradientInfo } from "@mutualzz/ui-core";
 import {
     Canvas,
     Rect,
     LinearGradient as SkiaLinearGradient,
     vec,
 } from "@shopify/react-native-skia";
-import { useMemo, type PropsWithChildren } from "react";
-import { Platform, StyleSheet, useWindowDimensions } from "react-native";
+import { useMemo } from "react";
+import { StyleSheet, useWindowDimensions } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../useTheme";
+import { angleToSkia } from "../utils/angleToSkia";
+import type { NativeBaselineProps } from "./NativeBaseline.types";
 
 const styles = StyleSheet.create({
     fill: {
@@ -21,21 +23,24 @@ const styles = StyleSheet.create({
     },
 });
 
-const NativeBaseline = ({ children }: PropsWithChildren) => {
+const NativeBaseline = ({ children }: NativeBaselineProps) => {
     const { theme } = useTheme();
 
     const { width, height } = useWindowDimensions();
 
-    const bg = theme.colors.background;
+    const bg = useMemo(
+        () => theme.colors.background,
+        [theme.colors.background],
+    );
 
     const gradient = useMemo(() => {
         try {
-            return extractColors(bg);
+            return extractGradientInfo(bg);
         } catch (err) {
             console.error("Failed to parse gradient:", err);
             return null;
         }
-    }, [bg, width, height]);
+    }, [bg]);
 
     if (!gradient) {
         return (
@@ -54,6 +59,8 @@ const NativeBaseline = ({ children }: PropsWithChildren) => {
         );
     }
 
+    const { start, end } = angleToSkia(gradient.angle, width, height);
+
     return (
         <GestureHandlerRootView>
             <SafeAreaView
@@ -67,12 +74,10 @@ const NativeBaseline = ({ children }: PropsWithChildren) => {
                     >
                         <Rect dither x={0} y={0} width={width} height={height}>
                             <SkiaLinearGradient
-                                start={Platform.select({
-                                    android: vec(width * 0.75, height * 0.75),
-                                    default: vec(width * 0.5, height * 0.5),
-                                })}
-                                end={vec(width, height)}
-                                colors={gradient}
+                                start={vec(start.x, start.y)}
+                                end={vec(end.x, end.y)}
+                                colors={gradient.colors}
+                                positions={gradient.positions}
                             />
                         </Rect>
                     </Canvas>

@@ -7,6 +7,7 @@ export * from "./Box/Box";
 export type * from "./Box/Box.types";
 
 export * from "./Button/Button";
+export * from "./Button/Button.helpers";
 export type * from "./Button/Button.types";
 
 export * from "./ButtonGroup/ButtonGroup";

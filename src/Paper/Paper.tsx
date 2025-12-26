@@ -1,5 +1,5 @@
 import styled from "@emotion/native";
-import { extractColors, flipNumber } from "@mutualzz/ui-core";
+import { extractGradientInfo, flipNumber } from "@mutualzz/ui-core";
 import {
     Canvas,
     Rect,
@@ -7,7 +7,12 @@ import {
     vec,
 } from "@shopify/react-native-skia";
 import { forwardRef, useMemo, useState } from "react";
-import { StyleSheet, View, type LayoutChangeEvent } from "react-native";
+import {
+    Platform,
+    StyleSheet,
+    View,
+    type LayoutChangeEvent,
+} from "react-native";
 import { useTheme } from "../useTheme";
 import { resolvePaperStyles } from "./Paper.helpers";
 import type { PaperProps } from "./Paper.types";
@@ -25,15 +30,6 @@ const PaperBase = styled(View)<PaperProps>(
             variant
         ],
 
-        ...(variant === "elevation" && {
-            elevation,
-            shadowColor: "#000",
-            shadowOpacity: Math.min(0.1 + elevation * 0.05, 0.5),
-            shadowOffset: { width: 0, height: 2 + elevation },
-            shadowRadius: 4 + elevation,
-            borderRadius: 12,
-            overflow: "hidden",
-        }),
         borderRadius: 0,
         alignSelf: inline ? "flex-start" : "stretch",
         alignContent: "stretch",
@@ -45,13 +41,16 @@ const PaperBase = styled(View)<PaperProps>(
 const Paper = forwardRef<View, PaperProps>(
     ({ variant = "elevation", transparency = 0, children, ...props }, ref) => {
         const { theme } = useTheme();
-        const [size, setSize] = useState({ w: 0, h: 0 });
+        const [size, setSize] = useState({ width: 0, height: 0 });
 
-        const surface = theme.colors.surface;
+        const surface = useMemo(
+            () => theme.colors.surface,
+            [theme.colors.surface],
+        );
 
         const gradient = useMemo(() => {
             try {
-                return extractColors(surface);
+                return extractGradientInfo(surface);
             } catch (err) {
                 console.error("Failed to parse gradient:", err);
                 return null;
@@ -60,7 +59,7 @@ const Paper = forwardRef<View, PaperProps>(
 
         const onLayout = (e: LayoutChangeEvent) => {
             const { width, height } = e.nativeEvent.layout;
-            setSize({ w: width, h: height });
+            setSize({ width: width, height: height });
         };
 
         if (!gradient || variant !== "elevation") {
@@ -88,17 +87,27 @@ const Paper = forwardRef<View, PaperProps>(
                     pointerEvents="none"
                 >
                     <Rect
-                        opacity={flipNumber(transparency / 100)}
+                        opacity={flipNumber(transparency / 100, false)}
                         dither
                         x={0}
                         y={0}
-                        width={size.w}
-                        height={size.h}
+                        width={size.width}
+                        height={size.height}
                     >
                         <SkiaLinearGradient
-                            start={vec(0, 0)}
-                            end={vec(size.w, size.h)}
-                            colors={gradient}
+                            start={Platform.select({
+                                android: vec(
+                                    size.width * 0.75,
+                                    size.height * 0.75,
+                                ),
+                                default: vec(
+                                    size.width * 0.5,
+                                    size.height * 0.5,
+                                ),
+                            })}
+                            end={vec(size.width, size.height)}
+                            colors={gradient.colors}
+                            positions={gradient.positions}
                         />
                     </Rect>
                 </Canvas>
@@ -107,5 +116,7 @@ const Paper = forwardRef<View, PaperProps>(
         );
     },
 );
+
+Paper.displayName = "Paper";
 
 export { Paper };
