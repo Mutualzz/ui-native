@@ -43,9 +43,6 @@ export * from "./InputDecoratorWrapper/InputDecoratorWrapper";
 
 export * from "./InputDefault/InputDefault";
 
-export * from "./InputNumber/InputNumber";
-export type * from "./InputNumber/InputNumber.types";
-
 export * from "./InputPassword/InputPassword";
 export type * from "./InputPassword/InputPassword.types";
 
@@ -71,6 +68,9 @@ export * from "./Modal/Modal";
 export type * from "./Modal/Modal.types";
 
 export * from "./NativeBaseline/NativeBaseline";
+
+export * from "./Option/Option";
+export type * from "./Option/Option.types";
 
 export * from "./Paper/Paper";
 export type * from "./Paper/Paper.types";
