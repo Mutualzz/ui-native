@@ -3,6 +3,7 @@ import type {
     ColorLike,
     Size,
     SizeValue,
+    TypographyColor,
     TypographyLevel,
 } from "@mutualzz/ui-core";
 import type { ViewProps } from "react-native";
@@ -17,8 +18,8 @@ export interface DividerProps extends ViewProps {
     orientation?: DividerOrientation;
     inset?: DividerInset;
 
-    lineColor?: Color | ColorLike;
-    textColor?: Color | ColorLike;
+    lineColor?: Color | ColorLike | TypographyColor;
+    textColor?: Color | ColorLike | TypographyColor;
 
     variant?: DividerVariant;
 

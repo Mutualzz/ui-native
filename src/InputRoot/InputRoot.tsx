@@ -1,37 +1,41 @@
 import styled from "@emotion/native";
-import {
-    resolveInputRootLayout,
-    resolveInputRootStyles,
-} from "./InputRoot.helpers";
+import { resolveInputBaseSize } from "../InputBase/InputBase.helpers";
+import { resolveInputRootStyles } from "./InputRoot.helpers";
 import type { InputRootProps } from "./InputRoot.types";
 
 const InputRoot = styled.View<InputRootProps>(
     ({
         theme,
         color = "neutral",
-        size = "md",
         variant = "outlined",
         error = false,
         readOnly = false,
         fullWidth,
         disabled,
-    }) => ({
-        ...resolveInputRootLayout(theme, size),
-        ...resolveInputRootStyles(theme, color, error, readOnly)[variant],
+        size = "md",
+    }) => {
+        const { fontSize, paddingHorizontal } = resolveInputBaseSize(
+            theme,
+            size,
+        );
 
-        ...(disabled ? { opacity: 0.5 } : null),
+        return {
+            fontSize,
 
-        flexDirection: "row",
-        alignItems: "center",
-        columnGap: 4,
+            ...resolveInputRootStyles(theme, color, error, readOnly)[variant],
 
-        width: fullWidth ? "100%" : undefined,
-        minWidth: 0,
-        flexShrink: 1,
-        flexGrow: fullWidth ? 1 : 0,
+            ...(disabled ? { opacity: 0.5 } : null),
 
-        overflow: "hidden",
-    }),
+            flexDirection: "row",
+            alignItems: "center",
+            overflow: "hidden",
+            borderRadius: 6,
+            width: fullWidth ? "100%" : undefined,
+            minWidth: 0,
+            flexShrink: 1,
+            flexGrow: fullWidth ? 1 : 0,
+        };
+    },
 );
 
 InputRoot.displayName = "InputRoot";

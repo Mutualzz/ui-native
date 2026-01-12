@@ -14,17 +14,16 @@ const InputBase = styled(TextInput)<InputBaseProps>(
         fullWidth,
         disabled,
     }) => ({
-        ...resolveInputBaseSize(theme, size, fullWidth),
+        ...resolveInputBaseSize(theme, size),
         ...resolveTypographyStyles(theme, color, textColor)["none"],
 
         ...(disabled ? { opacity: 0.5 } : null),
 
-        backgroundColor: "transparent",
-
-        paddingVertical: 0,
-        paddingHorizontal: 0,
-
-        marginTop: 1,
+        width: fullWidth ? "100%" : undefined,
+        minWidth: 0,
+        flexShrink: 1,
+        borderRadius: 6,
+        flexGrow: fullWidth ? 1 : 0,
 
         textAlignVertical: "center",
     }),

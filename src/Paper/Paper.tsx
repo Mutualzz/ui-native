@@ -34,7 +34,6 @@ const PaperBase = styled(View)<PaperProps>(
         alignSelf: inline ? "flex-start" : "stretch",
         alignContent: "stretch",
         flexShrink: 1,
-        flexDirection: "row",
     }),
 );
 

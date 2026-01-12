@@ -137,7 +137,7 @@ const InputPassword = forwardRef<TextInput, InputPasswordProps>(
                 {...props}
             >
                 {startDecorator ? (
-                    <InputDecoratorWrapper>
+                    <InputDecoratorWrapper position="start">
                         {startDecorator}
                     </InputDecoratorWrapper>
                 ) : null}
@@ -152,7 +152,7 @@ const InputPassword = forwardRef<TextInput, InputPasswordProps>(
                 />
 
                 {endDecorator ? (
-                    <InputDecoratorWrapper>
+                    <InputDecoratorWrapper position="end">
                         {endDecorator}
                     </InputDecoratorWrapper>
                 ) : showToggleIcon ? (
@@ -161,7 +161,7 @@ const InputPassword = forwardRef<TextInput, InputPasswordProps>(
                         disabled={disabled}
                         hitSlop={8}
                     >
-                        <InputDecoratorWrapper>
+                        <InputDecoratorWrapper position="end">
                             {visible
                                 ? (hidePasswordIcon ?? (
                                       <HidePasswordIcon

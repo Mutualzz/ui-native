@@ -1,6 +1,6 @@
 import styled from "@emotion/native";
 
-const DecoratorWrapper = styled.View({
+const DecoratorWrapper = styled.Text({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",

@@ -45,7 +45,7 @@ const InputDefault = forwardRef<TextInput, InputRootProps>(
                 {...props}
             >
                 {startDecorator && (
-                    <InputDecoratorWrapper>
+                    <InputDecoratorWrapper position="start">
                         {startDecorator}
                     </InputDecoratorWrapper>
                 )}
@@ -53,7 +53,7 @@ const InputDefault = forwardRef<TextInput, InputRootProps>(
                 <InputBase {...inputBaseProps} />
 
                 {endDecorator && (
-                    <InputDecoratorWrapper>
+                    <InputDecoratorWrapper position="end">
                         {endDecorator}
                     </InputDecoratorWrapper>
                 )}

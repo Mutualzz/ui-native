@@ -1,30 +1,7 @@
 import type { Theme } from "@emotion/react";
 import type { Color, ColorLike, Variant } from "@mutualzz/ui-core";
-import {
-    formatColor,
-    resolveColor,
-    resolveSize,
-    type Size,
-    type SizeValue,
-} from "@mutualzz/ui-core";
+import { formatColor, resolveColor } from "@mutualzz/ui-core";
 import type { ViewStyle } from "react-native";
-
-const basePadY: Record<Size, number> = { sm: 10, md: 14, lg: 18 };
-const basePadX: Record<Size, number> = { sm: 14, md: 18, lg: 22 };
-
-export const resolveInputRootLayout = (
-    theme: Theme,
-    size: Size | SizeValue | number,
-): ViewStyle => {
-    const py = resolveSize(theme, size, basePadY);
-    const px = resolveSize(theme, size, basePadX);
-
-    return {
-        paddingVertical: py,
-        paddingHorizontal: px,
-        borderRadius: 8,
-    };
-};
 
 export const resolveInputRootStyles = (
     theme: Theme,

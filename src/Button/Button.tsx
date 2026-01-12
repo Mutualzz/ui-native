@@ -1,6 +1,5 @@
 import styled from "@emotion/native";
 import type { Size } from "@mutualzz/ui-core";
-import { resolveSize } from "@mutualzz/ui-core";
 import { forwardRef, useContext, useMemo } from "react";
 import {
     Pressable,
@@ -26,10 +25,6 @@ const baseSizeMap: Record<Size, number> = {
 };
 
 const ContentRow = styled.View({
-    alignItems: "center",
-    justifyContent: "center",
-    flexGrow: 0,
-    flexShrink: 1,
     minWidth: 0,
 });
 
@@ -91,12 +86,11 @@ const Button = forwardRef<View, ButtonProps>(
                   ? group?.value === value
                   : Array.isArray(group?.value) && group?.value.includes(value);
 
-        const resolvedSize = resolveSize(theme, size, baseSizeMap);
-        const { padding: resolvedPadding, gap } = resolveButtonContainerSize(
-            theme,
-            size,
-            padding,
-        );
+        const {
+            padding: resolvedPadding,
+            gap,
+            fontSize,
+        } = resolveButtonContainerSize(theme, size, padding);
 
         const alignItems =
             verticalAlign === "top"
@@ -181,6 +175,7 @@ const Button = forwardRef<View, ButtonProps>(
                             alignSelf: fullWidth ? "stretch" : undefined,
                             width: fullWidth ? "100%" : undefined,
                             padding: resolvedPadding,
+                            gap,
                         },
                     ];
                 }}
@@ -204,20 +199,37 @@ const Button = forwardRef<View, ButtonProps>(
                 )}
 
                 {startDecorator && (
-                    <DecoratorWrapper>{startDecorator}</DecoratorWrapper>
+                    <DecoratorWrapper
+                        style={{
+                            color: textVariant.color,
+                            fontSize,
+                        }}
+                    >
+                        {startDecorator}
+                    </DecoratorWrapper>
                 )}
 
                 <ContentRow
-                    style={{
-                        opacity: contentOpacity,
-                        flexDirection:
-                            orientation === "vertical" ? "column" : "row",
-                    }}
+                    style={[
+                        {
+                            opacity: contentOpacity,
+                            flexDirection:
+                                orientation === "vertical" ? "column" : "row",
+                            justifyContent:
+                                justifyContent === "space-between"
+                                    ? "center"
+                                    : justifyContent,
+                            alignItems,
+                            flexGrow: 1,
+                            flexShrink: 1,
+                            flexBasis: "auto",
+                        },
+                    ]}
                 >
                     <Text
                         style={[
                             {
-                                fontSize: resolvedSize,
+                                fontSize,
                                 textAlign:
                                     horizontalAlign === "left"
                                         ? "left"
@@ -235,7 +247,14 @@ const Button = forwardRef<View, ButtonProps>(
                 </ContentRow>
 
                 {endDecorator && (
-                    <DecoratorWrapper>{endDecorator}</DecoratorWrapper>
+                    <DecoratorWrapper
+                        style={{
+                            color: textVariant.color,
+                            fontSize,
+                        }}
+                    >
+                        {endDecorator}
+                    </DecoratorWrapper>
                 )}
             </Pressable>
         );
