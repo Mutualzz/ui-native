@@ -31,7 +31,7 @@ export const resolveListItemButtonContainerStyles = (
     color: Color | ColorLike,
 ): Record<Variant, ViewStyle> => {
     const resolved = resolveColor(color, theme);
-    const hex = formatColor(resolved, { format: "hexa" });
+    const hex = formatColor(resolved);
 
     return {
         solid: { backgroundColor: hex },

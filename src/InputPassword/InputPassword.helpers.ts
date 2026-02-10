@@ -8,17 +8,12 @@ export const resolvePasswordIconStyles = (
 ): Record<Variant, string> => {
     const resolvedColor = resolveColor(color, theme);
 
-    const hexColor =
-        formatColor(resolvedColor, { format: "hexa" }) ?? theme.colors.primary;
+    const hexColor = formatColor(resolvedColor);
 
     return {
         outlined: hexColor,
-        solid:
-            formatColor(resolvedColor, { lighten: 100, format: "hexa" }) ??
-            theme.colors.primary,
+        solid: formatColor(resolvedColor, { lighten: 100 }),
         plain: hexColor,
-        soft:
-            formatColor(resolvedColor, { lighten: 25, format: "hexa" }) ??
-            theme.colors.primary,
+        soft: formatColor(resolvedColor, { lighten: 25 }),
     };
 };

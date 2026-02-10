@@ -1,6 +1,7 @@
 import styled from "@emotion/native";
 import { resolveSize, type Size } from "@mutualzz/ui-core";
-import React, { Children, forwardRef, useMemo, useState } from "react";
+import type React from "react";
+import { Children, forwardRef, useMemo, useState, type FC } from "react";
 import { View, type ViewStyle } from "react-native";
 
 import { useTheme } from "../useTheme";
@@ -23,7 +24,7 @@ const RadioGroupWrapper = styled(View)<{
     opacity: disabled ? 0.5 : 1,
 }));
 
-const SpacedChildren: React.FC<{
+const SpacedChildren: FC<{
     children: React.ReactNode;
     orientation: "horizontal" | "vertical";
     gap: number;

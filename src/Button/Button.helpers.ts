@@ -27,8 +27,7 @@ export const resolveButtonContainerSize = (
 ) => {
     const resolvedSize = resolveSize(theme, size, baseSizeMap);
 
-    const pad =
-        typeof padding === "number" ? padding : (padding ?? resolvedSize * 0.6);
+    const pad = padding ?? resolvedSize * 0.6;
 
     return {
         fontSize: resolvedSize,
@@ -37,11 +36,11 @@ export const resolveButtonContainerSize = (
     };
 };
 
-type ButtonContainerState = {
+interface ButtonContainerState {
     disabled?: boolean;
     selected?: boolean;
     pressed?: boolean;
-};
+}
 
 export const resolveButtonContainerStyles = (
     theme: Theme,
@@ -51,7 +50,7 @@ export const resolveButtonContainerStyles = (
     const { disabled, selected, pressed } = state;
 
     const resolvedColor = resolveColor(color, theme);
-    const hexColor = formatColor(resolvedColor, { format: "hexa" });
+    const hexColor = formatColor(resolvedColor);
 
     const disabledSolidBg = formatColor(resolvedColor, {
         alpha: 50,
@@ -86,9 +85,7 @@ export const resolveButtonContainerStyles = (
                   ? formatColor(resolvedColor, { alpha: 30, format: "hexa" })
                   : "transparent",
             borderWidth: 1,
-            borderColor: disabled
-                ? disabledBorder
-                : formatColor(resolvedColor, { format: "hexa" }),
+            borderColor: disabled ? disabledBorder : formatColor(resolvedColor),
             ...(disabled && { opacity: 0.5 }),
         },
 
@@ -120,10 +117,9 @@ export const resolveButtonTextStyles = (
     state?: { disabled?: boolean },
 ): Record<Variant, TextStyle> => {
     const resolvedColor = resolveColor(color, theme);
-    const hexColor = formatColor(resolvedColor, { format: "hexa" });
+    const hexColor = formatColor(resolvedColor);
 
     const solidTextColor = formatColor(theme.typography.colors.primary, {
-        format: "hexa",
         negate: createColor(resolvedColor).isLight(),
     });
 

@@ -10,11 +10,9 @@ export const resolveInputRootStyles = (
     readOnly: boolean,
 ): Record<Variant, ViewStyle> => {
     const baseColor = resolveColor(color, theme);
-    const hex = formatColor(baseColor, { format: "hexa" });
+    const hex = formatColor(baseColor);
 
-    const danger = formatColor(resolveColor("danger", theme), {
-        format: "hexa",
-    });
+    const danger = formatColor(resolveColor("danger", theme));
 
     const borderColor = error ? danger : hex;
 

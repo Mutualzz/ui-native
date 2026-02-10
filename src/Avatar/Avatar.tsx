@@ -1,6 +1,6 @@
 import styled from "@emotion/native";
 import { forwardRef } from "react";
-import { Image, Text, View } from "react-native";
+import { Image, Text, type View } from "react-native";
 import { useTheme } from "../useTheme";
 import {
     resolveAvatarShape,

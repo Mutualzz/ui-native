@@ -58,20 +58,19 @@ export const resolveTextareaStyles = (
 
     const isDark = createColor(resolvedColor).isDark();
     const solidTextColor = isDark
-        ? formatColor(theme.typography.colors.primary, { format: "hexa" })
-        : formatColor(resolvedColor, { darken: 70, format: "hexa" });
+        ? formatColor(theme.typography.colors.primary)
+        : formatColor(resolvedColor, { darken: 70 });
 
-    const textColorFinal = formatColor(
-        isColorLike ? parsedTextColor : theme.typography.colors.primary,
-        { format: "hexa" },
-    );
+    const textColorFinal = isColorLike
+        ? parsedTextColor
+        : theme.typography.colors.primary;
 
-    const err = formatColor(colors.danger, { format: "hexa" });
+    const err = formatColor(colors.danger);
 
     const variants = {
         solid: {
-            backgroundColor: formatColor(resolvedColor, { format: "hexa" }),
-            color: solidTextColor,
+            backgroundColor: formatColor(resolvedColor),
+            color: solidTextColor as ColorLike | "transparent" | "inherit",
             borderWidth: 0,
         },
         outlined: {

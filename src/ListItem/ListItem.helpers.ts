@@ -25,7 +25,7 @@ export const resolveListItemStyles = (
     color: Color | ColorLike,
 ): Record<"plain" | "outlined" | "soft" | "solid", ViewStyle> => {
     const resolved = resolveColor(color, theme);
-    const hex = formatColor(resolved, { format: "hexa" });
+    const hex = formatColor(resolved);
 
     return {
         plain: { backgroundColor: "transparent" },
@@ -49,7 +49,7 @@ export const resolveListItemTextStyles = (
     color: Color | ColorLike,
 ): TextStyle => {
     const resolved = resolveColor(color, theme);
-    return { color: formatColor(resolved, { format: "hexa" }) };
+    return { color: formatColor(resolved) };
 };
 
 export const isCssMarkerNative = (marker?: string) => {

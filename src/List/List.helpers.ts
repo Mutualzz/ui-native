@@ -8,7 +8,7 @@ export const resolveListStyles = (
     color: Color | ColorLike,
 ): Record<"plain" | "outlined" | "soft" | "solid", ViewStyle> => {
     const resolved = resolveColor(color, theme);
-    const hex = formatColor(resolved, { format: "hexa" });
+    const hex = formatColor(resolved);
 
     return {
         plain: {

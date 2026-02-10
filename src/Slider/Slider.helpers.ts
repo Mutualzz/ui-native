@@ -64,13 +64,13 @@ export const resolveSliderTrackStyles = (
         solid: {
             backgroundColor: hovered
                 ? formatColor(resolvedColor, { alpha: 90, format: "hexa" })
-                : formatColor(resolvedColor, { format: "hexa" }),
+                : formatColor(resolvedColor),
         },
         outlined: {
             borderWidth: 1,
             borderColor: hovered
                 ? formatColor(resolvedColor, { format: "hexa", alpha: 70 })
-                : formatColor(resolvedColor, { format: "hexa" }),
+                : formatColor(resolvedColor),
             backgroundColor: hovered
                 ? formatColor(resolvedColor, { alpha: 10, format: "hexa" })
                 : "transparent",
@@ -102,12 +102,12 @@ export const resolveSliderThumbStyles = (
             borderWidth: 2,
             borderColor: hovered
                 ? formatColor(resolvedColor, { format: "hexa", alpha: 90 })
-                : formatColor(resolvedColor, { format: "hexa" }),
+                : formatColor(resolvedColor),
         },
         outlined: {
             backgroundColor: colors.common.white,
             borderWidth: 2,
-            borderColor: formatColor(resolvedColor, { format: "hexa" }),
+            borderColor: formatColor(resolvedColor),
         },
         plain: {
             backgroundColor: formatColor(resolvedColor, {
@@ -122,7 +122,7 @@ export const resolveSliderThumbStyles = (
             borderWidth: 2,
             borderColor: hovered
                 ? formatColor(resolvedColor, { alpha: 85, format: "hexa" })
-                : formatColor(resolvedColor, { format: "hexa" }),
+                : formatColor(resolvedColor),
         },
     };
 };

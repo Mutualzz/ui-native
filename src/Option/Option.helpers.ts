@@ -26,7 +26,7 @@ export const resolveOptionStyles = (
     isSelected: boolean,
 ): Record<"plain" | "outlined" | "soft" | "solid", ViewStyle> => {
     const resolved = resolveColor(color, theme);
-    const hex = formatColor(resolved, { format: "hexa" });
+    const hex = formatColor(resolved);
 
     const selectedBg = formatColor(resolved, { alpha: 20, format: "hexa" });
 

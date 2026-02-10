@@ -4,7 +4,12 @@ import { resolveSize } from "@mutualzz/ui-core";
 
 const baseSizeMap: Record<Size, number> = { sm: 16, md: 18, lg: 20 };
 
-export type Rect = { x: number; y: number; width: number; height: number };
+export interface Rect {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
 
 export type PopoverPlacement = "top" | "bottom" | "left" | "right";
 

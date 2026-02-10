@@ -34,12 +34,7 @@ export const resolveTooltipContainerStyles = (
     elevation: number,
 ): Record<TooltipVariant, ViewStyle> => {
     const resolvedColor = resolveColor(color, theme);
-    const hexColor = formatColor(resolvedColor, { format: "hexa" });
-
-    const solidTextColor = formatColor(theme.typography.colors.primary, {
-        format: "hexa",
-        negate: createColor(resolvedColor).isLight(),
-    });
+    const hexColor = formatColor(resolvedColor);
 
     return {
         none: {
@@ -89,10 +84,9 @@ export const resolveTooltipTextStyles = (
     color: Color | ColorLike,
 ): Record<TooltipVariant, TextStyle> => {
     const resolvedColor = resolveColor(color, theme);
-    const hexColor = formatColor(resolvedColor, { format: "hexa" });
+    const hexColor = formatColor(resolvedColor);
 
     const solidTextColor = formatColor(theme.typography.colors.primary, {
-        format: "hexa",
         negate: createColor(resolvedColor).isLight(),
     });
 

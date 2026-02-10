@@ -2,7 +2,7 @@ import styled from "@emotion/native";
 import type { Size } from "@mutualzz/ui-core";
 import { resolveSize } from "@mutualzz/ui-core";
 import { forwardRef, useMemo, useState } from "react";
-import { View } from "react-native";
+import type { View } from "react-native";
 import { useTheme } from "../useTheme";
 import { CheckboxGroupContext } from "./CheckboxGroup.context";
 import type { CheckboxGroupProps } from "./CheckboxGroup.types";
@@ -46,7 +46,7 @@ const CheckboxGroup = forwardRef<View, CheckboxGroupProps>(
         );
 
         const isControlled = controlledValue !== undefined;
-        const currentValue = isControlled ? controlledValue! : internalValue;
+        const currentValue = isControlled ? controlledValue : internalValue;
 
         const resolvedSpacing = resolveSize(theme, spacing, baseSpacingMap);
 

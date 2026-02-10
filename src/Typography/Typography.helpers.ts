@@ -26,15 +26,14 @@ export const resolveTypographyStyles = (
 
     const isDark = createColor(resolvedColor).isDark();
     const solidTextColor = isDark
-        ? formatColor(theme.typography.colors.primary, { format: "hexa" })
-        : formatColor(resolvedColor, { format: "hexa", darken: 70 });
+        ? formatColor(theme.typography.colors.primary)
+        : formatColor(resolvedColor, { darken: 70 });
 
-    const textColorFinal = formatColor(
-        isColorLike ? parsedTextColor : theme.typography.colors.primary,
-        { format: "hexa" },
-    );
+    const textColorFinal = isColorLike
+        ? parsedTextColor
+        : theme.typography.colors.primary;
 
-    const hex = formatColor(resolvedColor, { format: "hexa" });
+    const hex = formatColor(resolvedColor);
 
     return {
         solid: {

@@ -3,6 +3,7 @@ import {
     type Color,
     type ColorLike,
     formatColor,
+    isThemeColor,
     isTypographyColor,
     resolveColor,
     resolveTypographyColor,
@@ -14,13 +15,19 @@ import type { DividerVariant } from "./Divider.types";
 export const resolveDividerColor = (
     theme: Theme,
     color: Color | ColorLike | TypographyColor,
-) =>
-    formatColor(
-        isTypographyColor(color)
-            ? resolveTypographyColor(color, theme)
-            : resolveColor(color, theme),
-        { format: "hexa" },
-    );
+) => {
+    const resolvedColor = isThemeColor(color)
+        ? resolveColor(color, theme)
+        : isTypographyColor(color)
+          ? resolveTypographyColor(color, theme)
+          : color === "inherit" || color === "transparent"
+            ? color
+            : resolveColor(color, theme);
+
+    return resolvedColor === "inherit" || resolvedColor === "transparent"
+        ? resolvedColor
+        : formatColor(resolvedColor);
+};
 
 export const resolveDividerStyles = (
     isVertical: boolean,

@@ -36,8 +36,7 @@ const NativeBaseline = ({ children }: NativeBaselineProps) => {
     const gradient = useMemo(() => {
         try {
             return extractGradientInfo(bg);
-        } catch (err) {
-            console.error("Failed to parse gradient:", err);
+        } catch {
             return null;
         }
     }, [bg]);
@@ -67,7 +66,7 @@ const NativeBaseline = ({ children }: NativeBaselineProps) => {
                 edges={["left", "right"]}
                 style={[styles.container, styles.fill]}
             >
-                {width > 0 && height > 0 && gradient && (
+                {width > 0 && height > 0 && (
                     <Canvas
                         style={StyleSheet.absoluteFillObject}
                         pointerEvents="none"

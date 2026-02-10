@@ -9,14 +9,14 @@ import { createContext } from "react";
 
 export type ListOrientation = "vertical" | "horizontal";
 
-export type ListContextValue = {
+export interface ListContextValue {
     color?: Color | ColorLike;
     variant?: Variant;
     size?: Size | SizeValue | number;
     orientation?: ListOrientation;
     nesting: number;
     marker?: any;
-};
+}
 
 export const ListContext = createContext<ListContextValue>({
     nesting: 0,

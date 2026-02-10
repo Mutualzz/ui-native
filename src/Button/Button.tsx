@@ -1,10 +1,9 @@
 import styled from "@emotion/native";
-import type { Size } from "@mutualzz/ui-core";
 import { forwardRef, useContext, useMemo } from "react";
 import {
     Pressable,
     Text,
-    View,
+    type View,
     type GestureResponderEvent,
 } from "react-native";
 import { ButtonGroupContext } from "../ButtonGroup/ButtonGroup.context";
@@ -17,12 +16,6 @@ import {
     resolveButtonTextStyles,
 } from "./Button.helpers";
 import type { ButtonProps } from "./Button.types";
-
-const baseSizeMap: Record<Size, number> = {
-    sm: 12,
-    md: 14,
-    lg: 16,
-};
 
 const ContentRow = styled.View({
     minWidth: 0,

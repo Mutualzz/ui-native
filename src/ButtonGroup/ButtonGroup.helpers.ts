@@ -30,16 +30,16 @@ export const resolveButtonGroupItemStyles = (
         : resolveColor(color, theme);
 
     const solidBorder = separatorColor
-        ? formatColor(resolvedColor, { format: "hexa" })
-        : formatColor(resolvedColor, { format: "hexa", darken: 50 });
+        ? formatColor(resolvedColor)
+        : formatColor(resolvedColor, { darken: 50 });
 
     const plainBorder = separatorColor
-        ? formatColor(resolvedColor, { format: "hexa" })
-        : formatColor(resolvedColor, { format: "hexa", darken: 30 });
+        ? formatColor(resolvedColor)
+        : formatColor(resolvedColor, { darken: 30 });
 
     const softBorder = separatorColor
-        ? formatColor(resolvedColor, { format: "hexa" })
-        : formatColor(resolvedColor, { format: "hexa", darken: 10 });
+        ? formatColor(resolvedColor)
+        : formatColor(resolvedColor, { darken: 10 });
 
     const borderColorByVariant: Record<Variant, string | undefined> = {
         solid: solidBorder,
@@ -61,7 +61,7 @@ export const resolveButtonGroupItemStyles = (
             style.borderTopRightRadius = 0;
             style.borderBottomLeftRadius = 0;
             style.borderBottomRightRadius = 0;
-        } else if (position === "last") {
+        } else {
             style.borderTopLeftRadius = 0;
             style.borderBottomLeftRadius = 0;
         }
@@ -79,7 +79,7 @@ export const resolveButtonGroupItemStyles = (
             style.borderTopRightRadius = 0;
             style.borderBottomLeftRadius = 0;
             style.borderBottomRightRadius = 0;
-        } else if (position === "last") {
+        } else {
             style.borderTopLeftRadius = 0;
             style.borderTopRightRadius = 0;
         }

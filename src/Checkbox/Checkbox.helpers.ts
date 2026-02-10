@@ -29,10 +29,10 @@ export const resolveCheckboxSize = (
     };
 };
 
-export type CheckboxVisualStyle = {
+export interface CheckboxVisualStyle {
     box: ViewStyle;
     iconColor: string;
-};
+}
 
 export const resolveCheckboxStyles = (
     theme: Theme,
@@ -40,10 +40,9 @@ export const resolveCheckboxStyles = (
     checked?: boolean,
 ): Record<Variant, CheckboxVisualStyle> => {
     const resolvedColor = resolveColor(color, theme);
-    const hexColor = formatColor(resolvedColor, { format: "hexa" });
+    const hexColor = formatColor(resolvedColor);
 
     const solidTextColor = formatColor(theme.typography.colors.primary, {
-        format: "hexa",
         negate: createColor(resolvedColor).isLight(),
     });
 
@@ -63,9 +62,9 @@ export const resolveCheckboxStyles = (
                     ? formatColor(resolvedColor, { alpha: 10, format: "hexa" })
                     : "transparent",
                 borderWidth: 1,
-                borderColor: formatColor(resolvedColor, { format: "hexa" }),
+                borderColor: formatColor(resolvedColor),
             },
-            iconColor: formatColor(resolvedColor, { format: "hexa" }),
+            iconColor: formatColor(resolvedColor),
         },
 
         soft: {
@@ -76,7 +75,7 @@ export const resolveCheckboxStyles = (
                 }),
                 borderWidth: 0,
             },
-            iconColor: formatColor(resolvedColor, { format: "hexa" }),
+            iconColor: formatColor(resolvedColor),
         },
 
         plain: {
@@ -84,7 +83,7 @@ export const resolveCheckboxStyles = (
                 backgroundColor: "transparent",
                 borderWidth: 0,
             },
-            iconColor: formatColor(resolvedColor, { format: "hexa" }),
+            iconColor: formatColor(resolvedColor),
         },
     };
 };

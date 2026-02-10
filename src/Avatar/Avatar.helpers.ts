@@ -94,10 +94,9 @@ export const resolveAvatarStyles = (
     const { colors } = theme;
 
     const resolvedColor = resolveColor(color, theme);
-    const hexColor = formatColor(resolvedColor, { format: "hexa" });
+    const hexColor = formatColor(resolvedColor);
 
     const solidTextColor = formatColor(theme.typography.colors.primary, {
-        format: "hexa",
         negate: createColor(resolvedColor).isLight(),
     });
 
@@ -113,7 +112,7 @@ export const resolveAvatarStyles = (
         container.plain = {
             backgroundColor: "transparent",
         };
-        text.plain = { color: formatColor(resolvedColor, { format: "hexa" }) };
+        text.plain = { color: formatColor(resolvedColor) };
 
         container.soft = {
             backgroundColor: formatColor(resolvedColor, {
@@ -121,7 +120,7 @@ export const resolveAvatarStyles = (
                 format: "hexa",
             }),
         };
-        text.soft = { color: formatColor(resolvedColor, { format: "hexa" }) };
+        text.soft = { color: formatColor(resolvedColor) };
     }
 
     container.elevation = {
@@ -132,9 +131,9 @@ export const resolveAvatarStyles = (
     container.outlined = {
         backgroundColor: "transparent",
         borderWidth: 1,
-        borderColor: formatColor(resolvedColor, { format: "hexa" }),
+        borderColor: formatColor(resolvedColor),
     };
-    text.outlined = { color: formatColor(resolvedColor, { format: "hexa" }) };
+    text.outlined = { color: formatColor(resolvedColor) };
 
     return { container, text };
 };

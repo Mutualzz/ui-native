@@ -43,31 +43,29 @@ export const resolveSelectStyles = (
     const resolvedColor = resolveColor(color, theme);
 
     const solidTextColor = formatColor(theme.typography.colors.primary, {
-        format: "hexa",
         negate: createColor(resolvedColor).isLight(),
     });
 
     return {
         solid: {
-            backgroundColor: formatColor(resolvedColor, { format: "hexa" }),
+            backgroundColor: formatColor(resolvedColor),
             color: solidTextColor,
         },
         outlined: {
             borderWidth: 1,
-            borderColor: formatColor(resolvedColor, { format: "hexa" }),
+            borderColor: formatColor(resolvedColor),
             backgroundColor: "transparent",
-            color: formatColor(resolvedColor, { format: "hexa", lighten: 75 }),
+            color: formatColor(resolvedColor, { lighten: 75 }),
         },
         soft: {
             backgroundColor: formatColor(resolvedColor, {
-                format: "hexa",
                 darken: 50,
             }),
-            color: formatColor(resolvedColor, { format: "hexa", lighten: 75 }),
+            color: formatColor(resolvedColor, { lighten: 75 }),
         },
         plain: {
             backgroundColor: "transparent",
-            color: formatColor(resolvedColor, { format: "hexa", lighten: 75 }),
+            color: formatColor(resolvedColor, { lighten: 75 }),
         },
     };
 };
@@ -81,28 +79,26 @@ export const resolveSelectContentStyles = (
 
     return {
         solid: {
-            backgroundColor: formatColor(resolvedColor, { format: "hexa" }),
+            backgroundColor: formatColor(resolvedColor),
             color: formatColor(theme.typography.colors.primary, {
-                format: "hexa",
                 negate: createColor(resolvedColor).isLight(),
             }),
         },
         outlined: {
             backgroundColor: colors.background,
             borderWidth: 1,
-            borderColor: formatColor(resolvedColor, { format: "hexa" }),
-            color: formatColor(resolvedColor, { format: "hexa", lighten: 20 }),
+            borderColor: formatColor(resolvedColor),
+            color: formatColor(resolvedColor, { lighten: 20 }),
         },
         soft: {
             backgroundColor: formatColor(resolvedColor, {
-                format: "hexa",
                 darken: 50,
             }),
-            color: formatColor(resolvedColor, { format: "hexa", lighten: 20 }),
+            color: formatColor(resolvedColor, { lighten: 20 }),
         },
         plain: {
             backgroundColor: colors.background,
-            color: formatColor(resolvedColor, { format: "hexa" }),
+            color: formatColor(resolvedColor),
         },
     };
 };

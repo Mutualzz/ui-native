@@ -35,9 +35,7 @@ export const resolvePaperStyles = (
           })
         : null;
 
-    const opaqueBase =
-        formatColor(colors.background, { format: "hexa" }) ??
-        formatColor(colors.neutral, { darken: 20, format: "hexa" });
+    const opaqueBase = formatColor(colors.background);
 
     const elevatedBackgroundStyles: ViewStyle = isGradient
         ? {
@@ -60,10 +58,7 @@ export const resolvePaperStyles = (
             overflow: "hidden",
         },
         solid: {
-            backgroundColor:
-                formatColor(elevatedColor, {
-                    format: "hexa",
-                }) ?? theme.colors.primary,
+            backgroundColor: formatColor(elevatedColor),
         },
         outlined: {
             ...(elevation === 0
