@@ -14,10 +14,7 @@ const InputRoot = styled.View<InputRootProps>(
         disabled,
         size = "md",
     }) => {
-        const { fontSize, paddingHorizontal } = resolveInputBaseSize(
-            theme,
-            size,
-        );
+        const { fontSize } = resolveInputBaseSize(theme, size);
 
         return {
             fontSize,
