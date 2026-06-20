@@ -11,6 +11,7 @@ import {
 import { Pressable, View, type GestureResponderEvent } from "react-native";
 import { ButtonGroupContext } from "../ButtonGroup/ButtonGroup.context";
 import { CircularProgress } from "../CircularProgress/CircularProgress";
+import { IconSlot } from "../IconSlot/IconSlot";
 import { useTheme } from "../useTheme";
 import {
     resolveIconButtonContainerStyles,
@@ -23,13 +24,6 @@ const baseSizeMap: Record<Size, number> = {
     md: 20,
     lg: 24,
 };
-
-const ContentRow = styled.View({
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    minWidth: 0,
-});
 
 const SpinnerOverlay = styled.View({
     position: "absolute",
@@ -146,7 +140,6 @@ const IconButton = forwardRef<View, IconButtonProps>(
                             flexGrow: fullWidth ? 1 : 0,
                             alignSelf: fullWidth ? "stretch" : undefined,
                             padding,
-                            fontSize: resolvedSize,
                             justifyContent: "center",
                             alignItems: "center",
                         },
@@ -158,6 +151,8 @@ const IconButton = forwardRef<View, IconButtonProps>(
                 <View
                     style={{
                         flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
                         minWidth: 0,
                     }}
                 >
@@ -180,7 +175,10 @@ const IconButton = forwardRef<View, IconButtonProps>(
                         </SpinnerOverlay>
                     )}
 
-                    <ContentRow style={{ opacity: contentOpacity }}>
+                    <IconSlot
+                        size={resolvedSize}
+                        style={{ opacity: contentOpacity }}
+                    >
                         {typeof children === "string" ? (
                             <ButtonText
                                 style={[
@@ -199,19 +197,12 @@ const IconButton = forwardRef<View, IconButtonProps>(
                                 color:
                                     (textVariant?.color as ColorLike) ??
                                     undefined,
-                                size: resolvedSize,
-                                style: [
-                                    {
-                                        fontSize: resolvedSize,
-                                        color: textVariant?.color,
-                                    },
-                                    children.props.style as any,
-                                ],
+                                size: children.props.size ?? resolvedSize,
                             })
                         ) : (
                             children
                         )}
-                    </ContentRow>
+                    </IconSlot>
                 </View>
             </Pressable>
         );

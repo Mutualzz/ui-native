@@ -1,12 +1,15 @@
 import type { Theme } from "@emotion/react";
 import {
+    createColor,
     dynamicElevation,
     flipNumber,
     formatColor,
     isValidGradient,
     resolveColor,
+    resolveTypographyColor,
     type Color,
     type ColorLike,
+    type TypographyColor,
 } from "@mutualzz/ui-core";
 import type { ViewStyle } from "react-native";
 import type { PaperVariant } from "./Paper.types";
@@ -14,13 +17,23 @@ import type { PaperVariant } from "./Paper.types";
 export const resolvePaperStyles = (
     theme: Theme,
     color: Color | ColorLike,
-
+    textColor: TypographyColor | ColorLike | "inherit" | "transparent",
     variant: PaperVariant,
     elevation: number,
     transparency: number,
 ): Record<PaperVariant, ViewStyle> => {
     const { colors } = theme;
     const resolvedColor = resolveColor(color, theme);
+
+    const resolvedTextColor =
+        textColor === "inherit" || textColor === "transparent"
+            ? undefined
+            : resolveTypographyColor(textColor, theme);
+
+    const solidTextColor = formatColor(theme.typography.colors.primary, {
+        format: "hexa",
+        negate: createColor(resolvedColor).isLight(),
+    });
 
     const elevatedColor = dynamicElevation(
         variant === "solid" ? resolvedColor : colors.surface,
@@ -48,7 +61,6 @@ export const resolvePaperStyles = (
     return {
         elevation: {
             ...elevatedBackgroundStyles,
-            boxShadow: `0 ${2 + elevation}px ${8 + elevation * 2}px rgba(0,0,0,${0.1 + elevation * 0.05})`,
             elevation,
             shadowColor: "#000",
             shadowOpacity: Math.min(0.1 + elevation * 0.05, 0.5),
@@ -59,6 +71,7 @@ export const resolvePaperStyles = (
         },
         solid: {
             backgroundColor: formatColor(elevatedColor),
+            ...(solidTextColor ? { color: solidTextColor } : {}),
         },
         outlined: {
             ...(elevation === 0
@@ -70,11 +83,13 @@ export const resolvePaperStyles = (
                 format: "hexa",
             }),
             borderStyle: "solid",
+            ...(resolvedTextColor ? { color: resolvedTextColor } : {}),
         },
         plain: {
             ...(elevation === 0
                 ? { backgroundColor: "transparent" }
                 : elevatedBackgroundStyles),
+            ...(resolvedTextColor ? { color: resolvedTextColor } : {}),
         },
         soft: {
             backgroundColor: formatColor(
@@ -86,6 +101,7 @@ export const resolvePaperStyles = (
                     format: "hexa",
                 },
             ),
+            ...(resolvedTextColor ? { color: resolvedTextColor } : {}),
         },
     };
 };

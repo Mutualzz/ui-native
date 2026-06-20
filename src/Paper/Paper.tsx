@@ -24,11 +24,17 @@ const PaperBase = styled(View)<PaperProps>(
         variant = "elevation",
         elevation = 0,
         color = "neutral",
+        textColor = "inherit",
         transparency = 0,
     }) => ({
-        ...resolvePaperStyles(theme, color, variant, elevation, transparency)[
-            variant
-        ],
+        ...resolvePaperStyles(
+            theme,
+            color,
+            textColor,
+            variant,
+            elevation,
+            transparency,
+        )[variant],
 
         borderRadius: 0,
         alignSelf: inline ? "flex-start" : "stretch",
@@ -82,7 +88,7 @@ const Paper = forwardRef<View, PaperProps>(
                 {...props}
             >
                 <Canvas
-                    style={StyleSheet.absoluteFillObject}
+                    style={StyleSheet.absoluteFill}
                     pointerEvents="none"
                 >
                     <Rect

@@ -1,10 +1,11 @@
 import styled from "@emotion/native";
-import { forwardRef, useContext, useMemo } from "react";
+import { forwardRef, useContext, useMemo, cloneElement, isValidElement, type ReactNode } from "react";
 import {
     Pressable,
     Text,
     type View,
     type GestureResponderEvent,
+    type TextStyle,
 } from "react-native";
 import { ButtonGroupContext } from "../ButtonGroup/ButtonGroup.context";
 import { CircularProgress } from "../CircularProgress/CircularProgress";
@@ -16,6 +17,20 @@ import {
     resolveButtonTextStyles,
 } from "./Button.helpers";
 import type { ButtonProps } from "./Button.types";
+
+const cloneDecorator = (
+    node: ReactNode,
+    textVariant: TextStyle,
+    fontSize: number,
+) => {
+    if (!node || !isValidElement(node)) return node;
+
+    return cloneElement(node, {
+        color: textVariant?.color ?? undefined,
+        size: node.props.size ?? fontSize,
+        style: node.props.style as object,
+    });
+};
 
 const ContentRow = styled.View({
     minWidth: 0,
@@ -125,7 +140,7 @@ const Button = forwardRef<View, ButtonProps>(
                 resolveButtonTextStyles(theme, color, {
                     disabled: isDisabled,
                 })[variant],
-            [theme, isDisabled],
+            [theme, color, variant, isDisabled],
         );
 
         const contentOpacity = loading ? 0 : 1;
@@ -194,11 +209,11 @@ const Button = forwardRef<View, ButtonProps>(
                 {startDecorator && (
                     <DecoratorWrapper
                         style={{
-                            color: textVariant.color,
-                            fontSize,
+                            width: fontSize,
+                            height: fontSize,
                         }}
                     >
-                        {startDecorator}
+                        {cloneDecorator(startDecorator, textVariant, fontSize)}
                     </DecoratorWrapper>
                 )}
 
@@ -242,11 +257,11 @@ const Button = forwardRef<View, ButtonProps>(
                 {endDecorator && (
                     <DecoratorWrapper
                         style={{
-                            color: textVariant.color,
-                            fontSize,
+                            width: fontSize,
+                            height: fontSize,
                         }}
                     >
-                        {endDecorator}
+                        {cloneDecorator(endDecorator, textVariant, fontSize)}
                     </DecoratorWrapper>
                 )}
             </Pressable>

@@ -15,7 +15,7 @@ import type { NativeBaselineProps } from "./NativeBaseline.types";
 
 const styles = StyleSheet.create({
     fill: {
-        ...StyleSheet.absoluteFillObject,
+        ...StyleSheet.absoluteFill,
     },
     container: {
         position: "relative",
@@ -41,11 +41,29 @@ const NativeBaseline = ({ children }: NativeBaselineProps) => {
         }
     }, [bg]);
 
+    const portraitStretch = useMemo(() => {
+        if (height <= width) return 1;
+        const ratio = height / width;
+        return Math.min(1.5, 1 + (ratio - 1) * 0.35);
+    }, [width, height]);
+
+    const gradientStops = useMemo(() => {
+        if (!gradient || portraitStretch <= 1) return gradient;
+
+        const shift = (portraitStretch - 1) * 0.22;
+        return {
+            ...gradient,
+            positions: gradient.positions.map((position) =>
+                Math.min(1, position + shift * (1 - position)),
+            ),
+        };
+    }, [gradient, portraitStretch]);
+
     if (!gradient) {
         return (
             <GestureHandlerRootView>
                 <SafeAreaView
-                    edges={["left", "right"]}
+                    edges={["top", "left", "right"]}
                     style={[
                         styles.container,
                         styles.fill,
@@ -58,25 +76,26 @@ const NativeBaseline = ({ children }: NativeBaselineProps) => {
         );
     }
 
-    const { start, end } = angleToSkia(gradient.angle, width, height);
+    const activeGradient = gradientStops ?? gradient;
+    const { start, end } = angleToSkia(activeGradient.angle, width, height);
 
     return (
         <GestureHandlerRootView>
             <SafeAreaView
-                edges={["left", "right"]}
+                edges={["top", "left", "right"]}
                 style={[styles.container, styles.fill]}
             >
                 {width > 0 && height > 0 && (
                     <Canvas
-                        style={StyleSheet.absoluteFillObject}
+                        style={StyleSheet.absoluteFill}
                         pointerEvents="none"
                     >
                         <Rect dither x={0} y={0} width={width} height={height}>
                             <SkiaLinearGradient
                                 start={vec(start.x, start.y)}
                                 end={vec(end.x, end.y)}
-                                colors={gradient.colors}
-                                positions={gradient.positions}
+                                colors={activeGradient.colors}
+                                positions={activeGradient.positions}
                             />
                         </Rect>
                     </Canvas>

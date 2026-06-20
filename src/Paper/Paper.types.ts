@@ -1,4 +1,9 @@
-import { type Color, type ColorLike, type Variant } from "@mutualzz/ui-core";
+import {
+    type Color,
+    type ColorLike,
+    type TypographyColor,
+    type Variant,
+} from "@mutualzz/ui-core";
 import type { BoxProps } from "../Box/Box.types";
 
 export type PaperVariant = Variant | "elevation";
@@ -10,6 +15,12 @@ export interface PaperProps extends Omit<BoxProps, "color"> {
      * @default "neutral"
      */
     color?: Color | ColorLike;
+
+    /**
+     * The text color of the Paper component.
+     * @default "inherit"
+     */
+    textColor?: TypographyColor | ColorLike | "inherit" | "transparent";
 
     /**
      * The variant of the Paper component.

@@ -27,19 +27,20 @@ export * from "./DecoratorWrapper/DecoratorWrapper";
 export * from "./Divider/Divider";
 export type * from "./Divider/Divider.types";
 
-export * from "./Drawer/Drawer";
-export type * from "./Drawer/Drawer.types";
-
 export * from "./IconButton/IconButton";
 export type * from "./IconButton/IconButton.types";
 
-export * from "./IconButton/IconButton";
-export type * from "./IconButton/IconButton.types";
+export * from "./IconSlot/IconSlot";
+export type * from "./IconSlot/IconSlot.types";
 
-export * from "./InputBase/InputBase";
-export type * from "./InputBase/InputBase.types";
+export * from "./Input/Input";
+export type * from "./Input/Input.types";
 
-export * from "./InputDecoratorWrapper/InputDecoratorWrapper";
+export * from "./InputColor/InputColor";
+export type * from "./InputColor/InputColor.types";
+
+export * from "./InputNumber/InputNumber";
+export type * from "./InputNumber/InputNumber.types";
 
 export * from "./InputDefault/InputDefault";
 
@@ -51,9 +52,6 @@ export type * from "./InputRoot/InputRoot.types";
 
 export * from "./LinearProgress/LinearProgress";
 export type * from "./LinearProgress/LinearProgress.types";
-
-export * from "./Link/Link";
-export type * from "./Link/Link.types";
 
 export * from "./List/List";
 export type * from "./List/List.types";
@@ -68,15 +66,10 @@ export * from "./Modal/Modal";
 export type * from "./Modal/Modal.types";
 
 export * from "./NativeBaseline/NativeBaseline";
-
-export * from "./Option/Option";
-export type * from "./Option/Option.types";
+export type * from "./NativeBaseline/NativeBaseline.types";
 
 export * from "./Paper/Paper";
 export type * from "./Paper/Paper.types";
-
-export * from "./Popover/Popover";
-export type * from "./Popover/Popover.types";
 
 export * from "./Radio/Radio";
 export type * from "./Radio/Radio.types";
@@ -84,14 +77,14 @@ export type * from "./Radio/Radio.types";
 export * from "./RadioGroup/RadioGroup";
 export type * from "./RadioGroup/RadioGroup.types";
 
-export * from "./Select/Select";
-export type * from "./Select/Select.types";
+export * from "./Stack/Stack";
+export type * from "./Stack/Stack.types";
+
+export * from "./Switch/Switch";
+export type * from "./Switch/Switch.types";
 
 export * from "./Slider/Slider";
 export type * from "./Slider/Slider.types";
-
-export * from "./Textarea/Textarea";
-export type * from "./Textarea/Textarea.types";
 
 export * from "./Typography/Typography";
 export type * from "./Typography/Typography.types";
