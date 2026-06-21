@@ -1,9 +1,10 @@
 import styled from "@emotion/native";
+import { Pressable } from "react-native";
 import { resolveInputBaseSize } from "../InputBase/InputBase.helpers";
 import { resolveInputRootStyles } from "./InputRoot.helpers";
 import type { InputRootProps } from "./InputRoot.types";
 
-const InputRoot = styled.View<InputRootProps>(
+const InputRoot = styled(Pressable)<InputRootProps>(
     ({
         theme,
         color = "neutral",

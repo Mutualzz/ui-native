@@ -1,24 +1,13 @@
 import styled from "@emotion/native";
 import type { ComponentType } from "react";
-import type { TextProps } from "react-native";
-import { resolveTypographyStyles } from "../Typography/Typography.helpers";
-import type { TypographyProps } from "../Typography/Typography.types";
-import { normalizeTypography } from "../utils/normalize";
+import type { ViewProps } from "react-native";
 
-type InputDecoratorWrapperProps = TypographyProps & {
+type InputDecoratorWrapperProps = {
     position: "start" | "end";
 };
 
-const InputDecoratorWrapper = styled.Text<InputDecoratorWrapperProps>(
-    ({
-        theme,
-        level = "body-md",
-        color = "primary",
-        textColor = "primary",
-        variant = "none",
-        weight,
-        position,
-    }) => ({
+const InputDecoratorWrapper = styled.View<InputDecoratorWrapperProps>(
+    ({ position }) => ({
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "center",
@@ -26,11 +15,8 @@ const InputDecoratorWrapper = styled.Text<InputDecoratorWrapperProps>(
         flexShrink: 0,
         marginLeft: position === "start" ? 8 : 0,
         marginRight: position === "end" ? 8 : 0,
-        ...normalizeTypography(theme.typography.levels[level]),
-        ...resolveTypographyStyles(theme, color, textColor)[variant],
-        fontWeight: weight,
     }),
-) as ComponentType<InputDecoratorWrapperProps & TextProps>;
+) as ComponentType<InputDecoratorWrapperProps & ViewProps>;
 
 InputDecoratorWrapper.displayName = "InputDecoratorWrapper";
 

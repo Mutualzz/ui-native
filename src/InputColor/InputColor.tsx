@@ -9,6 +9,7 @@ import { forwardRef, useMemo, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { ColorPicker } from "../ColorPicker/ColorPicker";
 import { IconButton } from "../IconButton/IconButton";
+import { useInputRef } from "../Input/useInputRef";
 import { InputBase } from "../InputBase/InputBase";
 import { InputDecoratorWrapper } from "../InputDecoratorWrapper/InputDecoratorWrapper";
 import { InputRoot } from "../InputRoot/InputRoot";
@@ -38,10 +39,12 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
             allowAlpha = false,
             onChange,
             onChangeResult,
-            ...props
+            style,
+            ...inputProps
         },
         ref,
     ) => {
+        const { inputRef, focusInput } = useInputRef(ref);
         const { theme } = useTheme();
         const [pickerOpen, setPickerOpen] = useState(false);
         const isControlled = colorProp != null;
@@ -81,7 +84,12 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
                 size={size}
                 fullWidth={fullWidth}
                 disabled={disabled}
-                {...props}
+                style={style}
+                onPress={() => {
+                    if (!disabled) {
+                        focusInput();
+                    }
+                }}
             >
                 {startDecorator ? (
                     <InputDecoratorWrapper position="start">
@@ -103,7 +111,7 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
                 </InputDecoratorWrapper>
 
                 <InputBase
-                    ref={ref}
+                    ref={inputRef}
                     value={inputValue}
                     onChangeText={(text) => {
                         handleChange(text as ColorLike);
@@ -121,7 +129,7 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
                     size={size}
                     fullWidth={fullWidth}
                     disabled={disabled}
-                    {...props}
+                    {...inputProps}
                 />
 
                 <InputDecoratorWrapper position="end">

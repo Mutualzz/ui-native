@@ -19,9 +19,10 @@ const StyledInputBase = styled(TextInput)<InputBaseProps>(
         ...(disabled ? { opacity: 0.5 } : null),
         width: fullWidth ? "100%" : undefined,
         minWidth: 0,
+        flex: fullWidth ? 1 : undefined,
         flexShrink: 1,
+        alignSelf: "stretch",
         borderRadius: 6,
-        flexGrow: fullWidth ? 1 : 0,
         textAlignVertical: "center",
     }),
 );

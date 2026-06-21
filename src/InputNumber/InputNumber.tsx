@@ -3,7 +3,7 @@ import {
     formatColor,
     resolveSize,
 } from "@mutualzz/ui-core";
-import { forwardRef, useImperativeHandle, useRef } from "react";
+import { forwardRef } from "react";
 import {
     Pressable,
     TextInput,
@@ -11,6 +11,7 @@ import {
     type TextInputKeyPressEventData,
 } from "react-native";
 import Svg, { Polyline } from "react-native-svg";
+import { useInputRef } from "../Input/useInputRef";
 import { InputBase } from "../InputBase/InputBase";
 import { baseSizeMap } from "../InputBase/InputBase.helpers";
 import { InputDecoratorWrapper } from "../InputDecoratorWrapper/InputDecoratorWrapper";
@@ -115,12 +116,12 @@ const InputNumber = forwardRef<TextInput, InputNumberProps>(
             startDecorator,
             endDecorator,
             children,
-            ...props
+            style,
+            ...inputProps
         },
         ref,
     ) => {
-        const inputRef = useRef<TextInput>(null);
-        useImperativeHandle(ref, () => inputRef.current as TextInput);
+        const { inputRef, focusInput } = useInputRef(ref);
 
         const clampValue = (raw: string) => {
             if (
@@ -178,7 +179,12 @@ const InputNumber = forwardRef<TextInput, InputNumberProps>(
                 fullWidth={fullWidth}
                 error={error}
                 disabled={disabled}
-                {...props}
+                style={style}
+                onPress={() => {
+                    if (!disabled) {
+                        focusInput();
+                    }
+                }}
             >
                 {startDecorator ? (
                     <InputDecoratorWrapper position="start">
@@ -206,7 +212,7 @@ const InputNumber = forwardRef<TextInput, InputNumberProps>(
                     size={size}
                     fullWidth={fullWidth}
                     disabled={disabled}
-                    {...props}
+                    {...inputProps}
                 />
 
                 <InputDecoratorWrapper position="end">

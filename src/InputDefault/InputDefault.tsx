@@ -1,5 +1,6 @@
 import { forwardRef } from "react";
 import type { TextInput } from "react-native";
+import { useInputRef } from "../Input/useInputRef";
 import { InputBase } from "../InputBase/InputBase";
 import { InputDecoratorWrapper } from "../InputDecoratorWrapper/InputDecoratorWrapper";
 import { InputRoot } from "../InputRoot/InputRoot";
@@ -20,18 +21,12 @@ const InputDefault = forwardRef<TextInput, InputRootProps>(
             children,
 
             onBlur,
-            ...props
+            style,
+            ...inputProps
         }: InputRootProps,
         ref,
     ) => {
-        const inputBaseProps = {
-            ...props,
-            ...(onBlur ? { onBlur } : {}),
-            size,
-            fullWidth,
-            ref,
-            editable: !disabled,
-        };
+        const { inputRef, focusInput } = useInputRef(ref);
 
         return (
             <InputRoot
@@ -42,7 +37,12 @@ const InputDefault = forwardRef<TextInput, InputRootProps>(
                 fullWidth={fullWidth}
                 error={error}
                 disabled={disabled}
-                {...props}
+                style={style}
+                onPress={() => {
+                    if (!disabled) {
+                        focusInput();
+                    }
+                }}
             >
                 {startDecorator && (
                     <InputDecoratorWrapper position="start">
@@ -50,7 +50,14 @@ const InputDefault = forwardRef<TextInput, InputRootProps>(
                     </InputDecoratorWrapper>
                 )}
 
-                <InputBase {...inputBaseProps} />
+                <InputBase
+                    {...inputProps}
+                    {...(onBlur ? { onBlur } : {})}
+                    size={size}
+                    fullWidth={fullWidth}
+                    ref={inputRef}
+                    editable={!disabled}
+                />
 
                 {endDecorator && (
                     <InputDecoratorWrapper position="end">

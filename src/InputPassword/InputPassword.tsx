@@ -3,6 +3,7 @@ import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
 import type { TextInput } from "react-native";
 import { Pressable } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
+import { useInputRef } from "../Input/useInputRef";
 import { InputBase } from "../InputBase/InputBase";
 import { InputDecoratorWrapper } from "../InputDecoratorWrapper/InputDecoratorWrapper";
 import { InputRoot } from "../InputRoot/InputRoot";
@@ -68,10 +69,12 @@ const InputPassword = forwardRef<TextInput, InputPasswordProps>(
             onShowPassword,
             onHidePassword,
             visible: visibleProp,
-            ...props
+            style,
+            ...inputProps
         },
         ref,
     ) => {
+        const { inputRef, focusInput } = useInputRef(ref);
         const { theme } = useTheme();
         const [visibleInternal, setVisibleInternal] = useState(false);
 
@@ -134,7 +137,12 @@ const InputPassword = forwardRef<TextInput, InputPasswordProps>(
                 fullWidth={fullWidth}
                 error={error}
                 disabled={disabled}
-                {...props}
+                style={style}
+                onPress={() => {
+                    if (!disabled) {
+                        focusInput();
+                    }
+                }}
             >
                 {startDecorator ? (
                     <InputDecoratorWrapper position="start">
@@ -143,8 +151,8 @@ const InputPassword = forwardRef<TextInput, InputPasswordProps>(
                 ) : null}
 
                 <InputBase
-                    {...props}
-                    ref={ref}
+                    {...inputProps}
+                    ref={inputRef}
                     size={size}
                     fullWidth={fullWidth}
                     editable={!disabled}
