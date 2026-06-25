@@ -1,5 +1,13 @@
 import styled from "@emotion/native";
-import { forwardRef, useContext, useMemo, cloneElement, isValidElement, type ReactNode } from "react";
+import {
+    forwardRef,
+    useContext,
+    useMemo,
+    cloneElement,
+    isValidElement,
+    type ReactNode,
+    type ReactElement,
+} from "react";
 import {
     Pressable,
     Text,
@@ -18,17 +26,23 @@ import {
 } from "./Button.helpers";
 import type { ButtonProps } from "./Button.types";
 
+type DecoratableProps = {
+    color?: string;
+    size?: number;
+    style?: object;
+};
+
 const cloneDecorator = (
     node: ReactNode,
     textVariant: TextStyle,
     fontSize: number,
 ) => {
-    if (!node || !isValidElement(node)) return node;
+    if (!node || !isValidElement<DecoratableProps>(node)) return node;
 
-    return cloneElement(node, {
-        color: textVariant?.color ?? undefined,
+    return cloneElement(node as ReactElement<DecoratableProps>, {
+        color: (textVariant.color as string) ?? undefined,
         size: node.props.size ?? fontSize,
-        style: node.props.style as object,
+        style: node.props.style,
     });
 };
 
