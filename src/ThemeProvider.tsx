@@ -16,7 +16,7 @@ import {
 import { useColorScheme } from "react-native";
 
 export const ThemeContext = createContext({
-    theme: baseDarkTheme as Theme,
+    theme: baseDarkTheme,
     changeTheme: (_theme: Theme | null) => {
         return;
     },
