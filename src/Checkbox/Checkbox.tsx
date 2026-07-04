@@ -230,3 +230,5 @@ const Checkbox = forwardRef<View, CheckboxProps>(
 );
 
 Checkbox.displayName = "Checkbox";
+
+export { Checkbox };

@@ -2,6 +2,7 @@ import { forwardRef } from "react";
 import { TextInput } from "react-native";
 import styled from "@emotion/native";
 import { resolveTypographyStyles } from "../Typography/Typography.helpers";
+import { useTheme } from "../useTheme";
 import { resolveInputBaseSize } from "./InputBase.helpers";
 import type { InputBaseProps } from "./InputBase.types";
 
@@ -27,9 +28,21 @@ const StyledInputBase = styled(TextInput)<InputBaseProps>(
     }),
 );
 
-const InputBase = forwardRef<TextInput, InputBaseProps>((props, ref) => (
-    <StyledInputBase ref={ref} {...props} />
-));
+const InputBase = forwardRef<TextInput, InputBaseProps>(
+    ({ placeholderTextColor, ...props }, ref) => {
+        const { theme } = useTheme();
+
+        return (
+            <StyledInputBase
+                ref={ref}
+                placeholderTextColor={
+                    placeholderTextColor ?? theme.typography.colors.muted
+                }
+                {...props}
+            />
+        );
+    },
+);
 
 InputBase.displayName = "InputBase";
 

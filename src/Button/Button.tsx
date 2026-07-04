@@ -126,7 +126,7 @@ const Button = forwardRef<View, ButtonProps>(
                 ? "flex-start"
                 : horizontalAlign === "right"
                   ? "flex-end"
-                  : orientation === "vertical"
+                  : fullWidth || orientation === "vertical"
                     ? "center"
                     : "space-between";
 

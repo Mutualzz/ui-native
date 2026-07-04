@@ -1,8 +1,4 @@
-import {
-    clamp,
-    formatColor,
-    resolveSize,
-} from "@mutualzz/ui-core";
+import { clamp, formatColor, resolveSize } from "@mutualzz/ui-core";
 import { forwardRef } from "react";
 import {
     Pressable,
@@ -124,12 +120,7 @@ const InputNumber = forwardRef<TextInput, InputNumberProps>(
         const { inputRef, focusInput } = useInputRef(ref);
 
         const clampValue = (raw: string) => {
-            if (
-                raw === "" ||
-                raw === "-" ||
-                raw === "." ||
-                raw === "-."
-            ) {
+            if (raw === "" || raw === "-" || raw === "." || raw === "-.") {
                 return raw;
             }
 
@@ -212,6 +203,7 @@ const InputNumber = forwardRef<TextInput, InputNumberProps>(
                     size={size}
                     fullWidth={fullWidth}
                     disabled={disabled}
+                    editable={!disabled}
                     {...inputProps}
                 />
 

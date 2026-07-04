@@ -129,6 +129,7 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
                     size={size}
                     fullWidth={fullWidth}
                     disabled={disabled}
+                    editable={!disabled}
                     {...inputProps}
                 />
 

@@ -70,7 +70,6 @@ const Paper = forwardRef<View, PaperProps>(
         if (!gradient || variant !== "elevation") {
             return (
                 <PaperBase
-                    style={{ backgroundColor: theme.colors.surface }}
                     variant={variant}
                     transparency={transparency}
                     {...props}
@@ -87,10 +86,7 @@ const Paper = forwardRef<View, PaperProps>(
                 transparency={transparency}
                 {...props}
             >
-                <Canvas
-                    style={StyleSheet.absoluteFill}
-                    pointerEvents="none"
-                >
+                <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
                     <Rect
                         opacity={flipNumber(transparency / 100, false)}
                         dither

@@ -75,7 +75,6 @@ export const resolveButtonContainerStyles = (
                   ? formatColor(resolvedColor, { alpha: 70, format: "hexa" })
                   : hexColor,
             borderWidth: 0,
-            ...(disabled && { opacity: 0.5 }),
         },
 
         outlined: {
@@ -86,7 +85,6 @@ export const resolveButtonContainerStyles = (
                   : "transparent",
             borderWidth: 1,
             borderColor: disabled ? disabledBorder : formatColor(resolvedColor),
-            ...(disabled && { opacity: 0.5 }),
         },
 
         plain: {
@@ -96,7 +94,6 @@ export const resolveButtonContainerStyles = (
                   ? formatColor(resolvedColor, { alpha: 30, format: "hexa" })
                   : "transparent",
             borderWidth: 0,
-            ...(disabled && { opacity: 0.5 }),
         },
 
         soft: {
@@ -106,7 +103,6 @@ export const resolveButtonContainerStyles = (
                   ? formatColor(resolvedColor, { alpha: 40, format: "hexa" })
                   : formatColor(resolvedColor, { alpha: 15, format: "hexa" }),
             borderWidth: 0,
-            ...(disabled && { opacity: 0.5 }),
         },
     };
 };
@@ -114,7 +110,10 @@ export const resolveButtonContainerStyles = (
 export const resolveButtonTextStyles = (
     theme: Theme,
     color: Color | ColorLike,
-    state?: { disabled?: boolean },
+    // Disabled state is communicated via the container's background alpha
+    // (see resolveButtonContainerStyles) — text stays fully opaque so it
+    // doesn't compound into unreadably low contrast, matching ui-web.
+    _state?: { disabled?: boolean },
 ): Record<Variant, TextStyle> => {
     const resolvedColor = resolveColor(color, theme);
     const hexColor = formatColor(resolvedColor);
@@ -123,21 +122,10 @@ export const resolveButtonTextStyles = (
         negate: createColor(resolvedColor).isLight(),
     });
 
-    const disabledSolidFg = formatColor(theme.typography.colors.primary, {
-        alpha: 60,
-        format: "hexa",
-    });
-    const disabledFg = formatColor(resolvedColor, {
-        alpha: 50,
-        format: "hexa",
-    });
-
-    const disabled = state?.disabled;
-
     return {
-        solid: { color: disabled ? disabledSolidFg : solidTextColor },
-        outlined: { color: disabled ? disabledFg : hexColor },
-        plain: { color: disabled ? disabledFg : hexColor },
-        soft: { color: disabled ? disabledFg : hexColor },
+        solid: { color: solidTextColor },
+        outlined: { color: hexColor },
+        plain: { color: hexColor },
+        soft: { color: hexColor },
     };
 };

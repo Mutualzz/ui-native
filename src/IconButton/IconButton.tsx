@@ -14,6 +14,7 @@ import { CircularProgress } from "../CircularProgress/CircularProgress";
 import { IconSlot } from "../IconSlot/IconSlot";
 import { useTheme } from "../useTheme";
 import {
+    resolveIconButtonContainerSize,
     resolveIconButtonContainerStyles,
     resolveIconButtonTextStyles,
 } from "./IconButton.helpers";
@@ -77,6 +78,11 @@ const IconButton = forwardRef<View, IconButtonProps>(
                   : Array.isArray(group?.value) && group?.value.includes(value);
 
         const resolvedSize = resolveSize(theme, size, baseSizeMap);
+        const resolvedPadding = resolveIconButtonContainerSize(
+            theme,
+            size,
+            padding,
+        ).padding;
 
         const handlePress = (e: GestureResponderEvent) => {
             if (group?.toggleable && group?.onChange && value !== undefined) {
@@ -139,7 +145,7 @@ const IconButton = forwardRef<View, IconButtonProps>(
                             flexShrink: 0,
                             flexGrow: fullWidth ? 1 : 0,
                             alignSelf: fullWidth ? "stretch" : undefined,
-                            padding,
+                            padding: resolvedPadding,
                             justifyContent: "center",
                             alignItems: "center",
                         },
