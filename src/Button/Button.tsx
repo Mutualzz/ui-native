@@ -1,4 +1,5 @@
 import styled from "@emotion/native";
+import { resolveShapeValue } from "@mutualzz/ui-core";
 import {
     forwardRef,
     useContext,
@@ -26,11 +27,11 @@ import {
 } from "./Button.helpers";
 import type { ButtonProps } from "./Button.types";
 
-type DecoratableProps = {
+interface DecoratableProps {
     color?: string;
     size?: number;
     style?: object;
-};
+}
 
 const cloneDecorator = (
     node: ReactNode,
@@ -39,7 +40,7 @@ const cloneDecorator = (
 ) => {
     if (!node || !isValidElement<DecoratableProps>(node)) return node;
 
-    return cloneElement(node as ReactElement<DecoratableProps>, {
+    return cloneElement(node, {
         color: (textVariant.color as string) ?? undefined,
         size: node.props.size ?? fontSize,
         style: node.props.style,
@@ -76,6 +77,9 @@ const Button = forwardRef<View, ButtonProps>(
             disabled: propDisabled,
             padding,
             fullWidth: propFullWidth,
+            expand: propExpand,
+            shape: propShape,
+            textColor: textColorProp,
             children,
             orientation,
             style,
@@ -100,6 +104,9 @@ const Button = forwardRef<View, ButtonProps>(
         const loading = propLoading ?? group?.loading ?? false;
         const disabled = propDisabled ?? group?.disabled ?? false;
         const fullWidth = propFullWidth ?? group?.fullWidth ?? false;
+        const expand = propExpand ?? group?.expand ?? false;
+        const shape = propShape ?? group?.shape ?? "rounded";
+        const textColor = textColorProp ?? group?.textColor;
 
         const selected =
             selectedProp !== undefined
@@ -151,10 +158,13 @@ const Button = forwardRef<View, ButtonProps>(
 
         const textVariant = useMemo(
             () =>
-                resolveButtonTextStyles(theme, color, {
-                    disabled: isDisabled,
-                })[variant],
-            [theme, color, variant, isDisabled],
+                resolveButtonTextStyles(
+                    theme,
+                    color,
+                    { disabled: isDisabled },
+                    textColor,
+                )[variant],
+            [theme, color, variant, isDisabled, textColor],
         );
 
         const contentOpacity = loading ? 0 : 1;
@@ -191,10 +201,22 @@ const Button = forwardRef<View, ButtonProps>(
                                 orientation === "vertical" ? "column" : "row",
                             alignItems,
                             justifyContent,
-                            borderRadius: 6,
-                            flexShrink: 0,
-                            flexGrow: fullWidth ? 1 : 0,
-                            alignSelf: fullWidth ? "stretch" : undefined,
+                            borderRadius: resolveShapeValue(shape),
+                            // `expand` and `fullWidth` are independent, same
+                            // as desktop: expand only competes for space
+                            // within the flex parent (e.g. two buttons
+                            // splitting a row evenly), fullWidth pins an
+                            // absolute 100% width regardless of siblings.
+                            flexGrow: fullWidth || expand ? 1 : 0,
+                            flexShrink: expand ? 1 : 0,
+                            flexBasis: expand ? 0 : "auto",
+                            // Explicit, not `undefined` — otherwise this
+                            // inherits whatever `alignItems` the parent
+                            // happens to use, and RN's own default is
+                            // "stretch", so buttons silently balloon to
+                            // fill the cross-axis in any container that
+                            // doesn't itself set alignItems.
+                            alignSelf: fullWidth ? "stretch" : "flex-start",
                             width: fullWidth ? "100%" : undefined,
                             padding: resolvedPadding,
                             gap,
@@ -263,6 +285,7 @@ const Button = forwardRef<View, ButtonProps>(
                         ]}
                         numberOfLines={1}
                         ellipsizeMode="tail"
+                        maxFontSizeMultiplier={1.3}
                     >
                         {children}
                     </Text>

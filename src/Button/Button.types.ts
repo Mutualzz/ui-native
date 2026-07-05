@@ -2,6 +2,7 @@ import {
     type Color,
     type ColorLike,
     type Orientation,
+    type Shape,
     type Size,
     type SizeValue,
     type Variant,
@@ -41,6 +42,16 @@ export interface ButtonProps extends Omit<
 
     fullWidth?: boolean;
 
+    /**
+     * Grows to share available space equally with sibling flex items
+     * (e.g. two buttons side by side in a row, each taking half). Unlike
+     * `fullWidth` (which sets an absolute 100% width regardless of
+     * siblings), `expand` only affects how this button competes for space
+     * within its own flex parent.
+     * @default false
+     */
+    expand?: boolean;
+
     disabled?: boolean;
 
     /**
@@ -75,6 +86,20 @@ export interface ButtonProps extends Omit<
     padding?: number;
 
     selected?: boolean;
+
+    /**
+     * The corner shape of the button.
+     * @default "rounded"
+     * @example "rounded", "square", "circle", 20
+     */
+    shape?: Shape | SizeValue | number;
+
+    /**
+     * Overrides the button's text color independent of `color` (which still
+     * governs the background/border). If not provided, the text color is
+     * derived from `color` as usual.
+     */
+    textColor?: Color | ColorLike;
 
     /**
      * Optional value used by ButtonGroup selection logic

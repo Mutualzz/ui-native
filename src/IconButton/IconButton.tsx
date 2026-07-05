@@ -1,6 +1,6 @@
 import styled from "@emotion/native";
 import type { ColorLike, Size } from "@mutualzz/ui-core";
-import { resolveSize } from "@mutualzz/ui-core";
+import { resolveShapeValue, resolveSize } from "@mutualzz/ui-core";
 import {
     cloneElement,
     forwardRef,
@@ -50,6 +50,9 @@ const IconButton = forwardRef<View, IconButtonProps>(
             disabled: propDisabled,
             padding,
             fullWidth: propFullWidth,
+            expand: propExpand,
+            shape: propShape,
+            textColor: textColorProp,
             children,
             style,
             selected: selectedProp,
@@ -69,6 +72,9 @@ const IconButton = forwardRef<View, IconButtonProps>(
         const loading = propLoading ?? group?.loading ?? false;
         const disabled = propDisabled ?? group?.disabled ?? false;
         const fullWidth = propFullWidth ?? group?.fullWidth ?? false;
+        const expand = propExpand ?? group?.expand ?? false;
+        const shape = propShape ?? group?.shape ?? "rounded";
+        const textColor = textColorProp ?? group?.textColor;
 
         const selected =
             selectedProp !== undefined
@@ -106,10 +112,13 @@ const IconButton = forwardRef<View, IconButtonProps>(
 
         const textVariant = useMemo(
             () =>
-                resolveIconButtonTextStyles(theme, color, {
-                    disabled: isDisabled,
-                })[variant],
-            [theme, color, isDisabled, variant],
+                resolveIconButtonTextStyles(
+                    theme,
+                    color,
+                    { disabled: isDisabled },
+                    textColor,
+                )[variant],
+            [theme, color, isDisabled, variant, textColor],
         );
 
         const contentOpacity = loading ? 0 : 1;
@@ -141,10 +150,15 @@ const IconButton = forwardRef<View, IconButtonProps>(
                         {
                             position: "relative",
                             flexDirection: "row",
-                            borderRadius: 6,
-                            flexShrink: 0,
-                            flexGrow: fullWidth ? 1 : 0,
-                            alignSelf: fullWidth ? "stretch" : undefined,
+                            borderRadius: resolveShapeValue(shape),
+                            flexGrow: fullWidth || expand ? 1 : 0,
+                            flexShrink: expand ? 1 : 0,
+                            flexBasis: expand ? 0 : "auto",
+                            // Explicit, not `undefined` — otherwise this
+                            // inherits whatever `alignItems` the parent
+                            // happens to use, and RN's own default is
+                            // "stretch".
+                            alignSelf: fullWidth ? "stretch" : "flex-start",
                             padding: resolvedPadding,
                             justifyContent: "center",
                             alignItems: "center",

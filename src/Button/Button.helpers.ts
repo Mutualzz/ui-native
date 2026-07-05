@@ -114,18 +114,22 @@ export const resolveButtonTextStyles = (
     // (see resolveButtonContainerStyles) — text stays fully opaque so it
     // doesn't compound into unreadably low contrast, matching ui-web.
     _state?: { disabled?: boolean },
+    textColor?: Color | ColorLike,
 ): Record<Variant, TextStyle> => {
     const resolvedColor = resolveColor(color, theme);
     const hexColor = formatColor(resolvedColor);
+    const resolvedTextColor = textColor
+        ? formatColor(resolveColor(textColor, theme))
+        : undefined;
 
     const solidTextColor = formatColor(theme.typography.colors.primary, {
         negate: createColor(resolvedColor).isLight(),
     });
 
     return {
-        solid: { color: solidTextColor },
-        outlined: { color: hexColor },
-        plain: { color: hexColor },
-        soft: { color: hexColor },
+        solid: { color: resolvedTextColor ?? solidTextColor },
+        outlined: { color: resolvedTextColor ?? hexColor },
+        plain: { color: resolvedTextColor ?? hexColor },
+        soft: { color: resolvedTextColor ?? hexColor },
     };
 };

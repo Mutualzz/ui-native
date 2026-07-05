@@ -2,6 +2,7 @@ import type {
     Color,
     ColorLike,
     Orientation,
+    Shape,
     Size,
     SizeValue,
     Variant,
@@ -23,6 +24,7 @@ export interface ButtonGroupProps
     horizontalAlign?: HorizontalButtonAlign;
 
     fullWidth?: boolean;
+    expand?: boolean;
     disabled?: boolean;
 
     orientation?: Orientation;
@@ -37,4 +39,7 @@ export interface ButtonGroupProps
     value?: any | any[];
     onChange?: (value: any | any[]) => void;
     exclusive?: boolean;
+
+    shape?: Shape | SizeValue | number;
+    textColor?: Color | ColorLike;
 }
