@@ -1,5 +1,6 @@
 import { clamp, formatColor, resolveSize } from "@mutualzz/ui-core";
-import { forwardRef } from "react";
+import { cloneElement, forwardRef, isValidElement } from "react";
+import type { ReactNode } from "react";
 import {
     Pressable,
     TextInput,
@@ -9,12 +10,27 @@ import {
 import Svg, { Polyline } from "react-native-svg";
 import { useInputRef } from "../Input/useInputRef";
 import { InputBase } from "../InputBase/InputBase";
-import { baseSizeMap } from "../InputBase/InputBase.helpers";
+import { baseSizeMap, resolveInputBaseSize } from "../InputBase/InputBase.helpers";
 import { InputDecoratorWrapper } from "../InputDecoratorWrapper/InputDecoratorWrapper";
 import { InputRoot } from "../InputRoot/InputRoot";
 import { Stack } from "../Stack/Stack";
+import { resolveTypographyStyles } from "../Typography/Typography.helpers";
 import { useTheme } from "../useTheme";
 import type { InputNumberProps } from "./InputNumber.types";
+
+interface DecoratableProps {
+    color?: string;
+    size?: number;
+}
+
+const cloneDecorator = (node: ReactNode, color: string, size: number) => {
+    if (!isValidElement<DecoratableProps>(node)) return node;
+
+    return cloneElement(node, {
+        color,
+        size: node.props.size ?? size,
+    });
+};
 
 const SpinnerButtons = ({
     onIncrement,
@@ -118,6 +134,14 @@ const InputNumber = forwardRef<TextInput, InputNumberProps>(
         ref,
     ) => {
         const { inputRef, focusInput } = useInputRef(ref);
+        const { theme } = useTheme();
+
+        const decoratorColor = resolveTypographyStyles(
+            theme,
+            color,
+            textColor,
+        )["none"].color as string;
+        const { fontSize = 16 } = resolveInputBaseSize(theme, size);
 
         const clampValue = (raw: string) => {
             if (raw === "" || raw === "-" || raw === "." || raw === "-.") {
@@ -179,7 +203,7 @@ const InputNumber = forwardRef<TextInput, InputNumberProps>(
             >
                 {startDecorator ? (
                     <InputDecoratorWrapper position="start">
-                        {startDecorator}
+                        {cloneDecorator(startDecorator, decoratorColor, fontSize)}
                     </InputDecoratorWrapper>
                 ) : null}
 
@@ -208,7 +232,9 @@ const InputNumber = forwardRef<TextInput, InputNumberProps>(
                 />
 
                 <InputDecoratorWrapper position="end">
-                    {endDecorator ?? (
+                    {endDecorator ? (
+                        cloneDecorator(endDecorator, decoratorColor, fontSize)
+                    ) : (
                         <SpinnerButtons
                             size={size}
                             onIncrement={handleOnIncrement}

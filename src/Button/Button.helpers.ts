@@ -110,9 +110,6 @@ export const resolveButtonContainerStyles = (
 export const resolveButtonTextStyles = (
     theme: Theme,
     color: Color | ColorLike,
-    // Disabled state is communicated via the container's background alpha
-    // (see resolveButtonContainerStyles) — text stays fully opaque so it
-    // doesn't compound into unreadably low contrast, matching ui-web.
     _state?: { disabled?: boolean },
     textColor?: Color | ColorLike,
 ): Record<Variant, TextStyle> => {

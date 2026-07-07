@@ -1,10 +1,28 @@
-import { forwardRef } from "react";
+import { cloneElement, forwardRef, isValidElement } from "react";
+import type { ReactNode } from "react";
 import type { TextInput } from "react-native";
 import { useInputRef } from "../Input/useInputRef";
 import { InputBase } from "../InputBase/InputBase";
+import { resolveInputBaseSize } from "../InputBase/InputBase.helpers";
 import { InputDecoratorWrapper } from "../InputDecoratorWrapper/InputDecoratorWrapper";
 import { InputRoot } from "../InputRoot/InputRoot";
 import type { InputRootProps } from "../InputRoot/InputRoot.types";
+import { resolveTypographyStyles } from "../Typography/Typography.helpers";
+import { useTheme } from "../useTheme";
+
+interface DecoratableProps {
+    color?: string;
+    size?: number;
+}
+
+const cloneDecorator = (node: ReactNode, color: string, size: number) => {
+    if (!isValidElement<DecoratableProps>(node)) return node;
+
+    return cloneElement(node, {
+        color,
+        size: node.props.size ?? size,
+    });
+};
 
 const InputDefault = forwardRef<TextInput, InputRootProps>(
     (
@@ -27,6 +45,14 @@ const InputDefault = forwardRef<TextInput, InputRootProps>(
         ref,
     ) => {
         const { inputRef, focusInput } = useInputRef(ref);
+        const { theme } = useTheme();
+
+        const decoratorColor = resolveTypographyStyles(
+            theme,
+            color,
+            textColor,
+        )["none"].color as string;
+        const { fontSize = 16 } = resolveInputBaseSize(theme, size);
 
         return (
             <InputRoot
@@ -46,7 +72,7 @@ const InputDefault = forwardRef<TextInput, InputRootProps>(
             >
                 {startDecorator && (
                     <InputDecoratorWrapper position="start">
-                        {startDecorator}
+                        {cloneDecorator(startDecorator, decoratorColor, fontSize)}
                     </InputDecoratorWrapper>
                 )}
 
@@ -61,7 +87,7 @@ const InputDefault = forwardRef<TextInput, InputRootProps>(
 
                 {endDecorator && (
                     <InputDecoratorWrapper position="end">
-                        {endDecorator}
+                        {cloneDecorator(endDecorator, decoratorColor, fontSize)}
                     </InputDecoratorWrapper>
                 )}
             </InputRoot>

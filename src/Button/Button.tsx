@@ -202,20 +202,9 @@ const Button = forwardRef<View, ButtonProps>(
                             alignItems,
                             justifyContent,
                             borderRadius: resolveShapeValue(shape),
-                            // `expand` and `fullWidth` are independent, same
-                            // as desktop: expand only competes for space
-                            // within the flex parent (e.g. two buttons
-                            // splitting a row evenly), fullWidth pins an
-                            // absolute 100% width regardless of siblings.
                             flexGrow: fullWidth || expand ? 1 : 0,
                             flexShrink: expand ? 1 : 0,
                             flexBasis: expand ? 0 : "auto",
-                            // Explicit, not `undefined` — otherwise this
-                            // inherits whatever `alignItems` the parent
-                            // happens to use, and RN's own default is
-                            // "stretch", so buttons silently balloon to
-                            // fill the cross-axis in any container that
-                            // doesn't itself set alignItems.
                             alignSelf: fullWidth ? "stretch" : "flex-start",
                             width: fullWidth ? "100%" : undefined,
                             padding: resolvedPadding,

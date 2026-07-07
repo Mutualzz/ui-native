@@ -12,13 +12,30 @@ const spacingKeys = new Set(Object.keys(spacingAliasMap));
 const positionKeys = new Set(["top", "right", "bottom", "left"]);
 const systemKeys = new Set(Object.keys(aliasMaps));
 
+const REM_TO_PX = 16;
+
+const toNativeSpacingValue = (value: unknown): unknown => {
+    if (typeof value !== "string") return value;
+
+    const remMatch = /^(-?\d*\.?\d+)rem$/.exec(value.trim());
+    if (remMatch) return parseFloat(remMatch[1]) * REM_TO_PX;
+
+    const pxMatch = /^(-?\d*\.?\d+)px$/.exec(value.trim());
+    if (pxMatch) return parseFloat(pxMatch[1]);
+
+    const asNumber = parseFloat(value);
+    return Number.isNaN(asNumber) ? value : asNumber;
+};
+
 const normalizeDisplay = (value: unknown): ViewStyle["display"] | undefined => {
     if (value === "none") return "none";
     if (value === "flex" || value === "inline-flex") return "flex";
     return undefined;
 };
 
-const normalizeOverflow = (value: unknown): ViewStyle["overflow"] | undefined => {
+const normalizeOverflow = (
+    value: unknown,
+): ViewStyle["overflow"] | undefined => {
     if (value === "hidden" || value === "visible" || value === "scroll") {
         return value;
     }
@@ -45,11 +62,11 @@ export const aliasToNativeStyles = (
         if (raw == null) return raw;
 
         if (spacingKeys.has(key) && typeof raw === "number") {
-            return theme.spacing(raw);
+            return toNativeSpacingValue(theme.spacing(raw));
         }
 
         if (positionKeys.has(key) && typeof raw === "number") {
-            return theme.spacing(raw);
+            return toNativeSpacingValue(theme.spacing(raw));
         }
 
         if (key === "boxShadow" && typeof raw === "number") {

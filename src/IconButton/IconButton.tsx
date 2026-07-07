@@ -154,10 +154,6 @@ const IconButton = forwardRef<View, IconButtonProps>(
                             flexGrow: fullWidth || expand ? 1 : 0,
                             flexShrink: expand ? 1 : 0,
                             flexBasis: expand ? 0 : "auto",
-                            // Explicit, not `undefined` — otherwise this
-                            // inherits whatever `alignItems` the parent
-                            // happens to use, and RN's own default is
-                            // "stretch".
                             alignSelf: fullWidth ? "stretch" : "flex-start",
                             padding: resolvedPadding,
                             justifyContent: "center",

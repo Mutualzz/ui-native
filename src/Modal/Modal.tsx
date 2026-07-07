@@ -127,7 +127,12 @@ const Modal = forwardRef<View, ModalProps>(
         }, [hideBackdrop, disableBackdropClick, canClose, onClose]);
 
         return (
-            <RNModal visible={visible} transparent animationType="fade">
+            <RNModal
+                visible={visible}
+                transparent
+                animationType="fade"
+                onRequestClose={onClose}
+            >
                 <ModalRoot layout={layout} style={style} {...props}>
                     {backdrop}
 
