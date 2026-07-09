@@ -92,4 +92,6 @@ export type * from "./Typography/Typography.types";
 export * from "./ThemeProvider";
 export * from "./useTheme";
 
+export * from "./hooks/useFontScale";
+export * from "./utils/accessibility";
 export * from "./utils/angleToSkia";

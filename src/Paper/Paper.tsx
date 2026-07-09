@@ -12,14 +12,16 @@ import {
     StyleSheet,
     View,
     type LayoutChangeEvent,
+    type StyleProp,
+    type ViewStyle,
 } from "react-native";
+import { useSystemStyle } from "../hooks/useSystemStyle";
 import { useTheme } from "../useTheme";
 import { resolvePaperStyles } from "./Paper.helpers";
 import type { PaperProps } from "./Paper.types";
 
 const PaperBase = styled(View)<PaperProps>(
     ({
-        inline,
         theme,
         variant = "elevation",
         elevation = 0,
@@ -37,16 +39,32 @@ const PaperBase = styled(View)<PaperProps>(
         )[variant],
 
         borderRadius: 0,
-        alignSelf: inline ? "flex-start" : "stretch",
         alignContent: "stretch",
         flexShrink: 1,
     }),
 );
 
 const Paper = forwardRef<View, PaperProps>(
-    ({ variant = "elevation", transparency = 0, children, ...props }, ref) => {
+    (
+        {
+            variant = "elevation",
+            transparency = 0,
+            children,
+            style,
+            ...restProps
+        },
+        ref,
+    ) => {
         const { theme } = useTheme();
+        const { systemStyle, restProps: props } = useSystemStyle(
+            restProps as Record<string, unknown>,
+        );
         const [size, setSize] = useState({ width: 0, height: 0 });
+
+        const resolvedStyle = useMemo(
+            () => [systemStyle, style] as StyleProp<ViewStyle>,
+            [systemStyle, style],
+        );
 
         const surface = useMemo(
             () => theme.colors.surface,
@@ -70,8 +88,10 @@ const Paper = forwardRef<View, PaperProps>(
         if (!gradient || variant !== "elevation") {
             return (
                 <PaperBase
+                    ref={ref}
                     variant={variant}
                     transparency={transparency}
+                    style={resolvedStyle}
                     {...props}
                 >
                     {children}
@@ -81,9 +101,11 @@ const Paper = forwardRef<View, PaperProps>(
 
         return (
             <PaperBase
+                ref={ref}
                 onLayout={onLayout}
                 variant={variant}
                 transparency={transparency}
+                style={resolvedStyle}
                 {...props}
             >
                 <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">

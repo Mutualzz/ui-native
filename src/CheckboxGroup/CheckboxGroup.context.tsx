@@ -17,8 +17,6 @@ export interface CheckboxGroupContextType {
     value?: string[];
     disabled?: boolean;
 
-    toggle?: (val: string, checked: boolean) => void;
-
     onChange?: (event: unknown, value: string[]) => void;
 }
 

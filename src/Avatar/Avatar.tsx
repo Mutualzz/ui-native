@@ -1,7 +1,8 @@
 import styled from "@emotion/native";
 import { forwardRef } from "react";
-import { Image, Text, type View } from "react-native";
+import { Image, Text, useWindowDimensions, type View } from "react-native";
 import { useTheme } from "../useTheme";
+import { MAX_FONT_SCALE_MULTIPLIER } from "../utils/accessibility";
 import {
     resolveAvatarShape,
     resolveAvatarSize,
@@ -37,6 +38,7 @@ const Avatar = forwardRef<View, AvatarProps>(
         ref,
     ) => {
         const { theme } = useTheme();
+        const { fontScale } = useWindowDimensions();
 
         const hasText = !src && Boolean(children || alt);
 
@@ -85,7 +87,8 @@ const Avatar = forwardRef<View, AvatarProps>(
                                 justifyContent: "center",
                             },
                         ]}
-                        numberOfLines={1}
+                        numberOfLines={fontScale > 1.15 ? undefined : 1}
+                        maxFontSizeMultiplier={MAX_FONT_SCALE_MULTIPLIER}
                     >
                         {children ?? fallbackText}
                     </Text>

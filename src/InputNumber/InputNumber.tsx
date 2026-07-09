@@ -1,5 +1,5 @@
 import { clamp, formatColor, resolveSize } from "@mutualzz/ui-core";
-import { cloneElement, forwardRef, isValidElement } from "react";
+import { cloneElement, forwardRef, isValidElement, useState } from "react";
 import type { ReactNode } from "react";
 import {
     Pressable,
@@ -136,6 +136,15 @@ const InputNumber = forwardRef<TextInput, InputNumberProps>(
         const { inputRef, focusInput } = useInputRef(ref);
         const { theme } = useTheme();
 
+        const isControlled = value !== undefined;
+        const [internalValue, setInternalValue] = useState(defaultValue ?? "");
+        const currentValue = isControlled ? value : internalValue;
+
+        const commitValue = (next: string) => {
+            if (!isControlled) setInternalValue(next);
+            onChangeText?.(next);
+        };
+
         const decoratorColor = resolveTypographyStyles(
             theme,
             color,
@@ -156,10 +165,10 @@ const InputNumber = forwardRef<TextInput, InputNumberProps>(
         };
 
         const handleStepChange = (direction: "up" | "down") => {
-            const current = parseFloat(value ?? "") || 0;
+            const current = parseFloat(currentValue ?? "") || 0;
             const delta = direction === "up" ? step : -step;
             const next = clamp(current + delta, min, max);
-            onChangeText?.(String(next));
+            commitValue(String(next));
         };
 
         const handleOnIncrement = () => {
@@ -194,6 +203,7 @@ const InputNumber = forwardRef<TextInput, InputNumberProps>(
                 fullWidth={fullWidth}
                 error={error}
                 disabled={disabled}
+                accessibilityState={{ disabled }}
                 style={style}
                 onPress={() => {
                     if (!disabled) {
@@ -209,17 +219,16 @@ const InputNumber = forwardRef<TextInput, InputNumberProps>(
 
                 <InputBase
                     ref={inputRef}
-                    value={value}
-                    defaultValue={defaultValue}
-                    onChangeText={onChangeText}
+                    value={currentValue}
+                    onChangeText={commitValue}
                     keyboardType={
                         inputMode === "numeric" ? "number-pad" : "decimal-pad"
                     }
                     onBlur={(event) => {
-                        const raw = value ?? "";
+                        const raw = currentValue ?? "";
                         const next = clampValue(raw);
                         if (next !== raw) {
-                            onChangeText?.(next);
+                            commitValue(next);
                         }
                         onBlur?.(event);
                     }}

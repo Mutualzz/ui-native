@@ -24,3 +24,16 @@ export const hsvaToHslaString = (hsva: HsvaColor): string =>
         format: "hsla",
         alpha: hsva.alpha,
     }) as string;
+
+export const hsvaToDisplayHex = (hsva: HsvaColor): string =>
+    formatColor(handleColor(hsva).hex) as string;
+
+export const hueToHex = (hue: number): string =>
+    formatColor(
+        handleColor({
+            h: hue,
+            s: 100,
+            v: 100,
+            alpha: 1,
+        }).hex,
+    ) as string;

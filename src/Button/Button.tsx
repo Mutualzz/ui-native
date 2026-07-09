@@ -12,6 +12,7 @@ import {
 import {
     Pressable,
     Text,
+    useWindowDimensions,
     type View,
     type GestureResponderEvent,
     type TextStyle,
@@ -20,6 +21,10 @@ import { ButtonGroupContext } from "../ButtonGroup/ButtonGroup.context";
 import { CircularProgress } from "../CircularProgress/CircularProgress";
 import { DecoratorWrapper } from "../DecoratorWrapper/DecoratorWrapper";
 import { useTheme } from "../useTheme";
+import {
+    MAX_FONT_SCALE_MULTIPLIER,
+    scaledLayoutSize,
+} from "../utils/accessibility";
 import {
     resolveButtonContainerSize,
     resolveButtonContainerStyles,
@@ -92,6 +97,7 @@ const Button = forwardRef<View, ButtonProps>(
         ref,
     ) => {
         const { theme } = useTheme();
+        const { fontScale } = useWindowDimensions();
         const group = useContext(ButtonGroupContext);
 
         const variant = propVariant ?? group?.variant ?? "solid";
@@ -120,6 +126,9 @@ const Button = forwardRef<View, ButtonProps>(
             gap,
             fontSize,
         } = resolveButtonContainerSize(theme, size, padding);
+        const scaledPadding = scaledLayoutSize(resolvedPadding, fontScale, 1.5);
+        const scaledGap = scaledLayoutSize(gap, fontScale, 1.35);
+        const scaledDecoratorSize = scaledLayoutSize(fontSize, fontScale, 1.35);
 
         const alignItems =
             verticalAlign === "top"
@@ -168,12 +177,14 @@ const Button = forwardRef<View, ButtonProps>(
         );
 
         const contentOpacity = loading ? 0 : 1;
+        const shouldFillSpace = fullWidth || expand;
 
         return (
             <Pressable
                 {...props}
                 ref={ref}
                 accessibilityRole="button"
+                accessibilityState={{ disabled: isDisabled, selected }}
                 disabled={isDisabled}
                 onPress={handlePress}
                 style={({ pressed }) => {
@@ -202,13 +213,14 @@ const Button = forwardRef<View, ButtonProps>(
                             alignItems,
                             justifyContent,
                             borderRadius: resolveShapeValue(shape),
-                            flexGrow: fullWidth || expand ? 1 : 0,
-                            flexShrink: expand ? 1 : 0,
+                            flexGrow: shouldFillSpace ? 1 : 0,
+                            flexShrink: 1,
                             flexBasis: expand ? 0 : "auto",
                             alignSelf: fullWidth ? "stretch" : "flex-start",
                             width: fullWidth ? "100%" : undefined,
-                            padding: resolvedPadding,
-                            gap,
+                            minWidth: 0,
+                            padding: scaledPadding,
+                            gap: scaledGap,
                         },
                     ];
                 }}
@@ -234,8 +246,8 @@ const Button = forwardRef<View, ButtonProps>(
                 {startDecorator && (
                     <DecoratorWrapper
                         style={{
-                            width: fontSize,
-                            height: fontSize,
+                            width: scaledDecoratorSize,
+                            height: scaledDecoratorSize,
                         }}
                     >
                         {cloneDecorator(startDecorator, textVariant, fontSize)}
@@ -253,7 +265,7 @@ const Button = forwardRef<View, ButtonProps>(
                                     ? "center"
                                     : justifyContent,
                             alignItems,
-                            flexGrow: 1,
+                            flexGrow: shouldFillSpace ? 1 : 0,
                             flexShrink: 1,
                             flexBasis: "auto",
                         },
@@ -272,9 +284,7 @@ const Button = forwardRef<View, ButtonProps>(
                             },
                             textVariant,
                         ]}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                        maxFontSizeMultiplier={1.3}
+                        maxFontSizeMultiplier={MAX_FONT_SCALE_MULTIPLIER}
                     >
                         {children}
                     </Text>
@@ -283,8 +293,8 @@ const Button = forwardRef<View, ButtonProps>(
                 {endDecorator && (
                     <DecoratorWrapper
                         style={{
-                            width: fontSize,
-                            height: fontSize,
+                            width: scaledDecoratorSize,
+                            height: scaledDecoratorSize,
                         }}
                     >
                         {cloneDecorator(endDecorator, textVariant, fontSize)}

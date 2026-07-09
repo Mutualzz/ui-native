@@ -9,6 +9,7 @@ import {
 } from "react";
 import { PanResponder, Text, View, type LayoutChangeEvent } from "react-native";
 import { useTheme } from "../useTheme";
+import { MAX_FONT_SCALE_MULTIPLIER } from "../utils/accessibility";
 
 import { formatColor } from "@mutualzz/ui-core";
 import {
@@ -312,15 +313,25 @@ export const Slider = forwardRef<View, SliderProps>(
             [onChange, isRange],
         );
 
-        const updateValue = useCallback(
-            (index: number, newVal: number) => {
-                if (disabled) return;
-
+        const resolveValue = useCallback(
+            (newVal: number) => {
                 let v = newVal;
                 if (v < min) v = min;
                 if (v > max) v = max;
                 if (step === null) v = snapToMarks(v);
                 else v = Math.round(v / step) * step;
+                if (v < min) v = min;
+                if (v > max) v = max;
+                return v;
+            },
+            [min, max, step, snapToMarks],
+        );
+
+        const updateValue = useCallback(
+            (index: number, newVal: number) => {
+                if (disabled) return;
+
+                const v = resolveValue(newVal);
 
                 if (isRange && disableSwap) {
                     if (index === 0 && v > currentValue[1]) return;
@@ -335,10 +346,7 @@ export const Slider = forwardRef<View, SliderProps>(
             },
             [
                 disabled,
-                min,
-                max,
-                step,
-                snapToMarks,
+                resolveValue,
                 isRange,
                 disableSwap,
                 currentValue,
@@ -468,6 +476,55 @@ export const Slider = forwardRef<View, SliderProps>(
             return Number.isFinite(val) ? val.toFixed(0) : String(val);
         };
 
+        // Without this, "adjustable" only tells a screen reader that
+        // *something* can be adjusted — it never announces the current
+        // value, and swiping up/down (the standard adjustable gesture)
+        // does nothing without an onAccessibilityAction handler.
+        const stepAmount = step ?? 1;
+
+        const handleAccessibilityAction = useCallback(
+            (event: { nativeEvent: { actionName: string } }) => {
+                if (disabled || isRange) return;
+
+                if (event.nativeEvent.actionName === "increment") {
+                    const next = resolveValue(currentValue[0] + stepAmount);
+                    updateValue(0, next);
+                    onChangeCommitted?.(next);
+                } else if (event.nativeEvent.actionName === "decrement") {
+                    const next = resolveValue(currentValue[0] - stepAmount);
+                    updateValue(0, next);
+                    onChangeCommitted?.(next);
+                }
+            },
+            [
+                disabled,
+                isRange,
+                updateValue,
+                resolveValue,
+                currentValue,
+                stepAmount,
+                onChangeCommitted,
+            ],
+        );
+
+        const toAccessibilityText = (node: ReturnType<typeof renderValueLabel>) =>
+            typeof node === "string" || typeof node === "number"
+                ? String(node)
+                : undefined;
+
+        const accessibilityValue = isRange
+            ? {
+                  min,
+                  max,
+                  text: `${toAccessibilityText(renderValueLabel(currentValue[0], 0)) ?? currentValue[0]} to ${toAccessibilityText(renderValueLabel(currentValue[1], 1)) ?? currentValue[1]}`,
+              }
+            : {
+                  min,
+                  max,
+                  now: currentValue[0],
+                  text: toAccessibilityText(renderValueLabel(currentValue[0], 0)),
+              };
+
         return (
             <SliderRoot
                 ref={ref}
@@ -475,6 +532,18 @@ export const Slider = forwardRef<View, SliderProps>(
                 disabled={disabled}
                 {...rest}
                 accessibilityRole="adjustable"
+                accessibilityValue={accessibilityValue}
+                accessibilityActions={
+                    isRange
+                        ? undefined
+                        : [{ name: "increment" }, { name: "decrement" }]
+                }
+                onAccessibilityAction={handleAccessibilityAction}
+                accessibilityHint={
+                    isRange
+                        ? "Range slider. Adjust by dragging."
+                        : undefined
+                }
             >
                 <TrackContainer
                     orientation={orientation}
@@ -544,6 +613,9 @@ export const Slider = forwardRef<View, SliderProps>(
                                         percent={pct}
                                         fontSize={labelFont}
                                         color={theme.typography.colors.accent}
+                                        maxFontSizeMultiplier={
+                                            MAX_FONT_SCALE_MULTIPLIER
+                                        }
                                     >
                                         {m.label ?? m.value}
                                     </MarkLabel>
@@ -582,6 +654,9 @@ export const Slider = forwardRef<View, SliderProps>(
                                             fontSize={labelFont}
                                             color={
                                                 theme.typography.colors.primary
+                                            }
+                                            maxFontSizeMultiplier={
+                                                MAX_FONT_SCALE_MULTIPLIER
                                             }
                                         >
                                             {renderValueLabel(val, i)}

@@ -7,6 +7,7 @@ import { baseDarkTheme, baseLightTheme } from "@mutualzz/ui-core";
 import {
     createContext,
     forwardRef,
+    useCallback,
     useEffect,
     useImperativeHandle,
     useMemo,
@@ -45,20 +46,25 @@ const ThemeProvider = forwardRef<
         setMounted(true);
     }, []);
 
-    const changeTheme = (newTheme: Theme | null) => {
-        if (!newTheme) {
-            const preferredTheme = prefersDark ? baseDarkTheme : baseLightTheme;
-            setTheme(preferredTheme);
-            setType(null);
-            onThemeChange?.(preferredTheme, null);
-            return;
-        }
+    const changeTheme = useCallback(
+        (newTheme: Theme | null) => {
+            if (!newTheme) {
+                const preferredTheme = prefersDark
+                    ? baseDarkTheme
+                    : baseLightTheme;
+                setTheme(preferredTheme);
+                setType(null);
+                onThemeChange?.(preferredTheme, null);
+                return;
+            }
 
-        setTheme(newTheme);
-        setType(newTheme.type);
+            setTheme(newTheme);
+            setType(newTheme.type);
 
-        onThemeChange?.(newTheme, newTheme.type);
-    };
+            onThemeChange?.(newTheme, newTheme.type);
+        },
+        [prefersDark, onThemeChange],
+    );
 
     useImperativeHandle(ref, () => ({
         theme,
@@ -72,7 +78,7 @@ const ThemeProvider = forwardRef<
             changeTheme,
             type,
         }),
-        [type, theme],
+        [type, theme, changeTheme],
     );
 
     if (!mounted) return null;

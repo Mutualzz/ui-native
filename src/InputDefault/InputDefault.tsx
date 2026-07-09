@@ -63,6 +63,7 @@ const InputDefault = forwardRef<TextInput, InputRootProps>(
                 fullWidth={fullWidth}
                 error={error}
                 disabled={disabled}
+                accessibilityState={{ disabled }}
                 style={style}
                 onPress={() => {
                     if (!disabled) {

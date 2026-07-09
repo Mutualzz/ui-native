@@ -4,6 +4,7 @@ import { Pressable, View } from "react-native";
 import Svg, { Line, Polyline } from "react-native-svg";
 import { CheckboxGroupContext } from "../CheckboxGroup/CheckboxGroup.context";
 import { useTheme } from "../useTheme";
+import { MAX_FONT_SCALE_MULTIPLIER } from "../utils/accessibility";
 import {
     resolveCheckboxSize,
     resolveCheckboxStyles,
@@ -11,10 +12,12 @@ import {
 } from "./Checkbox.helpers";
 import type { CheckboxProps } from "./Checkbox.types";
 
-const Wrapper = styled.View({
+const Wrapper = styled.View<{ hasLabel?: boolean }>(({ hasLabel }) => ({
     flexDirection: "row",
-    alignItems: "center",
-});
+    alignItems: hasLabel ? "flex-start" : "center",
+    flexShrink: 1,
+    minWidth: 0,
+}));
 
 const Box = styled.View({
     alignItems: "center",
@@ -27,7 +30,13 @@ const IconSlot = styled.View({
     justifyContent: "center",
 });
 
-const Label = styled.Text({});
+const Label = styled.Text<{ labelColor: string; fontSize: number }>(
+    ({ labelColor, fontSize }) => ({
+        color: labelColor,
+        fontSize,
+        flexShrink: 1,
+    }),
+);
 
 const Checkbox = forwardRef<View, CheckboxProps>(
     (
@@ -48,6 +57,7 @@ const Checkbox = forwardRef<View, CheckboxProps>(
             indeterminateIcon,
             rtl,
             style,
+            hitSlop: hitSlopProp,
             ...props
         },
         ref,
@@ -63,7 +73,7 @@ const Checkbox = forwardRef<View, CheckboxProps>(
         const variant = variantProp ?? group?.variant ?? "solid";
         const size = sizeProp ?? group?.size ?? "md";
         const name = group?.name ?? propName;
-        const disabled = Boolean(group?.disabled ?? propDisabled);
+        const disabled = Boolean(group?.disabled || propDisabled);
 
         const isChecked =
             group && value !== undefined
@@ -72,9 +82,17 @@ const Checkbox = forwardRef<View, CheckboxProps>(
                   ? controlledChecked
                   : uncontrolledChecked;
 
-        const { fontSize } = resolveCheckboxSize(theme, size);
+        const { fontSize: controlSize } = resolveCheckboxSize(theme, size);
+        const labelFontSize = theme.typography.levels["body-sm"].fontSize;
 
         const iconSize = resolveIconScaling(theme, size);
+
+        // Without a label, the pressable area is just the checkbox box
+        // itself, which can be well under the 44x44 minimum touch target
+        // (e.g. size="sm" is 20x20). Expand the touchable area via hitSlop
+        // rather than the visual box size.
+        const autoHitSlop = Math.max(0, (44 - controlSize) / 2);
+        const hitSlop = hitSlopProp ?? autoHitSlop;
 
         const baseStyles = useMemo(
             () => resolveCheckboxStyles(theme, color, isChecked)[variant],
@@ -86,8 +104,10 @@ const Checkbox = forwardRef<View, CheckboxProps>(
             [theme, color, variant],
         );
 
+        const isGrouped = Boolean(group && value !== undefined);
+
         const toggle = (next: boolean) => {
-            if (!group && controlledChecked === undefined) {
+            if (!isGrouped && controlledChecked === undefined) {
                 setUncontrolledChecked(next);
             }
 
@@ -147,7 +167,15 @@ const Checkbox = forwardRef<View, CheckboxProps>(
 
         const labelNode = label ? (
             <Label
-                style={[{ marginLeft: rtl ? 0 : 8, marginRight: rtl ? 8 : 0 }]}
+                labelColor={theme.typography.colors.primary}
+                fontSize={labelFontSize}
+                maxFontSizeMultiplier={MAX_FONT_SCALE_MULTIPLIER}
+                style={[
+                    {
+                        marginLeft: rtl ? 0 : 8,
+                        marginRight: rtl ? 8 : 0,
+                    },
+                ]}
             >
                 {label}
             </Label>
@@ -162,44 +190,28 @@ const Checkbox = forwardRef<View, CheckboxProps>(
                     disabled,
                     checked: indeterminate ? "mixed" : Boolean(isChecked),
                 }}
+                hitSlop={hitSlop}
                 disabled={disabled}
                 onPress={() => toggle(!isChecked)}
                 style={({ pressed }) => {
-                    const visual = pressed ? activeStyles : baseStyles;
-
-                    const focusRing = !disabled
-                        ? {
-                              shadowColor:
-                                  activeStyles.box.backgroundColor ?? "#000",
-                              shadowOpacity: 0.35,
-                              shadowRadius: 6,
-                              shadowOffset: { width: 0, height: 0 },
-                              elevation: 2,
-                          }
-                        : {};
-
                     const resolvedStyle =
                         typeof style === "function"
                             ? style({ pressed })
                             : style;
 
-                    return [
-                        { opacity: disabled ? 0.5 : 1 },
-                        visual.box ?? {},
-                        focusRing,
-                        resolvedStyle,
-                    ];
+                    return [{ opacity: disabled ? 0.5 : 1 }, resolvedStyle];
                 }}
             >
-                <Wrapper>
+                {({ pressed }) => (
+                <Wrapper hasLabel={Boolean(label)}>
                     {rtl ? labelNode : null}
                     <Box
                         style={[
                             {
-                                width: fontSize,
-                                height: fontSize,
+                                width: controlSize,
+                                height: controlSize,
                             },
-                            baseStyles.box,
+                            (pressed ? activeStyles : baseStyles).box,
                         ]}
                     >
                         <IconSlot
@@ -224,6 +236,7 @@ const Checkbox = forwardRef<View, CheckboxProps>(
 
                     {!rtl ? labelNode : null}
                 </Wrapper>
+                )}
             </Pressable>
         );
     },

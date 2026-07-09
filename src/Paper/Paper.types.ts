@@ -38,6 +38,4 @@ export interface PaperProps extends Omit<BoxProps, "color"> {
     elevation?: number;
 
     transparency?: number;
-
-    onPress?: () => void;
 }

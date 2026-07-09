@@ -9,20 +9,23 @@ import type {
 import { formatColor, resolveColor, resolveSize } from "@mutualzz/ui-core";
 import type { ViewStyle } from "react-native";
 
+import { getFontScale, scaledLayoutSize } from "../utils/accessibility";
+
 const padYMap: Record<Size, number> = { sm: 14, md: 18, lg: 22 };
 const padXMap: Record<Size, number> = { sm: 16, md: 20, lg: 24 };
 
 export const resolveListItemButtonSize = (
     theme: Theme,
     size: Size | SizeValue | number,
+    fontScale = getFontScale(),
 ): ViewStyle => {
     const py = resolveSize(theme, size, padYMap);
     const px = resolveSize(theme, size, padXMap);
 
     return {
-        paddingVertical: py,
-        paddingHorizontal: px,
-        minHeight: 40,
+        paddingVertical: scaledLayoutSize(py, fontScale, 1.5),
+        paddingHorizontal: scaledLayoutSize(px, fontScale, 1.35),
+        minHeight: scaledLayoutSize(44, fontScale, 1.75),
     };
 };
 

@@ -7,6 +7,7 @@ import {
 import { forwardRef, useMemo, useState } from "react";
 import { Pressable, View, useWindowDimensions } from "react-native";
 import { useTheme } from "../useTheme";
+import { MAX_FONT_SCALE_MULTIPLIER } from "../utils/accessibility";
 import { resolveResponsiveValue } from "../utils/responsive";
 import {
     resolveSwitchDimensions,
@@ -14,12 +15,16 @@ import {
 } from "./Switch.helpers";
 import type { SwitchProps } from "./Switch.types";
 
-const SwitchWrapper = styled.View<{ disabled?: boolean }>(({ disabled }) => ({
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    opacity: disabled ? 0.5 : 1,
-}));
+const SwitchWrapper = styled.View<{ disabled?: boolean; hasLabel?: boolean }>(
+    ({ disabled, hasLabel }) => ({
+        flexDirection: "row",
+        alignItems: hasLabel ? "flex-start" : "center",
+        gap: 8,
+        flexShrink: 1,
+        minWidth: 0,
+        opacity: disabled ? 0.5 : 1,
+    }),
+);
 
 const Decorator = styled.View({
     alignItems: "center",
@@ -44,6 +49,7 @@ const Switch = forwardRef<View, SwitchProps>(
             size = "md",
             shape = "rounded",
             style,
+            hitSlop: hitSlopProp,
             ...props
         },
         ref,
@@ -114,17 +120,25 @@ const Switch = forwardRef<View, SwitchProps>(
         const thumbOffset =
             dimensions.width - dimensions.thumb - dimensions.padding * 2;
 
+        // Without label/decorators, the pressable area is just the switch
+        // track, which can be well under the 44x44 minimum touch target
+        // (e.g. size="sm" is 16px tall). Expand via hitSlop, not the visual
+        // track size.
+        const autoHitSlop = Math.max(0, (44 - dimensions.height) / 2);
+        const hitSlop = hitSlopProp ?? autoHitSlop;
+
         return (
             <Pressable
                 {...props}
                 ref={ref}
                 accessibilityRole="switch"
                 accessibilityState={{ disabled, checked: isChecked }}
+                hitSlop={hitSlop}
                 disabled={disabled}
                 onPress={handlePress}
                 style={style}
             >
-                <SwitchWrapper disabled={disabled}>
+                <SwitchWrapper disabled={disabled} hasLabel={Boolean(label)}>
                     {startDecorator ? (
                         <Decorator>{startDecorator}</Decorator>
                     ) : null}
@@ -159,7 +173,14 @@ const Switch = forwardRef<View, SwitchProps>(
                         />
                     </View>
 
-                    {label ? <Label>{label}</Label> : null}
+                    {label ? (
+                        <Label
+                            maxFontSizeMultiplier={MAX_FONT_SCALE_MULTIPLIER}
+                            style={{ flexShrink: 1 }}
+                        >
+                            {label}
+                        </Label>
+                    ) : null}
 
                     {endDecorator ? (
                         <Decorator>{endDecorator}</Decorator>

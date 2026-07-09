@@ -1,11 +1,12 @@
 import type { Theme } from "@emotion/react";
-import { resolveSize, type Size, type SizeValue } from "@mutualzz/ui-core";
+import {
+    CONTROL_SIZE_MAP,
+    resolveSize,
+    type Size,
+    type SizeValue,
+} from "@mutualzz/ui-core";
 
-export const baseSizeMap: Record<Size, number> = {
-    sm: 20,
-    md: 24,
-    lg: 32,
-};
+export const baseSizeMap = CONTROL_SIZE_MAP;
 
 export const resolveRadioSize = (
     theme: Theme,

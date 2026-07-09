@@ -1,4 +1,12 @@
-import { forwardRef, useCallback, useMemo, useState } from "react";
+import {
+    forwardRef,
+    useCallback,
+    useEffect,
+    useId,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import {
     PanResponder,
     View,
@@ -8,28 +16,44 @@ import {
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 import { Slider } from "../Slider/Slider";
 import { Stack } from "../Stack/Stack";
-import { hsvaToColorLike, hsvaToHslaString, toHsva } from "./ColorPicker.helpers";
+import {
+    hsvaToColorLike,
+    hsvaToDisplayHex,
+    hueToHex,
+    toHsva,
+} from "./ColorPicker.helpers";
 import type { ColorPickerProps } from "./ColorPicker.types";
 
 const SATURATION_SIZE = 180;
 
 export const ColorPicker = forwardRef<View, ColorPickerProps>(
     ({ color, allowAlpha = false, onChange }, ref) => {
+        const gradientId = useId().replace(/:/g, "");
         const [hsva, setHsva] = useState(() => toHsva(color));
         const [layout, setLayout] = useState({
             width: SATURATION_SIZE,
             height: SATURATION_SIZE,
         });
 
-        const hueBackground = useMemo(
-            () => `hsl(${hsva.h}, 100%, 50%)`,
-            [hsva.h],
-        );
+        const lastEmitted = useRef(color);
+
+        useEffect(() => {
+            if (color === lastEmitted.current) return;
+            lastEmitted.current = color;
+            setHsva(toHsva(color));
+        }, [color]);
+
+        const hueBackground = useMemo(() => hueToHex(hsva.h), [hsva.h]);
+        const satGradientId = `${gradientId}-sat`;
+        const valGradientId = `${gradientId}-val`;
+        const hueGradientId = `${gradientId}-hue`;
 
         const updateColor = useCallback(
             (next: typeof hsva) => {
                 setHsva(next);
-                onChange?.(hsvaToColorLike(next));
+                const colorLike = hsvaToColorLike(next);
+                lastEmitted.current = colorLike;
+                onChange?.(colorLike);
             },
             [onChange],
         );
@@ -72,7 +96,7 @@ export const ColorPicker = forwardRef<View, ColorPickerProps>(
             borderRadius: 8,
             borderWidth: 2,
             borderColor: "#fff",
-            backgroundColor: hsvaToHslaString(hsva),
+            backgroundColor: hsvaToDisplayHex(hsva),
         };
 
         return (
@@ -90,21 +114,108 @@ export const ColorPicker = forwardRef<View, ColorPickerProps>(
                     }}
                     {...panResponder.panHandlers}
                 >
-                    <Svg width="100%" height="100%">
+                    <Svg
+                        width={layout.width}
+                        height={layout.height}
+                        viewBox={`0 0 ${layout.width} ${layout.height}`}
+                    >
                         <Defs>
-                            <LinearGradient id="white" x1="0" y1="0" x2="1" y2="0">
-                                <Stop offset="0%" stopColor="#fff" />
-                                <Stop offset="100%" stopColor={hueBackground} />
+                            <LinearGradient
+                                id={satGradientId}
+                                x1="0"
+                                y1="0"
+                                x2="1"
+                                y2="0"
+                            >
+                                <Stop
+                                    offset="0%"
+                                    stopColor="#ffffff"
+                                    stopOpacity="1"
+                                />
+                                <Stop
+                                    offset="100%"
+                                    stopColor="#ffffff"
+                                    stopOpacity="0"
+                                />
                             </LinearGradient>
-                            <LinearGradient id="black" x1="0" y1="0" x2="0" y2="1">
-                                <Stop offset="0%" stopColor="transparent" />
-                                <Stop offset="100%" stopColor="#000" />
+                            <LinearGradient
+                                id={valGradientId}
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                            >
+                                <Stop
+                                    offset="0%"
+                                    stopColor="#000000"
+                                    stopOpacity="0"
+                                />
+                                <Stop
+                                    offset="100%"
+                                    stopColor="#000000"
+                                    stopOpacity="1"
+                                />
                             </LinearGradient>
                         </Defs>
-                        <Rect width="100%" height="100%" fill="url(#white)" />
-                        <Rect width="100%" height="100%" fill="url(#black)" />
+                        <Rect
+                            x={0}
+                            y={0}
+                            width={layout.width}
+                            height={layout.height}
+                            fill={hueBackground}
+                        />
+                        <Rect
+                            x={0}
+                            y={0}
+                            width={layout.width}
+                            height={layout.height}
+                            fill={`url(#${satGradientId})`}
+                        />
+                        <Rect
+                            x={0}
+                            y={0}
+                            width={layout.width}
+                            height={layout.height}
+                            fill={`url(#${valGradientId})`}
+                        />
                     </Svg>
                     <View pointerEvents="none" style={pointerStyle} />
+                </View>
+
+                <View
+                    style={{
+                        width: SATURATION_SIZE,
+                        height: 16,
+                        borderRadius: 8,
+                        overflow: "hidden",
+                    }}
+                >
+                    <Svg width={SATURATION_SIZE} height={16}>
+                        <Defs>
+                            <LinearGradient
+                                id={hueGradientId}
+                                x1="0"
+                                y1="0"
+                                x2="1"
+                                y2="0"
+                            >
+                                <Stop offset="0%" stopColor="#ff0000" />
+                                <Stop offset="17%" stopColor="#ffff00" />
+                                <Stop offset="33%" stopColor="#00ff00" />
+                                <Stop offset="50%" stopColor="#00ffff" />
+                                <Stop offset="67%" stopColor="#0000ff" />
+                                <Stop offset="83%" stopColor="#ff00ff" />
+                                <Stop offset="100%" stopColor="#ff0000" />
+                            </LinearGradient>
+                        </Defs>
+                        <Rect
+                            x={0}
+                            y={0}
+                            width={SATURATION_SIZE}
+                            height={16}
+                            fill={`url(#${hueGradientId})`}
+                        />
+                    </Svg>
                 </View>
 
                 <Slider

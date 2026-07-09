@@ -1,7 +1,7 @@
 import styled from "@emotion/native";
 import type { Size } from "@mutualzz/ui-core";
 import { resolveSize } from "@mutualzz/ui-core";
-import { forwardRef, useMemo, useState } from "react";
+import { forwardRef, useCallback, useMemo, useState } from "react";
 import type { View } from "react-native";
 import { useTheme } from "../useTheme";
 import { CheckboxGroupContext } from "./CheckboxGroup.context";
@@ -50,14 +50,13 @@ const CheckboxGroup = forwardRef<View, CheckboxGroupProps>(
 
         const resolvedSpacing = resolveSize(theme, spacing, baseSpacingMap);
 
-        const toggle = (val: string, checked: boolean) => {
-            const newValue = checked
-                ? Array.from(new Set([...currentValue, val]))
-                : currentValue.filter((v) => v !== val);
-
-            if (!isControlled) setInternalValue(newValue);
-            onChange?.(newValue);
-        };
+        const handleChange = useCallback(
+            (_event: unknown, newValue: string[]) => {
+                if (!isControlled) setInternalValue(newValue);
+                onChange?.(newValue);
+            },
+            [isControlled, onChange],
+        );
 
         const ctx = useMemo(
             () => ({
@@ -68,9 +67,18 @@ const CheckboxGroup = forwardRef<View, CheckboxGroupProps>(
                 disabled,
                 name,
                 value: currentValue,
-                toggle,
+                onChange: handleChange,
             }),
-            [color, variant, size, orientation, disabled, name, currentValue],
+            [
+                color,
+                variant,
+                size,
+                orientation,
+                disabled,
+                name,
+                currentValue,
+                handleChange,
+            ],
         );
 
         return (

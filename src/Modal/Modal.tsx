@@ -1,8 +1,30 @@
 import styled from "@emotion/native";
-import { forwardRef, useMemo } from "react";
-import { Pressable, Modal as RNModal, View } from "react-native";
+import { forwardRef, useCallback, useEffect, useState } from "react";
+import {
+    Pressable,
+    Modal as RNModal,
+    StyleSheet,
+    useWindowDimensions,
+    View,
+} from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+    runOnJS,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
+} from "react-native-reanimated";
 import { IconButton } from "../IconButton/IconButton";
 import type { ModalProps } from "./Modal.types";
+
+const DISMISS_DISTANCE = 120;
+const DISMISS_VELOCITY = 900;
+const SPRING_CONFIG = {
+    damping: 22,
+    stiffness: 240,
+    mass: 0.85,
+};
 
 const ModalRoot = styled.View<{ layout: "center" | "fullscreen" }>(
     ({ layout }) => ({
@@ -21,51 +43,54 @@ const ModalRoot = styled.View<{ layout: "center" | "fullscreen" }>(
     }),
 );
 
-const ModalBackdrop = styled(Pressable)({
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    backgroundColor: "rgba(0,0,0,0.35)",
-});
+const BACKDROP_COLOR = "rgba(0,0,0,0.35)";
 
 const ModalContainer = styled.View<{
     layout: "center" | "fullscreen";
     height?: number;
-}>(({ layout, height }) => ({
-    position: "relative",
-    ...(layout === "center"
-        ? {
-              width: "100%",
-              maxWidth: 720,
-              maxHeight: "100%",
-              overflow: "hidden",
-              height: height,
-              alignSelf: "center",
-          }
-        : {
-              width: "100%",
-              height: "100%",
-          }),
-}));
+}>(({ layout, height }) => {
+    if (layout === "center") {
+        return {
+            position: "relative",
+            width: "100%",
+            maxWidth: 720,
+            maxHeight: "100%",
+            overflow: "hidden",
+            alignSelf: "center",
+            ...(height != null ? { height } : {}),
+        };
+    }
+
+    return {
+        position: "relative",
+        width: "100%",
+        alignSelf: "stretch",
+        flex: 1,
+    };
+});
 
 const ModalContent = styled.View<{
     layout: "center" | "fullscreen";
     height?: number;
-}>(({ layout, height }) => ({
-    width: "100%",
-    minHeight: 0,
-    position: "relative",
-    ...(layout === "center"
-        ? {
-              height: height,
-              overflow: "hidden",
-          }
-        : {
-              height: "100%",
-          }),
-}));
+}>(({ layout, height }) => {
+    if (layout === "center") {
+        return {
+            width: "100%",
+            minHeight: 0,
+            position: "relative",
+            overflow: "hidden",
+            ...(height != null ? { height } : {}),
+        };
+    }
+
+    return {
+        width: "100%",
+        minHeight: 0,
+        position: "relative",
+        alignSelf: "stretch",
+        flex: 1,
+    };
+});
 
 const CloseButton = styled(IconButton)<{ layout: "center" | "fullscreen" }>(
     ({ layout }) => ({
@@ -111,52 +136,194 @@ const Modal = forwardRef<View, ModalProps>(
         ref,
     ) => {
         const visible = open;
-
-        if (!visible && !keepMounted) return null;
-
         const canClose = Boolean(onClose);
+        const { height: windowHeight } = useWindowDimensions();
+        const [mounted, setMounted] = useState(visible);
 
-        const backdrop = useMemo(() => {
-            if (hideBackdrop) return null;
+        const translateY = useSharedValue(windowHeight);
+        const backdropOpacity = useSharedValue(0);
+        const dragStartY = useSharedValue(0);
 
-            if (disableBackdropClick || !canClose) {
-                return <ModalBackdrop disabled />;
+        const animateOpen = () => {
+            translateY.value = windowHeight;
+            backdropOpacity.value = 0;
+            translateY.value = withSpring(0, SPRING_CONFIG);
+            backdropOpacity.value = withSpring(1, SPRING_CONFIG);
+        };
+
+        const finishClose = () => {
+            setMounted(false);
+            onClose?.();
+        };
+
+        const animateClose = (onComplete?: () => void) => {
+            translateY.value = withSpring(windowHeight, SPRING_CONFIG, (finished) => {
+                if (!finished) return;
+                if (onComplete) runOnJS(onComplete)();
+            });
+            backdropOpacity.value = withSpring(0, SPRING_CONFIG);
+        };
+
+        const requestClose = useCallback(() => {
+            if (!canClose) return;
+            animateClose(finishClose);
+        }, [canClose, windowHeight, onClose]);
+
+        const showBackdrop = !hideBackdrop;
+        const backdropDismissible =
+            showBackdrop && canClose && !disableBackdropClick;
+        const isFullscreen = layout === "fullscreen";
+
+        useEffect(() => {
+            if (visible) {
+                setMounted(true);
+                return;
             }
 
-            return <ModalBackdrop onPress={onClose} />;
-        }, [hideBackdrop, disableBackdropClick, canClose, onClose]);
+            if (mounted) {
+                animateClose(() => setMounted(false));
+            }
+        }, [mounted, visible]);
+
+        useEffect(() => {
+            if (!mounted || !visible) return;
+            animateOpen();
+        }, [mounted, visible, windowHeight]);
+
+        const panGesture = Gesture.Pan()
+            .enabled(canClose && !disableBackdropClick)
+            .activeOffsetY(8)
+            .failOffsetX([-20, 20])
+            .onStart(() => {
+                dragStartY.value = translateY.value;
+            })
+            .onUpdate((event) => {
+                const nextY = Math.max(0, dragStartY.value + event.translationY);
+                translateY.value = nextY;
+                backdropOpacity.value = Math.max(
+                    0,
+                    1 - nextY / (windowHeight * 0.45),
+                );
+            })
+            .onEnd((event) => {
+                const shouldDismiss =
+                    translateY.value > DISMISS_DISTANCE ||
+                    event.velocityY > DISMISS_VELOCITY;
+
+                if (shouldDismiss) {
+                    runOnJS(requestClose)();
+                    return;
+                }
+
+                translateY.value = withSpring(0, SPRING_CONFIG);
+                backdropOpacity.value = withSpring(1, SPRING_CONFIG);
+            });
+
+        const backdropStyle = useAnimatedStyle(() => ({
+            opacity: backdropOpacity.value,
+        }));
+
+        const modalStyle = useAnimatedStyle(() => ({
+            transform: [{ translateY: translateY.value }],
+        }));
+
+        if (!mounted && !keepMounted) return null;
+
+        const modalBody = (
+            <ModalRoot layout={layout} style={style} {...props}>
+                {showBackdrop ? (
+                    <Animated.View
+                        pointerEvents="none"
+                        style={[
+                            StyleSheet.absoluteFill,
+                            backdropStyle,
+                            { backgroundColor: BACKDROP_COLOR },
+                        ]}
+                    />
+                ) : null}
+
+                {backdropDismissible && layout === "center" ? (
+                    <Pressable
+                        style={StyleSheet.absoluteFill}
+                        onPress={requestClose}
+                        accessibilityLabel="Close modal"
+                    />
+                ) : null}
+
+                <GestureDetector gesture={panGesture}>
+                    <Animated.View
+                        pointerEvents="box-none"
+                        style={[
+                            {
+                                width: "100%",
+                                alignSelf: "stretch",
+                                ...(isFullscreen ? { flex: 1 } : {}),
+                            },
+                            modalStyle,
+                        ]}
+                    >
+                        {backdropDismissible && isFullscreen ? (
+                            <Pressable
+                                style={StyleSheet.absoluteFill}
+                                onPress={requestClose}
+                                accessibilityLabel="Close modal"
+                            />
+                        ) : null}
+
+                        <ModalContainer
+                            ref={ref}
+                            layout={layout}
+                            height={height}
+                            pointerEvents="box-none"
+                        >
+                            {showCloseButton &&
+                                (disableBackdropClick || canClose) &&
+                                (closeButton ?? (
+                                    <CloseButton
+                                        color="neutral"
+                                        variant="plain"
+                                        layout={layout}
+                                        onPress={requestClose}
+                                        disabled={!canClose}
+                                        accessibilityLabel="Close modal"
+                                    >
+                                        <CloseGlyph layout={layout}>
+                                            ✕
+                                        </CloseGlyph>
+                                    </CloseButton>
+                                ))}
+
+                            <ModalContent
+                                layout={layout}
+                                height={height}
+                                pointerEvents="box-none"
+                            >
+                                {children}
+                            </ModalContent>
+                        </ModalContainer>
+                    </Animated.View>
+                </GestureDetector>
+            </ModalRoot>
+        );
 
         return (
             <RNModal
-                visible={visible}
+                visible={mounted}
                 transparent
-                animationType="fade"
-                onRequestClose={onClose}
+                animationType="none"
+                onRequestClose={requestClose}
             >
-                <ModalRoot layout={layout} style={style} {...props}>
-                    {backdrop}
-
-                    <ModalContainer ref={ref} layout={layout} height={height}>
-                        {showCloseButton &&
-                            (disableBackdropClick || canClose) &&
-                            (closeButton ?? (
-                                <CloseButton
-                                    color="neutral"
-                                    variant="plain"
-                                    layout={layout}
-                                    onPress={onClose}
-                                    disabled={!canClose}
-                                    accessibilityLabel="Close modal"
-                                >
-                                    <CloseGlyph layout={layout}>✕</CloseGlyph>
-                                </CloseButton>
-                            ))}
-
-                        <ModalContent layout={layout} height={height}>
-                            {children}
-                        </ModalContent>
-                    </ModalContainer>
-                </ModalRoot>
+                {layout === "center" ? (
+                    <KeyboardAvoidingView
+                        style={{ flex: 1 }}
+                        behavior="padding"
+                        automaticOffset
+                    >
+                        {modalBody}
+                    </KeyboardAvoidingView>
+                ) : (
+                    modalBody
+                )}
             </RNModal>
         );
     },
@@ -164,4 +331,4 @@ const Modal = forwardRef<View, ModalProps>(
 
 Modal.displayName = "Modal";
 
-export { Modal, ModalBackdrop, ModalRoot };
+export { Modal, ModalRoot };

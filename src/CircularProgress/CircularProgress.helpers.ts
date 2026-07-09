@@ -61,7 +61,8 @@ export const calculateCircle = (
 
     const radius = (diameter - strokeWidthValue) / 2;
     const circumference = 2 * Math.PI * radius;
-    const dashOffset = ((100 - value) / 100) * circumference;
+    const clampedValue = Math.min(Math.max(value, 0), 100);
+    const dashOffset = ((100 - clampedValue) / 100) * circumference;
 
     return {
         baseDiameter,

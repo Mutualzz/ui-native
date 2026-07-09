@@ -27,6 +27,7 @@ export const normalizeTypography = (level: TypographyLevelObj) => {
 
     return {
         ...level,
+        fontSize,
         lineHeight,
         letterSpacing,
         fontWeight,

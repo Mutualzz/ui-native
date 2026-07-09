@@ -1,5 +1,12 @@
 import { resolveSize } from "@mutualzz/ui-core";
-import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
+import {
+    forwardRef,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import type { TextInput } from "react-native";
 import { Pressable } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
@@ -81,10 +88,16 @@ const InputPassword = forwardRef<TextInput, InputPasswordProps>(
         const isControlled = visibleProp !== undefined;
         const visible = isControlled ? visibleProp : visibleInternal;
 
+        const hasMounted = useRef(false);
         useEffect(() => {
+            if (!hasMounted.current) {
+                hasMounted.current = true;
+                return;
+            }
+
             if (visible) onShowPassword?.();
             else onHidePassword?.();
-        }, [visible]);
+        }, [visible, onShowPassword, onHidePassword]);
 
         const togglePassword = useCallback(() => {
             if (isControlled) {
@@ -96,7 +109,7 @@ const InputPassword = forwardRef<TextInput, InputPasswordProps>(
                     return next;
                 });
             }
-        }, [onTogglePassword]);
+        }, [isControlled, visible, onTogglePassword]);
 
         const showToggleIcon =
             iconVisible && !(endDecorator && !showPasswordIcon);
@@ -137,6 +150,7 @@ const InputPassword = forwardRef<TextInput, InputPasswordProps>(
                 fullWidth={fullWidth}
                 error={error}
                 disabled={disabled}
+                accessibilityState={{ disabled }}
                 style={style}
                 onPress={() => {
                     if (!disabled) {

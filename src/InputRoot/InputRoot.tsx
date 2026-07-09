@@ -1,10 +1,13 @@
 import styled from "@emotion/native";
-import { Pressable } from "react-native";
+import { forwardRef } from "react";
+import { Pressable, useWindowDimensions, type View } from "react-native";
 import { resolveInputBaseSize } from "../InputBase/InputBase.helpers";
 import { resolveInputRootStyles } from "./InputRoot.helpers";
 import type { InputRootProps } from "./InputRoot.types";
 
-const InputRoot = styled(Pressable)<InputRootProps>(
+const InputRootStyled = styled(Pressable)<
+    InputRootProps & { $fontScale: number }
+>(
     ({
         theme,
         color = "neutral",
@@ -14,11 +17,21 @@ const InputRoot = styled(Pressable)<InputRootProps>(
         fullWidth,
         disabled,
         size = "md",
+        $fontScale,
     }) => {
-        const { fontSize } = resolveInputBaseSize(theme, size);
+        const { fontSize, paddingVertical, paddingHorizontal } =
+            resolveInputBaseSize(theme, size, $fontScale);
+        const resolvedPaddingVertical =
+            typeof paddingVertical === "number" ? paddingVertical : 0;
 
         return {
             fontSize,
+            paddingVertical,
+            paddingHorizontal,
+        minHeight:
+            (typeof fontSize === "number" ? fontSize : 16) +
+            resolvedPaddingVertical * 2 +
+            4,
 
             ...resolveInputRootStyles(theme, color, error, readOnly)[variant],
 
@@ -35,6 +48,11 @@ const InputRoot = styled(Pressable)<InputRootProps>(
         };
     },
 );
+
+const InputRoot = forwardRef<View, InputRootProps>((props, ref) => {
+    const { fontScale } = useWindowDimensions();
+    return <InputRootStyled ref={ref} $fontScale={fontScale} {...props} />;
+});
 
 InputRoot.displayName = "InputRoot";
 

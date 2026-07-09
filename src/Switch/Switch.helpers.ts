@@ -1,5 +1,6 @@
 import type { Theme } from "@emotion/react";
 import {
+    CONTROL_SIZE_MAP,
     createColor,
     formatColor,
     resolveColor,
@@ -12,11 +13,10 @@ import {
 } from "@mutualzz/ui-core";
 import type { ViewStyle } from "react-native";
 
-export const baseSizeMap: Record<Size, number> = {
-    sm: 16,
-    md: 20,
-    lg: 24,
-};
+// Shares Checkbox/Radio's box-size scale so a Switch sits at the same
+// visual height as those controls when they appear together (e.g. in a
+// settings list).
+export const baseSizeMap = CONTROL_SIZE_MAP;
 
 export const resolveSwitchDimensions = (
     theme: Theme,

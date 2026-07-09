@@ -8,11 +8,10 @@ import type {
 } from "@mutualzz/ui-core";
 import { forwardRef, useContext } from "react";
 import type { View } from "react-native";
-import { Pressable } from "react-native";
+import { Pressable, useWindowDimensions } from "react-native";
 import { DecoratorWrapper } from "../DecoratorWrapper/DecoratorWrapper";
 import { ListContext } from "../List/List.context";
 import { NestedListContext } from "../List/NestedList.context";
-import { useTheme } from "../useTheme";
 import {
     resolveListItemButtonContainerStyles,
     resolveListItemButtonSize,
@@ -23,7 +22,8 @@ const Root = styled(Pressable)<{
     size: Size | SizeValue | number;
     color: Color | ColorLike;
     variant: Variant;
-}>(({ theme, size, color, variant }) => ({
+    $fontScale: number;
+}>(({ theme, size, color, variant, $fontScale }) => ({
     width: "100%",
     position: "relative",
     flexDirection: "row",
@@ -32,19 +32,19 @@ const Root = styled(Pressable)<{
     borderRadius: 0,
     gap: 4,
 
-    ...resolveListItemButtonSize(theme, size),
+    ...resolveListItemButtonSize(theme, size, $fontScale),
     ...resolveListItemButtonContainerStyles(theme, color)[variant],
 }));
 
 const Content = styled.View({
-    flexGrow: 0,
-    flexShrink: 0,
-    width: "auto",
-    height: "100%",
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: "auto",
+    minWidth: 0,
     opacity: 1,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
 });
 
 const ListItemButton = forwardRef<View, ListItemButtonProps>(
@@ -64,9 +64,9 @@ const ListItemButton = forwardRef<View, ListItemButtonProps>(
         ref,
     ) => {
         useContext(NestedListContext);
+        const { fontScale } = useWindowDimensions();
 
         const { color, size, variant } = useContext(ListContext);
-        const { theme } = useTheme();
 
         const resolvedColor = colorOverride ?? color ?? "primary";
         const resolvedVariant = variantOverride ?? variant ?? "solid";
@@ -79,6 +79,7 @@ const ListItemButton = forwardRef<View, ListItemButtonProps>(
                 size={resolvedSize}
                 color={resolvedColor}
                 variant={resolvedVariant}
+                $fontScale={fontScale}
                 disabled={disabled}
                 onPress={(e) => {
                     onPress?.(e);

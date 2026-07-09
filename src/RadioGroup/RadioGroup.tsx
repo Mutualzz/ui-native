@@ -80,7 +80,7 @@ export const RadioGroup = forwardRef<View, RadioGroupProps>(
             } catch {
                 return baseSpacingMap.md;
             }
-        }, [spacing]);
+        }, [theme, spacing]);
 
         const handleChange = (newValue: any) => {
             if (!isControlled) setInternalValue(newValue);

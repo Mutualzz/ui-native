@@ -2,6 +2,7 @@ import styled from "@emotion/native";
 import type { ColorLike, Size } from "@mutualzz/ui-core";
 import { resolveShapeValue, resolveSize } from "@mutualzz/ui-core";
 import {
+    Fragment,
     cloneElement,
     forwardRef,
     isValidElement,
@@ -13,6 +14,7 @@ import { ButtonGroupContext } from "../ButtonGroup/ButtonGroup.context";
 import { CircularProgress } from "../CircularProgress/CircularProgress";
 import { IconSlot } from "../IconSlot/IconSlot";
 import { useTheme } from "../useTheme";
+import { MAX_FONT_SCALE_MULTIPLIER } from "../utils/accessibility";
 import {
     resolveIconButtonContainerSize,
     resolveIconButtonContainerStyles,
@@ -57,6 +59,7 @@ const IconButton = forwardRef<View, IconButtonProps>(
             style,
             selected: selectedProp,
             onPress: onPressProp,
+            hitSlop: hitSlopProp,
 
             value,
             ...props
@@ -90,11 +93,18 @@ const IconButton = forwardRef<View, IconButtonProps>(
             padding,
         ).padding;
 
+        // Icon-only buttons can render visually smaller than the
+        // recommended 44x44 minimum touch target (esp. size="sm"). Expand
+        // the touchable area via hitSlop rather than the visual size, so
+        // tap accuracy improves without changing how the button looks.
+        const visualSize = resolvedSize + resolvedPadding * 2;
+        const autoHitSlop = Math.max(0, (44 - visualSize) / 2);
+        const hitSlop = hitSlopProp ?? autoHitSlop;
+
         const handlePress = (e: GestureResponderEvent) => {
             if (group?.toggleable && group?.onChange && value !== undefined) {
                 if (group.exclusive) {
                     group.onChange(value);
-                    1;
                 } else {
                     const arr = Array.isArray(group.value) ? group.value : [];
                     const exists = arr.includes(value);
@@ -128,6 +138,8 @@ const IconButton = forwardRef<View, IconButtonProps>(
                 {...props}
                 ref={ref}
                 accessibilityRole="button"
+                accessibilityState={{ disabled: isDisabled, selected }}
+                hitSlop={hitSlop}
                 disabled={isDisabled}
                 onPress={handlePress}
                 style={({ pressed }) => {
@@ -152,9 +164,10 @@ const IconButton = forwardRef<View, IconButtonProps>(
                             flexDirection: "row",
                             borderRadius: resolveShapeValue(shape),
                             flexGrow: fullWidth || expand ? 1 : 0,
-                            flexShrink: expand ? 1 : 0,
+                            flexShrink: 1,
                             flexBasis: expand ? 0 : "auto",
                             alignSelf: fullWidth ? "stretch" : "flex-start",
+                            minWidth: 0,
                             padding: resolvedPadding,
                             justifyContent: "center",
                             alignItems: "center",
@@ -203,12 +216,12 @@ const IconButton = forwardRef<View, IconButtonProps>(
                                     },
                                     textVariant,
                                 ]}
-                                numberOfLines={1}
-                                ellipsizeMode="tail"
+                                maxFontSizeMultiplier={MAX_FONT_SCALE_MULTIPLIER}
                             >
                                 {children}
                             </ButtonText>
-                        ) : isValidElement<IconButtonProps>(children) ? (
+                        ) : isValidElement<IconButtonProps>(children) &&
+                          children.type !== Fragment ? (
                             cloneElement(children, {
                                 color:
                                     (textVariant?.color as ColorLike) ??
@@ -225,6 +238,6 @@ const IconButton = forwardRef<View, IconButtonProps>(
     },
 );
 
-IconButton.displayName = "Button";
+IconButton.displayName = "IconButton";
 
 export { IconButton };

@@ -1,5 +1,6 @@
 import type { Theme } from "@emotion/react";
 import {
+    CONTROL_SIZE_MAP,
     createColor,
     formatColor,
     resolveColor,
@@ -12,11 +13,7 @@ import {
 } from "@mutualzz/ui-core";
 import type { ViewStyle } from "react-native";
 
-export const baseSizeMap: Record<Size, number> = {
-    sm: 20,
-    md: 24,
-    lg: 32,
-};
+export const baseSizeMap = CONTROL_SIZE_MAP;
 
 export const resolveCheckboxSize = (
     theme: Theme,
@@ -49,11 +46,13 @@ export const resolveCheckboxStyles = (
     return {
         solid: {
             box: {
-                backgroundColor: hexColor,
+                backgroundColor: checked ? hexColor : "transparent",
                 borderWidth: 1,
                 borderColor: hexColor,
             },
-            iconColor: solidTextColor,
+            iconColor: checked
+                ? solidTextColor
+                : formatColor(resolvedColor),
         },
 
         outlined: {

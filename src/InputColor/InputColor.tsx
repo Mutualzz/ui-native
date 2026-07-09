@@ -5,7 +5,14 @@ import {
     useColorInput,
     type ColorLike,
 } from "@mutualzz/ui-core";
-import { cloneElement, forwardRef, isValidElement, useMemo, useState } from "react";
+import {
+    cloneElement,
+    forwardRef,
+    isValidElement,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 import type { ReactNode } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { ColorPicker } from "../ColorPicker/ColorPicker";
@@ -85,6 +92,16 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
             handleChange,
             setColorDirectly,
         } = useColorInput(currentValue, 100, "hex", false);
+
+        useEffect(() => {
+            if (!isControlled) return;
+            try {
+                setColorDirectly(handleColor(colorProp).hex);
+            } catch {
+                // ignore invalid controlled value
+            }
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [isControlled, colorProp]);
 
         const swatchStyles = useMemo(
             () => resolveColorPickerButtonStyles(theme, validatedColor).solid,
