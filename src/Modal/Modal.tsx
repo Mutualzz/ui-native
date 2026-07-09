@@ -1,6 +1,14 @@
 import styled from "@emotion/native";
-import { forwardRef, useCallback, useEffect, useState } from "react";
 import {
+    forwardRef,
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from "react";
+import {
+    BackHandler,
     Pressable,
     Modal as RNModal,
     StyleSheet,
@@ -25,6 +33,12 @@ const SPRING_CONFIG = {
     stiffness: 240,
     mass: 0.85,
 };
+
+let openModalCount = 0;
+
+export function hasOpenModals() {
+    return openModalCount > 0;
+}
 
 const ModalRoot = styled.View<{ layout: "center" | "fullscreen" }>(
     ({ layout }) => ({
@@ -139,35 +153,51 @@ const Modal = forwardRef<View, ModalProps>(
         const canClose = Boolean(onClose);
         const { height: windowHeight } = useWindowDimensions();
         const [mounted, setMounted] = useState(visible);
+        const animationGeneration = useRef(0);
+        const onCloseRef = useRef(onClose);
+        const wasVisibleRef = useRef(visible);
+        onCloseRef.current = onClose;
 
         const translateY = useSharedValue(windowHeight);
         const backdropOpacity = useSharedValue(0);
         const dragStartY = useSharedValue(0);
 
-        const animateOpen = () => {
+        const finishClose = useCallback(() => {
+            setMounted(false);
+            onCloseRef.current?.();
+        }, []);
+
+        const animateOpen = useCallback(() => {
+            animationGeneration.current += 1;
             translateY.value = windowHeight;
             backdropOpacity.value = 0;
             translateY.value = withSpring(0, SPRING_CONFIG);
             backdropOpacity.value = withSpring(1, SPRING_CONFIG);
-        };
+        }, [backdropOpacity, translateY, windowHeight]);
 
-        const finishClose = () => {
-            setMounted(false);
-            onClose?.();
-        };
-
-        const animateClose = (onComplete?: () => void) => {
-            translateY.value = withSpring(windowHeight, SPRING_CONFIG, (finished) => {
-                if (!finished) return;
-                if (onComplete) runOnJS(onComplete)();
-            });
-            backdropOpacity.value = withSpring(0, SPRING_CONFIG);
-        };
+        const animateClose = useCallback(
+            (onComplete?: () => void) => {
+                const generation = animationGeneration.current + 1;
+                animationGeneration.current = generation;
+                translateY.value = withSpring(
+                    windowHeight,
+                    SPRING_CONFIG,
+                    (finished) => {
+                        if (!finished || animationGeneration.current !== generation) {
+                            return;
+                        }
+                        if (onComplete) runOnJS(onComplete)();
+                    },
+                );
+                backdropOpacity.value = withSpring(0, SPRING_CONFIG);
+            },
+            [backdropOpacity, translateY, windowHeight],
+        );
 
         const requestClose = useCallback(() => {
             if (!canClose) return;
             animateClose(finishClose);
-        }, [canClose, windowHeight, onClose]);
+        }, [animateClose, canClose, finishClose]);
 
         const showBackdrop = !hideBackdrop;
         const backdropDismissible =
@@ -176,19 +206,42 @@ const Modal = forwardRef<View, ModalProps>(
 
         useEffect(() => {
             if (visible) {
+                wasVisibleRef.current = true;
                 setMounted(true);
                 return;
             }
 
-            if (mounted) {
-                animateClose(() => setMounted(false));
-            }
-        }, [mounted, visible]);
+            if (!wasVisibleRef.current || !mounted) return;
+            wasVisibleRef.current = false;
 
-        useEffect(() => {
+            animateClose(() => {
+                setMounted(false);
+            });
+        }, [animateClose, mounted, visible]);
+
+        useLayoutEffect(() => {
             if (!mounted || !visible) return;
             animateOpen();
-        }, [mounted, visible, windowHeight]);
+        }, [animateOpen, mounted, visible, windowHeight]);
+
+        useEffect(() => {
+            if (!mounted) return;
+
+            openModalCount += 1;
+            const subscription = BackHandler.addEventListener(
+                "hardwareBackPress",
+                () => {
+                    if (!canClose) return false;
+                    requestClose();
+                    return true;
+                },
+            );
+
+            return () => {
+                openModalCount = Math.max(0, openModalCount - 1);
+                subscription.remove();
+            };
+        }, [canClose, mounted, requestClose]);
 
         const panGesture = Gesture.Pan()
             .enabled(canClose && !disableBackdropClick)
