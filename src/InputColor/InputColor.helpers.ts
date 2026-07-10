@@ -3,6 +3,7 @@ import {
     extractColors,
     formatColor,
     handleColor,
+    isValidGradient,
     randomColor,
     resolveColor,
     resolveSize,
@@ -47,11 +48,27 @@ export const resolveColorPickerButtonSize = (
     };
 };
 
+export const resolveSwatchColor = (
+    color: Color | ColorLike,
+    theme: Theme,
+): string => {
+    const resolvedColor = resolveColor(color, theme);
+
+    if (typeof resolvedColor === "string" && isValidGradient(resolvedColor)) {
+        const extracted = extractColors(resolvedColor);
+        if (extracted?.[0]) {
+            return formatColor(extracted[0]) as string;
+        }
+    }
+
+    return String(resolvedColor);
+};
+
 export const resolveColorPickerButtonStyles = (
     theme: Theme,
     color: Color | ColorLike,
 ) => {
-    const resolvedColor = resolveColor(color, theme);
+    const resolvedColor = resolveSwatchColor(color, theme);
 
     return {
         solid: {
