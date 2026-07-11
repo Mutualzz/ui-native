@@ -58,25 +58,36 @@ export const resolvePaperStyles = (
               backgroundColor: elevatedColor,
           };
 
+    const elevationShadow: ViewStyle =
+        elevation > 0
+            ? {
+                  elevation,
+                  shadowColor: "#000",
+                  shadowOpacity: Math.min(0.1 + elevation * 0.05, 0.5),
+                  shadowOffset: { width: 0, height: 2 + elevation },
+                  shadowRadius: 4 + elevation,
+              }
+            : {};
+
     return {
         elevation: {
             ...elevatedBackgroundStyles,
-            elevation,
-            shadowColor: "#000",
-            shadowOpacity: Math.min(0.1 + elevation * 0.05, 0.5),
-            shadowOffset: { width: 0, height: 2 + elevation },
-            shadowRadius: 4 + elevation,
+            ...elevationShadow,
             borderRadius: 12,
+            // Clip gradient/content, but keep shadows on a non-clipped path via
+            // elevation (Android) / outer wrappers when needed.
             overflow: "hidden",
         },
         solid: {
             backgroundColor: formatColor(elevatedColor),
+            ...elevationShadow,
             ...(solidTextColor ? { color: solidTextColor } : {}),
         },
         outlined: {
             ...(elevation === 0
                 ? { backgroundColor: "transparent" }
                 : elevatedBackgroundStyles),
+            ...elevationShadow,
             borderWidth: 1,
             borderColor: formatColor(resolvedColor, {
                 alpha: 20,
@@ -89,6 +100,7 @@ export const resolvePaperStyles = (
             ...(elevation === 0
                 ? { backgroundColor: "transparent" }
                 : elevatedBackgroundStyles),
+            ...elevationShadow,
             ...(resolvedTextColor ? { color: resolvedTextColor } : {}),
         },
         soft: {

@@ -166,7 +166,7 @@ const IconButton = forwardRef<View, IconButtonProps>(
                             flexGrow: fullWidth || expand ? 1 : 0,
                             flexShrink: 1,
                             flexBasis: expand ? 0 : "auto",
-                            alignSelf: fullWidth ? "stretch" : "flex-start",
+                            alignSelf: fullWidth ? "stretch" : "center",
                             minWidth: 0,
                             padding: resolvedPadding,
                             justifyContent: "center",
@@ -216,7 +216,9 @@ const IconButton = forwardRef<View, IconButtonProps>(
                                     },
                                     textVariant,
                                 ]}
-                                maxFontSizeMultiplier={MAX_FONT_SCALE_MULTIPLIER}
+                                maxFontSizeMultiplier={
+                                    MAX_FONT_SCALE_MULTIPLIER
+                                }
                             >
                                 {children}
                             </ButtonText>

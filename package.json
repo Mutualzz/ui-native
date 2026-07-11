@@ -26,6 +26,7 @@
         "@shopify/react-native-skia": "catalog:",
         "@types/react": "catalog:",
         "react": "catalog:",
+        "react-i18next": "^17.0.9",
         "react-native": "catalog:",
         "react-native-gesture-handler": "catalog:",
         "react-native-keyboard-controller": ">=1.21.0",

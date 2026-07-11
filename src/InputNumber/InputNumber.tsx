@@ -1,6 +1,7 @@
 import { clamp, formatColor, resolveSize } from "@mutualzz/ui-core";
 import { cloneElement, forwardRef, isValidElement, useState } from "react";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import {
     Pressable,
     TextInput,
@@ -41,6 +42,7 @@ const SpinnerButtons = ({
     InputNumberProps,
     "onIncrement" | "onDecrement" | "disabled" | "size"
 >) => {
+    const { t } = useTranslation("common");
     const { theme } = useTheme();
     const resolvedSize = resolveSize(theme, size, baseSizeMap);
     const spinnerHeight = resolvedSize * 1.6;
@@ -70,7 +72,9 @@ const SpinnerButtons = ({
             <Pressable
                 onPress={onIncrement}
                 disabled={disabled}
-                accessibilityLabel="Increment"
+                accessibilityLabel={t("a11y.increment", {
+                    defaultValue: "Increment",
+                })}
                 style={buttonStyle}
             >
                 <Svg width={12} height={12} viewBox="0 0 24 24">
@@ -87,7 +91,9 @@ const SpinnerButtons = ({
             <Pressable
                 onPress={onDecrement}
                 disabled={disabled}
-                accessibilityLabel="Decrement"
+                accessibilityLabel={t("a11y.decrement", {
+                    defaultValue: "Decrement",
+                })}
                 style={buttonStyle}
             >
                 <Svg width={12} height={12} viewBox="0 0 24 24">

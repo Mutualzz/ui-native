@@ -2,6 +2,7 @@ import {
     computeInsertedStopPosition,
     createColor,
     handleColor,
+    isValidGradient,
     randomColor,
     snap,
     type HsvaColor,
@@ -16,6 +17,7 @@ import {
     useRef,
     useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import {
     PanResponder,
     Pressable,
@@ -61,6 +63,7 @@ export const ColorPicker = forwardRef<View, ColorPickerProps>(
         },
         ref,
     ) => {
+        const { t } = useTranslation("common");
         const { theme } = useTheme();
         const gradientId = useId().replace(/:/g, "");
 
@@ -157,18 +160,27 @@ export const ColorPicker = forwardRef<View, ColorPickerProps>(
         });
 
         useEffect(() => {
-            if (allowGradient && stops.length > 1) return;
             if (lastSyncedColor.current === color) return;
 
             const parsed = createPickerGradientStops(
                 color,
                 stops.map((stop) => stop.id),
             );
+
+
+            if (typeof color === "string" && isValidGradient(color)) {
+                setRotation(parsed.angle);
+            }
+
+            if (allowGradient && stops.length > 1) {
+                lastSyncedColor.current = color;
+                return;
+            }
+
             const sorted = sortStops(parsed.stops);
 
             stopsRef.current = sorted;
             setStops(sorted);
-            setRotation(parsed.angle);
             setSelectedStopId((prevId) => {
                 if (prevId && sorted.some((s) => s.id === prevId)) {
                     return prevId;
@@ -181,6 +193,7 @@ export const ColorPicker = forwardRef<View, ColorPickerProps>(
 
         useEffect(() => {
             setRotation(rotationProp);
+            rotationRef.current = rotationProp;
         }, [rotationProp]);
 
         const selectStop = (id: string) => {
@@ -630,7 +643,9 @@ export const ColorPicker = forwardRef<View, ColorPickerProps>(
                             color="danger"
                             variant="plain"
                             onPress={removeStop}
-                            accessibilityLabel="Remove color stop"
+                            accessibilityLabel={t("a11y.removeColorStop", {
+                                defaultValue: "Remove color stop",
+                            })}
                         >
                             <XIcon size={16} weight="bold" />
                         </IconButton>

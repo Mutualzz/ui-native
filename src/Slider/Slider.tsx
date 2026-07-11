@@ -3,11 +3,19 @@ import {
     forwardRef,
     Fragment,
     useCallback,
+    useEffect,
     useMemo,
     useRef,
     useState,
 } from "react";
-import { PanResponder, Text, View, type LayoutChangeEvent } from "react-native";
+import { useTranslation } from "react-i18next";
+import {
+    PanResponder,
+    Text,
+    View,
+    type GestureResponderEvent,
+    type LayoutChangeEvent,
+} from "react-native";
 import { useTheme } from "../useTheme";
 import { MAX_FONT_SCALE_MULTIPLIER } from "../utils/accessibility";
 
@@ -46,6 +54,16 @@ const TrackContainer = styled(View)<{
         ? { height: thickness, width: "100%" }
         : { width: thickness, height: "100%" }),
 }));
+
+const TrackHitArea = styled(View)<{ orientation: SliderOrientation }>(
+    ({ orientation }) => ({
+        justifyContent: "center",
+        alignItems: "center",
+        ...(orientation === "horizontal"
+            ? { width: "100%", minHeight: 44 }
+            : { height: "100%", minWidth: 44 }),
+    }),
+);
 
 const TrackBase = styled(View)<{ orientation: SliderOrientation }>(() => ({
     position: "absolute",
@@ -244,6 +262,7 @@ export const Slider = forwardRef<View, SliderProps>(
         },
         ref,
     ) => {
+        const { t } = useTranslation("common");
         const { theme } = useTheme();
 
         const isRange = Array.isArray(value ?? defaultValue);
@@ -261,12 +280,45 @@ export const Slider = forwardRef<View, SliderProps>(
             : internalValue;
 
         const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+        // Local override while dragging so the thumb stays under the finger
+        // even if a controlled parent updates slowly / out of order.
+        const [dragValue, setDragValue] = useState<number[] | null>(null);
+        const displayValue = dragValue ?? currentValue;
 
+        const trackRef = useRef<View>(null);
         const trackLenRef = useRef(0);
+        const trackOriginRef = useRef({ x: 0, y: 0 });
+        const draggingIndexRef = useRef<number | null>(null);
+        const currentValueRef = useRef(currentValue);
+        const displayValueRef = useRef(displayValue);
+        const isRangeRef = useRef(isRange);
+        const disabledRef = useRef(disabled);
+        const orientationRef = useRef(orientation);
+        const isControlledRef = useRef(isControlled);
+        const disableSwapRef = useRef(disableSwap);
+        const onChangeRef = useRef(onChange);
+        const onChangeCommittedRef = useRef(onChangeCommitted);
+        const resolveValueRef = useRef<(v: number) => number>((v) => v);
+
+        useEffect(() => {
+            currentValueRef.current = currentValue;
+        }, [currentValue]);
+        useEffect(() => {
+            displayValueRef.current = displayValue;
+        }, [displayValue]);
+        useEffect(() => {
+            isRangeRef.current = isRange;
+            disabledRef.current = disabled;
+            orientationRef.current = orientation;
+            isControlledRef.current = isControlled;
+            disableSwapRef.current = disableSwap;
+            onChangeRef.current = onChange;
+            onChangeCommittedRef.current = onChangeCommitted;
+        });
 
         const percents = useMemo(
-            () => currentValue.map((v) => ((v - min) / (max - min)) * 100),
-            [currentValue, min, max],
+            () => displayValue.map((v) => ((v - min) / (max - min)) * 100),
+            [displayValue, min, max],
         );
         const sortedPercents = useMemo(
             () => [...percents].sort((a, b) => a - b),
@@ -306,13 +358,6 @@ export const Slider = forwardRef<View, SliderProps>(
             [marks, min, max],
         );
 
-        const emitChange = useCallback(
-            (vals: number[]) => {
-                onChange?.(isRange ? vals : vals[0]);
-            },
-            [onChange, isRange],
-        );
-
         const resolveValue = useCallback(
             (newVal: number) => {
                 let v = newVal;
@@ -327,114 +372,119 @@ export const Slider = forwardRef<View, SliderProps>(
             [min, max, step, snapToMarks],
         );
 
-        const updateValue = useCallback(
-            (index: number, newVal: number) => {
-                if (disabled) return;
+        useEffect(() => {
+            resolveValueRef.current = resolveValue;
+        }, [resolveValue]);
 
-                const v = resolveValue(newVal);
+        const applyValue = useCallback((index: number, newVal: number) => {
+            if (disabledRef.current) return;
 
-                if (isRange && disableSwap) {
-                    if (index === 0 && v > currentValue[1]) return;
-                    if (index === 1 && v < currentValue[0]) return;
-                }
+            const v = resolveValueRef.current(newVal);
+            const base = displayValueRef.current;
 
-                const next = [...currentValue];
-                next[index] = v;
+            if (isRangeRef.current && disableSwapRef.current) {
+                if (index === 0 && v > base[1]) return;
+                if (index === 1 && v < base[0]) return;
+            }
 
-                if (!isControlled) setInternalValue(next);
-                emitChange(next);
-            },
-            [
-                disabled,
-                resolveValue,
-                isRange,
-                disableSwap,
-                currentValue,
-                isControlled,
-                emitChange,
-            ],
-        );
+            const next = [...base];
+            next[index] = v;
+
+            // Keep the thumb glued to the gesture immediately.
+            setDragValue(next);
+            displayValueRef.current = next;
+
+            if (!isControlledRef.current) setInternalValue(next);
+            onChangeRef.current?.(isRangeRef.current ? next : next[0]);
+        }, []);
 
         const posToValue = useCallback(
             (posPx: number) => {
                 const len = trackLenRef.current || 1;
                 const clamped = Math.min(Math.max(posPx / len, 0), 1);
-                const raw = clamped * (max - min) + min;
-                return raw;
+                return clamped * (max - min) + min;
             },
             [min, max],
         );
+        const posToValueRef = useRef(posToValue);
+        useEffect(() => {
+            posToValueRef.current = posToValue;
+        }, [posToValue]);
 
-        const pickClosestThumb = useCallback(
-            (val: number) => {
-                if (!isRange) return 0;
-                const d0 = Math.abs(currentValue[0] - val);
-                const d1 = Math.abs(currentValue[1] - val);
-                return d0 <= d1 ? 0 : 1;
-            },
-            [isRange, currentValue],
-        );
+        const eventToPos = useCallback((evt: GestureResponderEvent) => {
+            const { pageX, pageY } = evt.nativeEvent;
+            if (orientationRef.current === "horizontal") {
+                return pageX - trackOriginRef.current.x;
+            }
+            return trackLenRef.current - (pageY - trackOriginRef.current.y);
+        }, []);
+
+        const syncTrackOrigin = useCallback((evt: GestureResponderEvent) => {
+            const { locationX, locationY, pageX, pageY } = evt.nativeEvent;
+            // Derive window origin from this event so the first move frames
+            // don't wait on async measureInWindow.
+            trackOriginRef.current = {
+                x: pageX - locationX,
+                y: pageY - locationY,
+            };
+        }, []);
 
         const onTrackLayout = (e: LayoutChangeEvent) => {
             const { width, height } = e.nativeEvent.layout;
-            trackLenRef.current = orientation === "horizontal" ? width : height;
+            trackLenRef.current =
+                orientationRef.current === "horizontal" ? width : height;
+            trackRef.current?.measureInWindow((x, y, w, h) => {
+                trackOriginRef.current = { x, y };
+                trackLenRef.current =
+                    orientationRef.current === "horizontal" ? w : h;
+            });
         };
 
+        const endDrag = useCallback(() => {
+            const finalVals = displayValueRef.current;
+            const final = isRangeRef.current ? [...finalVals] : finalVals[0];
+            draggingIndexRef.current = null;
+            setDraggingIndex(null);
+            setDragValue(null);
+            onChangeCommittedRef.current?.(final);
+        }, []);
+
+        // Stable PanResponder — never recreate mid-drag (that caused snap/lag).
         const panResponder = useMemo(
             () =>
                 PanResponder.create({
-                    onStartShouldSetPanResponder: () => !disabled,
-                    onMoveShouldSetPanResponder: () => !disabled,
+                    onStartShouldSetPanResponder: () => !disabledRef.current,
+                    onMoveShouldSetPanResponder: () => !disabledRef.current,
+                    onPanResponderTerminationRequest: () => false,
                     onPanResponderGrant: (evt) => {
-                        setDraggingIndex((prev) => prev ?? 0);
+                        syncTrackOrigin(evt);
 
-                        const { locationX, locationY } = evt.nativeEvent;
-                        const pos =
-                            orientation === "horizontal"
-                                ? locationX
-                                : trackLenRef.current - locationY;
-                        const clickedVal = posToValue(pos);
-                        const idx = pickClosestThumb(clickedVal);
+                        const clickedVal = posToValueRef.current(
+                            eventToPos(evt),
+                        );
+                        const base = currentValueRef.current;
+                        let idx = 0;
+                        if (isRangeRef.current) {
+                            const d0 = Math.abs(base[0] - clickedVal);
+                            const d1 = Math.abs(base[1] - clickedVal);
+                            idx = d0 <= d1 ? 0 : 1;
+                        }
 
+                        draggingIndexRef.current = idx;
                         setDraggingIndex(idx);
-                        updateValue(idx, clickedVal);
+                        // Seed drag state from the committed value before applying.
+                        displayValueRef.current = [...base];
+                        applyValue(idx, clickedVal);
                     },
                     onPanResponderMove: (evt) => {
-                        if (draggingIndex === null) return;
-                        const { locationX, locationY } = evt.nativeEvent;
-                        const pos =
-                            orientation === "horizontal"
-                                ? locationX
-                                : trackLenRef.current - locationY;
-                        const v = posToValue(pos);
-                        updateValue(draggingIndex, v);
+                        const idx = draggingIndexRef.current;
+                        if (idx === null) return;
+                        applyValue(idx, posToValueRef.current(eventToPos(evt)));
                     },
-                    onPanResponderRelease: () => {
-                        const final = isRange
-                            ? [...currentValue]
-                            : currentValue[0];
-                        setDraggingIndex(null);
-                        onChangeCommitted?.(final);
-                    },
-                    onPanResponderTerminate: () => {
-                        const final = isRange
-                            ? [...currentValue]
-                            : currentValue[0];
-                        setDraggingIndex(null);
-                        onChangeCommitted?.(final);
-                    },
+                    onPanResponderRelease: endDrag,
+                    onPanResponderTerminate: endDrag,
                 }),
-            [
-                disabled,
-                draggingIndex,
-                orientation,
-                posToValue,
-                pickClosestThumb,
-                updateValue,
-                onChangeCommitted,
-                isRange,
-                currentValue,
-            ],
+            [applyValue, endDrag, eventToPos, syncTrackOrigin],
         );
 
         const thumbSize = resolveSliderThumbSize(theme, size);
@@ -488,18 +538,18 @@ export const Slider = forwardRef<View, SliderProps>(
 
                 if (event.nativeEvent.actionName === "increment") {
                     const next = resolveValue(currentValue[0] + stepAmount);
-                    updateValue(0, next);
+                    applyValue(0, next);
                     onChangeCommitted?.(next);
                 } else if (event.nativeEvent.actionName === "decrement") {
                     const next = resolveValue(currentValue[0] - stepAmount);
-                    updateValue(0, next);
+                    applyValue(0, next);
                     onChangeCommitted?.(next);
                 }
             },
             [
                 disabled,
                 isRange,
-                updateValue,
+                applyValue,
                 resolveValue,
                 currentValue,
                 stepAmount,
@@ -541,16 +591,23 @@ export const Slider = forwardRef<View, SliderProps>(
                 onAccessibilityAction={handleAccessibilityAction}
                 accessibilityHint={
                     isRange
-                        ? "Range slider. Adjust by dragging."
+                        ? t("a11y.rangeSliderHint", {
+                              defaultValue:
+                                  "Range slider. Adjust by dragging.",
+                          })
                         : undefined
                 }
             >
-                <TrackContainer
+                <TrackHitArea
+                    ref={trackRef}
                     orientation={orientation}
-                    thickness={thickness}
                     onLayout={onTrackLayout}
                     {...panResponder.panHandlers}
                 >
+                    <TrackContainer
+                        orientation={orientation}
+                        thickness={thickness}
+                    >
                     <TrackBase
                         orientation={orientation}
                         style={{ backgroundColor: neutralTrack }}
@@ -624,7 +681,7 @@ export const Slider = forwardRef<View, SliderProps>(
                         );
                     })}
 
-                    {currentValue.map((val, i) => {
+                    {displayValue.map((val, i) => {
                         const pct = percents[i];
                         const showLabel =
                             valueLabelDisplay === "on" ||
@@ -667,6 +724,7 @@ export const Slider = forwardRef<View, SliderProps>(
                         );
                     })}
                 </TrackContainer>
+                </TrackHitArea>
             </SliderRoot>
         );
     },

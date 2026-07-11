@@ -1,5 +1,6 @@
 import {
     constructLinearGradient,
+    extractGradientInfo,
     handleColor,
     isValidGradient,
     randomColor,
@@ -18,6 +19,7 @@ import {
     useState,
 } from "react";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { DiceFiveIcon } from "phosphor-react-native";
 import { Pressable, type TextInput, View } from "react-native";
 import { ColorPicker } from "../ColorPicker/ColorPicker";
@@ -77,6 +79,7 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
         },
         ref,
     ) => {
+        const { t } = useTranslation("common");
         const { inputRef, focusInput } = useInputRef(ref);
         const { theme } = useTheme();
 
@@ -95,10 +98,22 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
         const [internalValue, setInternalValue] = useState<ColorLike>(
             defaultValue ?? randomColor("hex"),
         );
-        const [gradientRotation, setGradientRotation] = useState(90);
+        const [gradientRotation, setGradientRotation] = useState(() => {
+            const initial = colorProp ?? defaultValue;
+            if (typeof initial === "string" && isValidGradient(initial)) {
+                return extractGradientInfo(initial)?.angle ?? 90;
+            }
+            return 90;
+        });
         const [focusedStop, setFocusedStop] = useState(0);
 
         const currentValue = isControlled ? colorProp : internalValue;
+
+        const syncGradientAngle = useCallback((value: ColorLike) => {
+            if (typeof value !== "string" || !isValidGradient(value)) return;
+            const angle = extractGradientInfo(value)?.angle;
+            if (angle != null) setGradientRotation(angle);
+        }, []);
 
         const {
             inputValue,
@@ -120,6 +135,11 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
             },
         );
 
+        const colorForPicker =
+            typeof currentValue === "string" && isValidGradient(currentValue)
+                ? currentValue
+                : pickerColor;
+
         useEffect(() => {
             if (!isControlled) return;
 
@@ -129,6 +149,7 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
                     const stop = focusedStop ?? 0;
                     setColorDirectly(handleColor(stops[stop]).hex);
                     setPickerColor(stops);
+                    syncGradientAngle(currentValue);
                     return;
                 }
 
@@ -138,7 +159,7 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
             } catch {
                 // ignore invalid controlled values
             }
-        }, [colorProp, focusedStop, isControlled]);
+        }, [colorProp, focusedStop, isControlled, syncGradientAngle]);
 
         const handleNewColor = useCallback(
             (
@@ -155,6 +176,7 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
                                 handleColor(stops[activeStop] ?? stops[0]).hex,
                             );
                             setFocusedStop(activeStop);
+                            syncGradientAngle(newColor);
                             if (!isControlled) setInternalValue(newColor);
                             onChange?.(newColor);
                             return;
@@ -185,7 +207,8 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
                                       gradientRotation,
                                       newColor.map((c, i, arr) => ({
                                           color: c.hex,
-                                          position: (i / (arr.length - 1)) * 100,
+                                          position:
+                                              (i / (arr.length - 1)) * 100,
                                       })),
                                   )
                                 : newColor[0].hex,
@@ -222,6 +245,7 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
                 onChange,
                 onChangeResult,
                 setColorDirectly,
+                syncGradientAngle,
             ],
         );
 
@@ -247,6 +271,7 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
                     const stops = toGradientStops(next);
                     setPickerColor(stops);
                     setColorDirectly(handleColor(stops[0]).hex);
+                    syncGradientAngle(next);
                 } else {
                     const result = handleColor(next);
                     setPickerColor(result.hsva);
@@ -289,7 +314,9 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
                                 disabled={disabled}
                                 onPress={() => setPickerOpen(true)}
                                 style={[swatchSize, swatchStyles]}
-                                accessibilityLabel="Open color picker"
+                                accessibilityLabel={t("a11y.openColorPicker", {
+                                    defaultValue: "Open color picker",
+                                })}
                             />
                         ) : (
                             <View style={[swatchSize, swatchStyles]} />
@@ -329,8 +356,12 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
                                 padding={2}
                                 disabled={disabled}
                                 onPress={handleRandomColor}
-                                accessibilityLabel="Random color"
-                                accessibilityHint="Picks a random color"
+                                accessibilityLabel={t("a11y.randomColor", {
+                                    defaultValue: "Random color",
+                                })}
+                                accessibilityHint={t("a11y.randomColorHint", {
+                                    defaultValue: "Picks a random color",
+                                })}
                             >
                                 <DiceFiveIcon
                                     size={Math.min(14, fontSize)}
@@ -357,7 +388,7 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
                         }}
                     >
                         <ColorPicker
-                            color={pickerColor}
+                            color={colorForPicker}
                             allowAlpha={allowAlpha}
                             allowGradient={allowGradient}
                             rotation={gradientRotation}

@@ -7,6 +7,7 @@ import {
     useRef,
     useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import {
     BackHandler,
     Pressable,
@@ -22,12 +23,15 @@ import Animated, {
     useAnimatedStyle,
     useSharedValue,
     withSpring,
+    withTiming,
 } from "react-native-reanimated";
 import { IconButton } from "../IconButton/IconButton";
 import type { ModalProps } from "./Modal.types";
 
 const DISMISS_DISTANCE = 120;
 const DISMISS_VELOCITY = 900;
+const CLOSE_DURATION_MS = 220;
+const CLOSE_FALLBACK_MS = 400;
 const SPRING_CONFIG = {
     damping: 22,
     stiffness: 240,
@@ -40,7 +44,7 @@ export function hasOpenModals() {
     return openModalCount > 0;
 }
 
-const ModalRoot = styled.View<{ layout: "center" | "fullscreen" }>(
+const ModalRootView = styled.View<{ layout: "center" | "fullscreen" }>(
     ({ layout }) => ({
         flex: 1,
 
@@ -52,7 +56,7 @@ const ModalRoot = styled.View<{ layout: "center" | "fullscreen" }>(
               }
             : {
                   justifyContent: "flex-start",
-                  alignItems: "flex-start",
+                  alignItems: "stretch",
               }),
     }),
 );
@@ -143,61 +147,112 @@ const Modal = forwardRef<View, ModalProps>(
             showCloseButton = true,
             closeButton,
             onClose,
+            onExited,
 
             style,
             ...props
         },
         ref,
     ) => {
+        const { t } = useTranslation("common");
+        const closeModalLabel = t("a11y.closeModal", {
+            defaultValue: "Close modal",
+        });
         const visible = open;
         const canClose = Boolean(onClose);
         const { height: windowHeight } = useWindowDimensions();
         const [mounted, setMounted] = useState(visible);
         const animationGeneration = useRef(0);
         const onCloseRef = useRef(onClose);
+        const onExitedRef = useRef(onExited);
         const wasVisibleRef = useRef(visible);
+        const closingRef = useRef(false);
+        const closeFallbackRef = useRef<ReturnType<typeof setTimeout> | null>(
+            null,
+        );
         onCloseRef.current = onClose;
+        onExitedRef.current = onExited;
 
         const translateY = useSharedValue(windowHeight);
         const backdropOpacity = useSharedValue(0);
         const dragStartY = useSharedValue(0);
 
-        const finishClose = useCallback(() => {
-            setMounted(false);
-            onCloseRef.current?.();
+        const clearCloseFallback = useCallback(() => {
+            if (closeFallbackRef.current != null) {
+                clearTimeout(closeFallbackRef.current);
+                closeFallbackRef.current = null;
+            }
         }, []);
 
+        const settleExited = useCallback(() => {
+            clearCloseFallback();
+            closingRef.current = false;
+            setMounted(false);
+            onExitedRef.current?.();
+        }, [clearCloseFallback]);
+
         const animateOpen = useCallback(() => {
+            clearCloseFallback();
+            closingRef.current = false;
             animationGeneration.current += 1;
             translateY.value = windowHeight;
             backdropOpacity.value = 0;
             translateY.value = withSpring(0, SPRING_CONFIG);
             backdropOpacity.value = withSpring(1, SPRING_CONFIG);
-        }, [backdropOpacity, translateY, windowHeight]);
+        }, [backdropOpacity, clearCloseFallback, translateY, windowHeight]);
 
         const animateClose = useCallback(
             (onComplete?: () => void) => {
+                if (closingRef.current) return;
+                closingRef.current = true;
+
                 const generation = animationGeneration.current + 1;
                 animationGeneration.current = generation;
-                translateY.value = withSpring(
+
+                let completed = false;
+                const complete = () => {
+                    if (
+                        completed ||
+                        animationGeneration.current !== generation
+                    ) {
+                        return;
+                    }
+                    completed = true;
+                    onComplete?.();
+                };
+
+                translateY.value = withTiming(
                     windowHeight,
-                    SPRING_CONFIG,
+                    { duration: CLOSE_DURATION_MS },
                     (finished) => {
-                        if (!finished || animationGeneration.current !== generation) {
+                        if (
+                            !finished ||
+                            animationGeneration.current !== generation
+                        ) {
                             return;
                         }
-                        if (onComplete) runOnJS(onComplete)();
+                        runOnJS(complete)();
                     },
                 );
-                backdropOpacity.value = withSpring(0, SPRING_CONFIG);
+                backdropOpacity.value = withTiming(0, {
+                    duration: CLOSE_DURATION_MS,
+                });
+
+                // Guarantee unmount even if the animation callback is dropped —
+                // otherwise a transparent RNModal can block touches forever.
+                clearCloseFallback();
+                closeFallbackRef.current = setTimeout(() => {
+                    complete();
+                }, CLOSE_FALLBACK_MS);
             },
-            [backdropOpacity, translateY, windowHeight],
+            [backdropOpacity, clearCloseFallback, translateY, windowHeight],
         );
 
         const requestClose = useCallback(() => {
-            if (!canClose) return;
-            animateClose(finishClose);
-        }, [animateClose, canClose, finishClose]);
+            if (!canClose || closingRef.current) return;
+            // Parent sets open=false; the open=false effect runs the exit animation.
+            onCloseRef.current?.();
+        }, [canClose]);
 
         const showBackdrop = !hideBackdrop;
         const backdropDismissible =
@@ -207,20 +262,18 @@ const Modal = forwardRef<View, ModalProps>(
         useEffect(() => {
             if (visible) {
                 wasVisibleRef.current = true;
+                closingRef.current = false;
                 setMounted(true);
                 return;
             }
 
             if (!wasVisibleRef.current || !mounted) return;
             wasVisibleRef.current = false;
-
-            animateClose(() => {
-                setMounted(false);
-            });
-        }, [animateClose, mounted, visible]);
+            animateClose(settleExited);
+        }, [animateClose, mounted, settleExited, visible]);
 
         useLayoutEffect(() => {
-            if (!mounted || !visible) return;
+            if (!mounted || !visible || closingRef.current) return;
             animateOpen();
         }, [animateOpen, mounted, visible, windowHeight]);
 
@@ -242,6 +295,12 @@ const Modal = forwardRef<View, ModalProps>(
                 subscription.remove();
             };
         }, [canClose, mounted, requestClose]);
+
+        useEffect(() => {
+            return () => {
+                clearCloseFallback();
+            };
+        }, [clearCloseFallback]);
 
         const panGesture = Gesture.Pan()
             .enabled(canClose && !disableBackdropClick)
@@ -283,7 +342,7 @@ const Modal = forwardRef<View, ModalProps>(
         if (!mounted && !keepMounted) return null;
 
         const modalBody = (
-            <ModalRoot layout={layout} style={style} {...props}>
+            <ModalRootView layout={layout} style={style} {...props}>
                 {showBackdrop ? (
                     <Animated.View
                         pointerEvents="none"
@@ -299,7 +358,7 @@ const Modal = forwardRef<View, ModalProps>(
                     <Pressable
                         style={StyleSheet.absoluteFill}
                         onPress={requestClose}
-                        accessibilityLabel="Close modal"
+                        accessibilityLabel={closeModalLabel}
                     />
                 ) : null}
 
@@ -319,7 +378,7 @@ const Modal = forwardRef<View, ModalProps>(
                             <Pressable
                                 style={StyleSheet.absoluteFill}
                                 onPress={requestClose}
-                                accessibilityLabel="Close modal"
+                                accessibilityLabel={closeModalLabel}
                             />
                         ) : null}
 
@@ -338,7 +397,7 @@ const Modal = forwardRef<View, ModalProps>(
                                         layout={layout}
                                         onPress={requestClose}
                                         disabled={!canClose}
-                                        accessibilityLabel="Close modal"
+                                        accessibilityLabel={closeModalLabel}
                                     >
                                         <CloseGlyph layout={layout}>
                                             ✕
@@ -356,7 +415,7 @@ const Modal = forwardRef<View, ModalProps>(
                         </ModalContainer>
                     </Animated.View>
                 </GestureDetector>
-            </ModalRoot>
+            </ModalRootView>
         );
 
         return (
@@ -384,4 +443,4 @@ const Modal = forwardRef<View, ModalProps>(
 
 Modal.displayName = "Modal";
 
-export { Modal, ModalRoot };
+export { Modal, ModalRootView as ModalRoot };
