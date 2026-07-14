@@ -17,7 +17,11 @@ import {
     View,
 } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import {
+    Gesture,
+    GestureDetector,
+    GestureHandlerRootView,
+} from "react-native-gesture-handler";
 import Animated, {
     runOnJS,
     useAnimatedStyle,
@@ -436,7 +440,7 @@ const Modal = forwardRef<View, ModalProps>(
                         <ModalContent
                             layout={layout}
                             height={height}
-                            pointerEvents="box-none"
+                            pointerEvents="auto"
                         >
                             {children}
                         </ModalContent>
@@ -452,17 +456,19 @@ const Modal = forwardRef<View, ModalProps>(
                 animationType="none"
                 onRequestClose={requestClose}
             >
-                {layout === "center" ? (
-                    <KeyboardAvoidingView
-                        style={{ flex: 1 }}
-                        behavior="padding"
-                        automaticOffset
-                    >
-                        {modalBody}
-                    </KeyboardAvoidingView>
-                ) : (
-                    modalBody
-                )}
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                    {layout === "center" ? (
+                        <KeyboardAvoidingView
+                            style={{ flex: 1 }}
+                            behavior="padding"
+                            automaticOffset
+                        >
+                            {modalBody}
+                        </KeyboardAvoidingView>
+                    ) : (
+                        modalBody
+                    )}
+                </GestureHandlerRootView>
             </RNModal>
         );
     },
