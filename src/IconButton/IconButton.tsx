@@ -93,12 +93,8 @@ const IconButton = forwardRef<View, IconButtonProps>(
             padding,
         ).padding;
 
-        // Icon-only buttons can render visually smaller than the
-        // recommended 44x44 minimum touch target (esp. size="sm"). Expand
-        // the touchable area via hitSlop rather than the visual size, so
-        // tap accuracy improves without changing how the button looks.
         const visualSize = resolvedSize + resolvedPadding * 2;
-        const autoHitSlop = Math.max(0, (44 - visualSize) / 2);
+        const autoHitSlop = Math.min(6, Math.max(0, (44 - visualSize) / 2));
         const hitSlop = hitSlopProp ?? autoHitSlop;
 
         const handlePress = (e: GestureResponderEvent) => {

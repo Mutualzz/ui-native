@@ -115,7 +115,7 @@ const CloseButton = styled(IconButton)<{ layout: "center" | "fullscreen" }>(
         alignSelf: "flex-end",
         marginTop: layout === "fullscreen" ? 48 : 24,
         marginRight: layout === "fullscreen" ? 48 : 24,
-        marginBottom: -48,
+        marginBottom: 8,
         zIndex: 1,
         borderRadius: 16,
         width: layout === "fullscreen" ? 44 : 40,
@@ -125,6 +125,23 @@ const CloseButton = styled(IconButton)<{ layout: "center" | "fullscreen" }>(
         justifyContent: "center",
     }),
 );
+
+const DragHandle = styled.View({
+    alignSelf: "center",
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    marginTop: 10,
+    marginBottom: 6,
+    backgroundColor: "rgba(255,255,255,0.35)",
+});
+
+const DragHandleHitArea = styled.View({
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 4,
+});
 
 const CloseGlyph = styled.Text<{ layout: "center" | "fullscreen" }>(
     ({ layout }) => ({
@@ -242,7 +259,9 @@ const Modal = forwardRef<View, ModalProps>(
                 // otherwise a transparent RNModal can block touches forever.
                 clearCloseFallback();
                 closeFallbackRef.current = setTimeout(() => {
-                    complete();
+                    if (animationGeneration.current !== generation) return;
+                    completed = true;
+                    onComplete?.();
                 }, CLOSE_FALLBACK_MS);
             },
             [backdropOpacity, clearCloseFallback, translateY, windowHeight],
@@ -302,10 +321,11 @@ const Modal = forwardRef<View, ModalProps>(
             };
         }, [clearCloseFallback]);
 
+        const dismissEnabled = canClose && !disableBackdropClick;
         const panGesture = Gesture.Pan()
-            .enabled(canClose && !disableBackdropClick)
+            .enabled(dismissEnabled)
             .activeOffsetY(8)
-            .failOffsetX([-20, 20])
+            .failOffsetX([-24, 24])
             .onStart(() => {
                 dragStartY.value = translateY.value;
             })
@@ -362,59 +382,66 @@ const Modal = forwardRef<View, ModalProps>(
                     />
                 ) : null}
 
-                <GestureDetector gesture={panGesture}>
-                    <Animated.View
+                <Animated.View
+                    pointerEvents="box-none"
+                    style={[
+                        {
+                            width: "100%",
+                            alignSelf: "stretch",
+                            ...(isFullscreen ? { flex: 1 } : {}),
+                        },
+                        modalStyle,
+                    ]}
+                >
+                    {backdropDismissible && isFullscreen ? (
+                        <Pressable
+                            style={StyleSheet.absoluteFill}
+                            onPress={requestClose}
+                            accessibilityLabel={closeModalLabel}
+                        />
+                    ) : null}
+
+                    <ModalContainer
+                        ref={ref}
+                        layout={layout}
+                        height={height}
                         pointerEvents="box-none"
-                        style={[
-                            {
-                                width: "100%",
-                                alignSelf: "stretch",
-                                ...(isFullscreen ? { flex: 1 } : {}),
-                            },
-                            modalStyle,
-                        ]}
                     >
-                        {backdropDismissible && isFullscreen ? (
-                            <Pressable
-                                style={StyleSheet.absoluteFill}
-                                onPress={requestClose}
-                                accessibilityLabel={closeModalLabel}
-                            />
+                        {dismissEnabled ? (
+                            <GestureDetector gesture={panGesture}>
+                                <DragHandleHitArea>
+                                    <DragHandle />
+                                </DragHandleHitArea>
+                            </GestureDetector>
                         ) : null}
 
-                        <ModalContainer
-                            ref={ref}
+                        {showCloseButton &&
+                            (disableBackdropClick || canClose) &&
+                            (closeButton ?? (
+                                <CloseButton
+                                    color="neutral"
+                                    variant="plain"
+                                    layout={layout}
+                                    onPress={requestClose}
+                                    disabled={!canClose}
+                                    hitSlop={8}
+                                    accessibilityLabel={closeModalLabel}
+                                >
+                                    <CloseGlyph layout={layout}>
+                                        ✕
+                                    </CloseGlyph>
+                                </CloseButton>
+                            ))}
+
+                        <ModalContent
                             layout={layout}
                             height={height}
                             pointerEvents="box-none"
                         >
-                            {showCloseButton &&
-                                (disableBackdropClick || canClose) &&
-                                (closeButton ?? (
-                                    <CloseButton
-                                        color="neutral"
-                                        variant="plain"
-                                        layout={layout}
-                                        onPress={requestClose}
-                                        disabled={!canClose}
-                                        accessibilityLabel={closeModalLabel}
-                                    >
-                                        <CloseGlyph layout={layout}>
-                                            ✕
-                                        </CloseGlyph>
-                                    </CloseButton>
-                                ))}
-
-                            <ModalContent
-                                layout={layout}
-                                height={height}
-                                pointerEvents="box-none"
-                            >
-                                {children}
-                            </ModalContent>
-                        </ModalContainer>
-                    </Animated.View>
-                </GestureDetector>
+                            {children}
+                        </ModalContent>
+                    </ModalContainer>
+                </Animated.View>
             </ModalRootView>
         );
 
