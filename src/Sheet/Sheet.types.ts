@@ -1,24 +1,20 @@
 import type { ReactNode } from "react";
-import type { ViewProps } from "react-native";
+import type { StyleProp, ViewStyle } from "react-native";
 
-export interface ModalProps extends ViewProps {
+export interface SheetProps {
     open: boolean;
-
     children?: ReactNode;
-
     keepMounted?: boolean;
-
     layout?: "center" | "fullscreen";
     height?: number;
-
+    snapPoints?: (string | number)[];
+    enableDynamicSizing?: boolean;
     hideBackdrop?: boolean;
     disableBackdropClick?: boolean;
-
     showCloseButton?: boolean;
+    showHandle?: boolean;
     closeButton?: ReactNode;
-
-    /** User requested dismiss (backdrop / back / swipe). Parent should set `open` to false. */
     onClose?: () => void;
-    /** Fired after the close animation finishes and the modal has unmounted. */
     onExited?: () => void;
+    style?: StyleProp<ViewStyle>;
 }

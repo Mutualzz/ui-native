@@ -29,7 +29,7 @@ import { InputBase } from "../InputBase/InputBase";
 import { resolveInputBaseSize } from "../InputBase/InputBase.helpers";
 import { InputDecoratorWrapper } from "../InputDecoratorWrapper/InputDecoratorWrapper";
 import { InputRoot } from "../InputRoot/InputRoot";
-import { Modal } from "../Modal/Modal";
+import { Sheet } from "../Sheet/Sheet";
 import { Paper } from "../Paper/Paper";
 import { resolveTypographyStyles } from "../Typography/Typography.helpers";
 import { useTheme } from "../useTheme";
@@ -373,7 +373,7 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
                     </InputDecoratorWrapper>
                 </InputRoot>
 
-                <Modal
+                <Sheet
                     open={pickerOpen}
                     onClose={() => setPickerOpen(false)}
                     showCloseButton
@@ -398,7 +398,7 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
                             onChange={handleNewColor}
                         />
                     </Paper>
-                </Modal>
+                </Sheet>
             </>
         );
     },

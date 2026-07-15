@@ -62,8 +62,8 @@ export type * from "./ListItem/ListItem.types";
 export * from "./ListItemButton/ListItemButton";
 export type * from "./ListItemButton/ListItemButton.types";
 
-export * from "./Modal/Modal";
-export type * from "./Modal/Modal.types";
+export { Sheet, hasOpenSheets } from "./Sheet/Sheet";
+export type { SheetProps } from "./Sheet/Sheet.types";
 
 export * from "./NativeBaseline/NativeBaseline";
 export type * from "./NativeBaseline/NativeBaseline.types";
