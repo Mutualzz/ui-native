@@ -1,47 +1,47 @@
 {
-    "author": "Azrael",
-    "dependencies": {
-        "@mutualzz/ui-core": "workspace:*",
-        "color": "^5.0.3"
-    },
-    "devDependencies": {
-        "@mutualzz/eslint-config": "workspace:*",
-        "@types/react": "catalog:",
-        "bunchee": "^6.10.0"
-    },
-    "exports": {
-        ".": {
-            "import": "./dist/index.mjs",
-            "react-native": "./dist/index.mjs",
-            "require": "./dist/index.cjs",
-            "types": "./dist/index.d.ts"
-        }
-    },
-    "main": "./dist/index.cjs",
-    "module": "./dist/index.mjs",
-    "name": "@mutualzz/ui-native",
-    "peerDependencies": {
-        "@emotion/native": "11.11.0",
-        "@emotion/react": "11.14.0",
-        "@expo/ui": "~56.0.21",
-        "@shopify/react-native-skia": "catalog:",
-        "@types/react": "catalog:",
-        "react": "catalog:",
-        "react-i18next": "^17.0.9",
-        "react-native": "catalog:",
-        "react-native-gesture-handler": "catalog:",
-        "react-native-keyboard-controller": ">=1.21.0",
-        "react-native-reanimated": "catalog:",
-        "react-native-safe-area-context": "catalog:",
-        "react-native-svg": "catalog:"
-    },
-    "react-native": "./dist/index.mjs",
-    "scripts": {
-        "build": "pnpm typecheck && bunchee",
-        "dev": "bunchee --watch",
-        "lint": "eslint .",
-        "typecheck": "tsc --noEmit"
-    },
-    "types": "./dist/index.d.ts",
-    "version": "4.1.1"
+  "author": "Azrael",
+  "dependencies": {
+    "@mutualzz/ui-core": "workspace:*",
+    "color": "^5.0.3"
+  },
+  "devDependencies": {
+    "@mutualzz/eslint-config": "workspace:*",
+    "@types/react": "catalog:",
+    "bunchee": "^6.10.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "react-native": "./dist/index.mjs",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "name": "@mutualzz/ui-native",
+  "peerDependencies": {
+    "@emotion/native": "11.11.0",
+    "@emotion/react": "11.14.0",
+    "@expo/ui": "~56.0.21",
+    "@shopify/react-native-skia": "catalog:",
+    "@types/react": "catalog:",
+    "react": "catalog:",
+    "react-i18next": "^17.0.9",
+    "react-native": "catalog:",
+    "react-native-gesture-handler": "catalog:",
+    "react-native-keyboard-controller": ">=1.21.0",
+    "react-native-reanimated": "catalog:",
+    "react-native-safe-area-context": "catalog:",
+    "react-native-svg": "catalog:"
+  },
+  "react-native": "./dist/index.mjs",
+  "scripts": {
+    "build": "pnpm typecheck && bunchee",
+    "dev": "bunchee --watch",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "types": "./dist/index.d.ts",
+  "version": "4.2.0"
 }
