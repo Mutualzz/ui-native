@@ -1,4 +1,4 @@
-import { extractGradientInfo } from "@mutualzz/ui-core";
+import { extractGradientInfo, resolveWallpaperScrim, resolveWallpaperSettings } from "@mutualzz/ui-core";
 import {
     Canvas,
     Rect,
@@ -6,7 +6,12 @@ import {
     vec,
 } from "@shopify/react-native-skia";
 import { useMemo } from "react";
-import { StyleSheet, useWindowDimensions } from "react-native";
+import {
+    ImageBackground,
+    StyleSheet,
+    useWindowDimensions,
+    View,
+} from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../useTheme";
@@ -25,8 +30,16 @@ const styles = StyleSheet.create({
 
 const NativeBaseline = ({ children }: NativeBaselineProps) => {
     const { theme } = useTheme();
-
     const { width, height } = useWindowDimensions();
+    const backgroundImageUrl = theme.backgroundImageUrl;
+    const settings = useMemo(
+        () => resolveWallpaperSettings(theme),
+        [theme.wallpaper, theme.type, theme.colors.background, theme.colors.surface],
+    );
+    const scrim = useMemo(
+        () => resolveWallpaperScrim(theme),
+        [theme.wallpaper, theme.type, theme.colors.background, theme.colors.surface, backgroundImageUrl],
+    );
 
     const bg = useMemo(
         () => theme.colors.background,
@@ -59,9 +72,36 @@ const NativeBaseline = ({ children }: NativeBaselineProps) => {
         };
     }, [gradient, portraitStretch]);
 
-    if (!gradient) {
-        return (
-            <GestureHandlerRootView>
+    const content = (() => {
+        if (backgroundImageUrl) {
+            return (
+                <ImageBackground
+                    source={{ uri: backgroundImageUrl }}
+                    style={[styles.container, styles.fill]}
+                    resizeMode="cover"
+                    imageStyle={{
+                        opacity: Math.min(Math.max(settings.brightness / 100, 0.2), 1),
+                    }}
+                >
+                    <View
+                        style={[
+                            styles.fill,
+                            { backgroundColor: scrim },
+                        ]}
+                    >
+                        <SafeAreaView
+                            edges={["top", "left", "right"]}
+                            style={styles.fill}
+                        >
+                            {children}
+                        </SafeAreaView>
+                    </View>
+                </ImageBackground>
+            );
+        }
+
+        if (!gradient) {
+            return (
                 <SafeAreaView
                     edges={["top", "left", "right"]}
                     style={[
@@ -72,15 +112,13 @@ const NativeBaseline = ({ children }: NativeBaselineProps) => {
                 >
                     {children}
                 </SafeAreaView>
-            </GestureHandlerRootView>
-        );
-    }
+            );
+        }
 
-    const activeGradient = gradientStops ?? gradient;
-    const { start, end } = angleToSkia(activeGradient.angle, width, height);
+        const activeGradient = gradientStops ?? gradient;
+        const { start, end } = angleToSkia(activeGradient.angle, width, height);
 
-    return (
-        <GestureHandlerRootView>
+        return (
             <SafeAreaView
                 edges={["top", "left", "right"]}
                 style={[styles.container, styles.fill]}
@@ -102,8 +140,10 @@ const NativeBaseline = ({ children }: NativeBaselineProps) => {
                 )}
                 {children}
             </SafeAreaView>
-        </GestureHandlerRootView>
-    );
+        );
+    })();
+
+    return <GestureHandlerRootView>{content}</GestureHandlerRootView>;
 };
 
 NativeBaseline.displayName = "NativeBaseline";

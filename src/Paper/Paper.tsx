@@ -28,6 +28,7 @@ const PaperBase = styled(View)<PaperProps>(
         color = "neutral",
         textColor = "inherit",
         transparency = 0,
+        surfaceRole,
     }) => ({
         ...resolvePaperStyles(
             theme,
@@ -36,6 +37,7 @@ const PaperBase = styled(View)<PaperProps>(
             variant,
             elevation,
             transparency,
+            surfaceRole,
         )[variant],
 
         borderRadius: 0,
@@ -49,6 +51,7 @@ const Paper = forwardRef<View, PaperProps>(
         {
             variant = "elevation",
             transparency = 0,
+            surfaceRole,
             children,
             style,
             ...restProps
@@ -91,6 +94,7 @@ const Paper = forwardRef<View, PaperProps>(
                     ref={ref}
                     variant={variant}
                     transparency={transparency}
+                    surfaceRole={surfaceRole}
                     style={resolvedStyle}
                     {...props}
                 >
@@ -105,6 +109,7 @@ const Paper = forwardRef<View, PaperProps>(
                 onLayout={onLayout}
                 variant={variant}
                 transparency={transparency}
+                surfaceRole={surfaceRole}
                 style={resolvedStyle}
                 {...props}
             >
