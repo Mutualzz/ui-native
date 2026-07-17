@@ -3,6 +3,7 @@ import {
     type ColorLike,
     type TypographyColor,
     type Variant,
+    type WallpaperSurfaceRole,
 } from "@mutualzz/ui-core";
 import type { BoxProps } from "../Box/Box.types";
 
@@ -38,4 +39,6 @@ export interface PaperProps extends Omit<BoxProps, "color"> {
     elevation?: number;
 
     transparency?: number;
+
+    surfaceRole?: WallpaperSurfaceRole;
 }

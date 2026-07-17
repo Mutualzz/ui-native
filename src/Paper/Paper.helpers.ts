@@ -7,9 +7,11 @@ import {
     isValidGradient,
     resolveColor,
     resolveTypographyColor,
+    resolveWallpaperSurfaceStyles,
     type Color,
     type ColorLike,
     type TypographyColor,
+    type WallpaperSurfaceRole,
 } from "@mutualzz/ui-core";
 import type { ViewStyle } from "react-native";
 import type { PaperVariant } from "./Paper.types";
@@ -21,8 +23,14 @@ export const resolvePaperStyles = (
     variant: PaperVariant,
     elevation: number,
     transparency: number,
+    surfaceRole?: WallpaperSurfaceRole,
 ): Record<PaperVariant, ViewStyle> => {
     const { colors } = theme;
+    const surface =
+        surfaceRole && theme.backgroundImageUrl
+            ? resolveWallpaperSurfaceStyles(theme, surfaceRole)
+            : null;
+
     const resolvedColor = resolveColor(color, theme);
 
     const resolvedTextColor =
@@ -59,34 +67,47 @@ export const resolvePaperStyles = (
           };
 
     const elevationShadow: ViewStyle =
-        elevation > 0
-            ? {
+        surface || elevation === 0
+            ? {}
+            : {
                   elevation,
                   shadowColor: "#000",
                   shadowOpacity: Math.min(0.1 + elevation * 0.05, 0.5),
                   shadowOffset: { width: 0, height: 2 + elevation },
                   shadowRadius: 4 + elevation,
+              };
+
+    const transparentPanel: ViewStyle = { backgroundColor: "transparent" };
+
+    const panelBackground: ViewStyle =
+        elevation === 0 ? transparentPanel : elevatedBackgroundStyles;
+
+    const applySurface = (base: ViewStyle): ViewStyle =>
+        surface
+            ? {
+                  ...base,
+                  backgroundColor: surface.background,
               }
-            : {};
+            : base;
+
+    const elevationStyles: ViewStyle = surface
+        ? { backgroundColor: surface.background, overflow: "hidden" }
+        : {
+              ...elevatedBackgroundStyles,
+              ...elevationShadow,
+              borderRadius: 12,
+              overflow: "hidden",
+          };
 
     return {
-        elevation: {
-            ...elevatedBackgroundStyles,
-            ...elevationShadow,
-            borderRadius: 12,
-            // Clip gradient/content, but keep shadows on a non-clipped path via
-            // elevation (Android) / outer wrappers when needed.
-            overflow: "hidden",
-        },
-        solid: {
+        elevation: elevationStyles,
+        solid: applySurface({
             backgroundColor: formatColor(elevatedColor),
             ...elevationShadow,
             ...(solidTextColor ? { color: solidTextColor } : {}),
-        },
-        outlined: {
-            ...(elevation === 0
-                ? { backgroundColor: "transparent" }
-                : elevatedBackgroundStyles),
+        }),
+        outlined: applySurface({
+            ...panelBackground,
             ...elevationShadow,
             borderWidth: 1,
             borderColor: formatColor(resolvedColor, {
@@ -95,15 +116,13 @@ export const resolvePaperStyles = (
             }),
             borderStyle: "solid",
             ...(resolvedTextColor ? { color: resolvedTextColor } : {}),
-        },
-        plain: {
-            ...(elevation === 0
-                ? { backgroundColor: "transparent" }
-                : elevatedBackgroundStyles),
+        }),
+        plain: applySurface({
+            ...panelBackground,
             ...elevationShadow,
             ...(resolvedTextColor ? { color: resolvedTextColor } : {}),
-        },
-        soft: {
+        }),
+        soft: applySurface({
             backgroundColor: formatColor(
                 elevation === 0
                     ? resolvedColor
@@ -114,6 +133,6 @@ export const resolvePaperStyles = (
                 },
             ),
             ...(resolvedTextColor ? { color: resolvedTextColor } : {}),
-        },
+        }),
     };
 };
