@@ -15,6 +15,8 @@ export function hasOpenSheets() {
     return openSheetCount > 0;
 }
 
+const PROGRAMMATIC_EXIT_MS = 400;
+
 const SheetInner = forwardRef<RNView, SheetProps>(function SheetInner(
     {
         children,
@@ -44,6 +46,7 @@ const SheetInner = forwardRef<RNView, SheetProps>(function SheetInner(
     onExitedRef.current = onExited;
     const presentedRef = useRef(false);
     const exitedRef = useRef(false);
+    const exitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const canClose = Boolean(onClose);
 
     const fillSheet =
@@ -70,7 +73,20 @@ const SheetInner = forwardRef<RNView, SheetProps>(function SheetInner(
     }, [open]);
 
     useEffect(() => {
+        return () => {
+            if (exitTimerRef.current) {
+                clearTimeout(exitTimerRef.current);
+                exitTimerRef.current = null;
+            }
+        };
+    }, []);
+
+    useEffect(() => {
         if (open) {
+            if (exitTimerRef.current) {
+                clearTimeout(exitTimerRef.current);
+                exitTimerRef.current = null;
+            }
             exitedRef.current = false;
             presentedRef.current = true;
             const frame = requestAnimationFrame(() => {
@@ -94,12 +110,21 @@ const SheetInner = forwardRef<RNView, SheetProps>(function SheetInner(
         exitedRef.current = true;
         presentedRef.current = false;
         const stillWantOpen = openRef.current;
-        queueMicrotask(() => {
-            if (stillWantOpen) {
+
+        if (stillWantOpen) {
+            queueMicrotask(() => {
                 onCloseRef.current?.();
-            }
-            onExitedRef.current?.();
-        });
+            });
+        }
+
+        if (exitTimerRef.current) clearTimeout(exitTimerRef.current);
+        exitTimerRef.current = setTimeout(
+            () => {
+                exitTimerRef.current = null;
+                onExitedRef.current?.();
+            },
+            stillWantOpen ? 0 : PROGRAMMATIC_EXIT_MS,
+        );
     }, []);
 
     return (
@@ -123,7 +148,7 @@ const SheetInner = forwardRef<RNView, SheetProps>(function SheetInner(
                     fillSheet
                         ? {
                               flex: 1,
-                              backgroundColor: "transparent",
+                              backgroundColor: theme.colors.background,
                           }
                         : {
                               backgroundColor: theme.colors.background,

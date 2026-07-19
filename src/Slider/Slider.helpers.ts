@@ -9,7 +9,8 @@ import type {
 import { formatColor, resolveColor, resolveSize } from "@mutualzz/ui-core";
 import type { ViewStyle } from "react-native";
 
-const thumbSizeMap: Record<Size, number> = { sm: 24, md: 32, lg: 40 };
+const thumbSizeMap: Record<Size, number> = { sm: 20, md: 24, lg: 28 };
+const trackThicknessMap: Record<Size, number> = { sm: 3, md: 3, lg: 4 };
 
 export const resolveSliderThumbSize = (
     theme: Theme,
@@ -24,9 +25,7 @@ export const resolveSliderTrackThickness = (
     theme: Theme,
     size: Size | SizeValue | number,
 ) => {
-    const sizeVal = resolveSize(theme, size, thumbSizeMap);
-
-    return Math.round(sizeVal / 3);
+    return resolveSize(theme, size, trackThicknessMap);
 };
 
 export const resolveSliderTickSize = (
