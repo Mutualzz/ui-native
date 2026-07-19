@@ -83,12 +83,15 @@ const Paper = forwardRef<View, PaperProps>(
             }
         }, [surface]);
 
+        const wallpaperSurface =
+            Boolean(surfaceRole) && Boolean(theme.backgroundImageUrl);
+
         const onLayout = (e: LayoutChangeEvent) => {
             const { width, height } = e.nativeEvent.layout;
             setSize({ width: width, height: height });
         };
 
-        if (!gradient || variant !== "elevation") {
+        if (!gradient || variant !== "elevation" || wallpaperSurface) {
             return (
                 <PaperBase
                     ref={ref}

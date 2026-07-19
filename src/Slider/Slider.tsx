@@ -44,15 +44,38 @@ const SliderRoot = styled(View)<{
 }));
 
 const TrackContainer = styled(View)<{
+    orientation: SliderOrientation;
+    inset: number;
+}>(({ orientation, inset }) => ({
+    position: "relative",
+    flexGrow: 1,
+    justifyContent: "center",
+    ...(orientation === "horizontal"
+        ? { width: "100%", height: "100%", paddingHorizontal: inset }
+        : { height: "100%", width: "100%", paddingVertical: inset }),
+}));
+
+const TrackVisual = styled(View)<{
     thickness: number;
     orientation: SliderOrientation;
 }>(({ thickness, orientation }) => ({
-    position: "relative",
+    position: "absolute",
     borderRadius: 9999,
-    flexGrow: 1,
     ...(orientation === "horizontal"
-        ? { height: thickness, width: "100%" }
-        : { width: thickness, height: "100%" }),
+        ? {
+              left: 0,
+              right: 0,
+              height: thickness,
+              top: "50%",
+              marginTop: -thickness / 2,
+          }
+        : {
+              top: 0,
+              bottom: 0,
+              width: thickness,
+              left: "50%",
+              marginLeft: -thickness / 2,
+          }),
 }));
 
 const TrackHitArea = styled(View)<{ orientation: SliderOrientation }>(
@@ -60,12 +83,12 @@ const TrackHitArea = styled(View)<{ orientation: SliderOrientation }>(
         justifyContent: "center",
         alignItems: "center",
         ...(orientation === "horizontal"
-            ? { width: "100%", minHeight: 44 }
-            : { height: "100%", minWidth: 44 }),
+            ? { width: "100%", height: 44 }
+            : { height: "100%", width: 44 }),
     }),
 );
 
-const TrackBase = styled(View)<{ orientation: SliderOrientation }>(() => ({
+const TrackBase = styled(View)(() => ({
     position: "absolute",
     borderRadius: 9999,
     top: 0,
@@ -288,6 +311,7 @@ export const Slider = forwardRef<View, SliderProps>(
         const trackRef = useRef<View>(null);
         const trackLenRef = useRef(0);
         const trackOriginRef = useRef({ x: 0, y: 0 });
+        const trackInsetRef = useRef(0);
         const draggingIndexRef = useRef<number | null>(null);
         const currentValueRef = useRef(currentValue);
         const displayValueRef = useRef(displayValue);
@@ -299,6 +323,14 @@ export const Slider = forwardRef<View, SliderProps>(
         const onChangeRef = useRef(onChange);
         const onChangeCommittedRef = useRef(onChangeCommitted);
         const resolveValueRef = useRef<(v: number) => number>((v) => v);
+
+        const thumbSize = resolveSliderThumbSize(theme, size);
+        const thumbPx = Number(thumbSize.width);
+        const trackInset = thumbPx / 2;
+        trackInsetRef.current = trackInset;
+        const thickness = resolveSliderTrackThickness(theme, size);
+        const tickPx = Number(resolveSliderTickSize(theme, size).width);
+        const labelFont = resolveSliderLabelSize(theme, size);
 
         useEffect(() => {
             currentValueRef.current = currentValue;
@@ -411,32 +443,48 @@ export const Slider = forwardRef<View, SliderProps>(
             posToValueRef.current = posToValue;
         }, [posToValue]);
 
-        const eventToPos = useCallback((evt: GestureResponderEvent) => {
-            const { pageX, pageY } = evt.nativeEvent;
+        const locationToPos = useCallback((evt: GestureResponderEvent) => {
+            const { locationX, locationY } = evt.nativeEvent;
+            const inset = trackInsetRef.current;
             if (orientationRef.current === "horizontal") {
-                return pageX - trackOriginRef.current.x;
+                return locationX - inset;
             }
-            return trackLenRef.current - (pageY - trackOriginRef.current.y);
+            return trackLenRef.current - (locationY - inset);
+        }, []);
+
+        const pageToPos = useCallback((evt: GestureResponderEvent) => {
+            const { pageX, pageY } = evt.nativeEvent;
+            const inset = trackInsetRef.current;
+            if (orientationRef.current === "horizontal") {
+                return pageX - trackOriginRef.current.x - inset;
+            }
+            return (
+                trackLenRef.current -
+                (pageY - trackOriginRef.current.y - inset)
+            );
         }, []);
 
         const syncTrackOrigin = useCallback((evt: GestureResponderEvent) => {
             const { locationX, locationY, pageX, pageY } = evt.nativeEvent;
-            // Derive window origin from this event so the first move frames
-            // don't wait on async measureInWindow.
             trackOriginRef.current = {
                 x: pageX - locationX,
                 y: pageY - locationY,
             };
         }, []);
 
+        const updateTrackMetrics = useCallback((width: number, height: number) => {
+            const inset = trackInsetRef.current;
+            const span =
+                orientationRef.current === "horizontal" ? width : height;
+            trackLenRef.current = Math.max(span - inset * 2, 1);
+        }, []);
+
         const onTrackLayout = (e: LayoutChangeEvent) => {
             const { width, height } = e.nativeEvent.layout;
-            trackLenRef.current =
-                orientationRef.current === "horizontal" ? width : height;
+            updateTrackMetrics(width, height);
             trackRef.current?.measureInWindow((x, y, w, h) => {
                 trackOriginRef.current = { x, y };
-                trackLenRef.current =
-                    orientationRef.current === "horizontal" ? w : h;
+                updateTrackMetrics(w, h);
             });
         };
 
@@ -449,18 +497,21 @@ export const Slider = forwardRef<View, SliderProps>(
             onChangeCommittedRef.current?.(final);
         }, []);
 
-        // Stable PanResponder — never recreate mid-drag (that caused snap/lag).
         const panResponder = useMemo(
             () =>
                 PanResponder.create({
                     onStartShouldSetPanResponder: () => !disabledRef.current,
                     onMoveShouldSetPanResponder: () => !disabledRef.current,
+                    onStartShouldSetPanResponderCapture: () =>
+                        !disabledRef.current,
+                    onMoveShouldSetPanResponderCapture: () =>
+                        !disabledRef.current,
                     onPanResponderTerminationRequest: () => false,
                     onPanResponderGrant: (evt) => {
                         syncTrackOrigin(evt);
 
                         const clickedVal = posToValueRef.current(
-                            eventToPos(evt),
+                            locationToPos(evt),
                         );
                         const base = currentValueRef.current;
                         let idx = 0;
@@ -472,26 +523,25 @@ export const Slider = forwardRef<View, SliderProps>(
 
                         draggingIndexRef.current = idx;
                         setDraggingIndex(idx);
-                        // Seed drag state from the committed value before applying.
                         displayValueRef.current = [...base];
                         applyValue(idx, clickedVal);
                     },
                     onPanResponderMove: (evt) => {
                         const idx = draggingIndexRef.current;
                         if (idx === null) return;
-                        applyValue(idx, posToValueRef.current(eventToPos(evt)));
+                        applyValue(idx, posToValueRef.current(pageToPos(evt)));
                     },
                     onPanResponderRelease: endDrag,
                     onPanResponderTerminate: endDrag,
                 }),
-            [applyValue, endDrag, eventToPos, syncTrackOrigin],
+            [
+                applyValue,
+                endDrag,
+                locationToPos,
+                pageToPos,
+                syncTrackOrigin,
+            ],
         );
-
-        const thumbSize = resolveSliderThumbSize(theme, size);
-        const thumbPx = Number(thumbSize.width);
-        const thickness = resolveSliderTrackThickness(theme, size);
-        const tickPx = Number(resolveSliderTickSize(theme, size).width);
-        const labelFont = resolveSliderLabelSize(theme, size);
 
         const neutralTrack = useMemo(
             () =>
@@ -602,128 +652,143 @@ export const Slider = forwardRef<View, SliderProps>(
                     ref={trackRef}
                     orientation={orientation}
                     onLayout={onTrackLayout}
+                    pointerEvents="box-only"
+                    collapsable={false}
                     {...panResponder.panHandlers}
                 >
                     <TrackContainer
                         orientation={orientation}
-                        thickness={thickness}
+                        inset={trackInset}
+                        pointerEvents="none"
                     >
-                    <TrackBase
-                        orientation={orientation}
-                        style={{ backgroundColor: neutralTrack }}
-                    />
+                        <TrackVisual
+                            orientation={orientation}
+                            thickness={thickness}
+                            pointerEvents="none"
+                        >
+                            <TrackBase
+                                style={{ backgroundColor: neutralTrack }}
+                            />
 
-                    {isRange ? (
-                        <>
-                            <SegmentFilled
-                                orientation={orientation}
-                                startPct={0}
-                                endPct={sortedPercents[0]}
-                                style={trackStyleObj}
-                            />
-                            <SegmentUnfilled
-                                orientation={orientation}
-                                startPct={sortedPercents[0]}
-                                endPct={sortedPercents[1]}
-                                bg={neutralTrack}
-                            />
-                            <SegmentFilled
-                                orientation={orientation}
-                                startPct={sortedPercents[1]}
-                                endPct={100}
-                                style={trackStyleObj}
-                            />
-                        </>
-                    ) : (
-                        <>
-                            <SegmentFilled
-                                orientation={orientation}
-                                startPct={0}
-                                endPct={sortedPercents[0]}
-                                style={trackStyleObj}
-                            />
-                            <SegmentUnfilled
-                                orientation={orientation}
-                                startPct={sortedPercents[0]}
-                                endPct={100}
-                                bg={neutralTrack}
-                            />
-                        </>
-                    )}
+                            {isRange ? (
+                                <>
+                                    <SegmentFilled
+                                        orientation={orientation}
+                                        startPct={0}
+                                        endPct={sortedPercents[0]}
+                                        style={trackStyleObj}
+                                    />
+                                    <SegmentUnfilled
+                                        orientation={orientation}
+                                        startPct={sortedPercents[0]}
+                                        endPct={sortedPercents[1]}
+                                        bg={neutralTrack}
+                                    />
+                                    <SegmentFilled
+                                        orientation={orientation}
+                                        startPct={sortedPercents[1]}
+                                        endPct={100}
+                                        style={trackStyleObj}
+                                    />
+                                </>
+                            ) : (
+                                <>
+                                    <SegmentFilled
+                                        orientation={orientation}
+                                        startPct={0}
+                                        endPct={sortedPercents[0]}
+                                        style={trackStyleObj}
+                                    />
+                                    <SegmentUnfilled
+                                        orientation={orientation}
+                                        startPct={sortedPercents[0]}
+                                        endPct={100}
+                                        bg={neutralTrack}
+                                    />
+                                </>
+                            )}
+                        </TrackVisual>
 
-                    {resolvedMarks.map((m, i) => {
-                        const pct = ((m.value - min) / (max - min)) * 100;
-                        return (
-                            <Fragment key={`m-${i}`}>
-                                <Tick
-                                    orientation={orientation}
-                                    percent={pct}
-                                    sizePx={tickPx}
-                                    style={{
-                                        backgroundColor:
-                                            theme.colors.common.white,
-                                    }}
-                                />
-                                {marks !== true ? (
-                                    <MarkLabel
+                        {resolvedMarks.map((m, i) => {
+                            const pct = ((m.value - min) / (max - min)) * 100;
+                            return (
+                                <Fragment key={`m-${i}`}>
+                                    <Tick
                                         orientation={orientation}
                                         percent={pct}
-                                        fontSize={labelFont}
-                                        color={theme.typography.colors.accent}
-                                        maxFontSizeMultiplier={
-                                            MAX_FONT_SCALE_MULTIPLIER
-                                        }
-                                    >
-                                        {m.label ?? m.value}
-                                    </MarkLabel>
-                                ) : null}
-                            </Fragment>
-                        );
-                    })}
-
-                    {displayValue.map((val, i) => {
-                        const pct = percents[i];
-                        const showLabel =
-                            valueLabelDisplay === "on" ||
-                            (valueLabelDisplay === "auto" &&
-                                draggingIndex === i);
-
-                        return (
-                            <Fragment key={`t-${i}`}>
-                                <Thumb
-                                    orientation={orientation}
-                                    percent={pct}
-                                    sizePx={thumbPx}
-                                    style={{
-                                        ...thumbSize,
-                                        ...thumbStyleObj,
-                                    }}
-                                />
-                                {showLabel ? (
-                                    <ValueLabel
-                                        orientation={orientation}
-                                        percent={pct}
-                                        fontSize={labelFont}
-                                        thumbSize={thumbPx}
-                                        bg={theme.colors.neutral}
-                                    >
-                                        <ValueLabelText
+                                        sizePx={tickPx}
+                                        pointerEvents="none"
+                                        style={{
+                                            backgroundColor:
+                                                theme.colors.common.white,
+                                        }}
+                                    />
+                                    {marks !== true ? (
+                                        <MarkLabel
+                                            orientation={orientation}
+                                            percent={pct}
                                             fontSize={labelFont}
                                             color={
-                                                theme.typography.colors.primary
+                                                theme.typography.colors.accent
                                             }
                                             maxFontSizeMultiplier={
                                                 MAX_FONT_SCALE_MULTIPLIER
                                             }
+                                            pointerEvents="none"
                                         >
-                                            {renderValueLabel(val, i)}
-                                        </ValueLabelText>
-                                    </ValueLabel>
-                                ) : null}
-                            </Fragment>
-                        );
-                    })}
-                </TrackContainer>
+                                            {m.label ?? m.value}
+                                        </MarkLabel>
+                                    ) : null}
+                                </Fragment>
+                            );
+                        })}
+
+                        {displayValue.map((val, i) => {
+                            const pct = percents[i];
+                            const showLabel =
+                                valueLabelDisplay === "on" ||
+                                (valueLabelDisplay === "auto" &&
+                                    draggingIndex === i);
+
+                            return (
+                                <Fragment key={`t-${i}`}>
+                                    <Thumb
+                                        orientation={orientation}
+                                        percent={pct}
+                                        sizePx={thumbPx}
+                                        pointerEvents="none"
+                                        style={{
+                                            ...thumbSize,
+                                            ...thumbStyleObj,
+                                        }}
+                                    />
+                                    {showLabel ? (
+                                        <ValueLabel
+                                            orientation={orientation}
+                                            percent={pct}
+                                            fontSize={labelFont}
+                                            thumbSize={thumbPx}
+                                            bg={theme.colors.neutral}
+                                            pointerEvents="none"
+                                        >
+                                            <ValueLabelText
+                                                fontSize={labelFont}
+                                                color={
+                                                    theme.typography.colors
+                                                        .primary
+                                                }
+                                                maxFontSizeMultiplier={
+                                                    MAX_FONT_SCALE_MULTIPLIER
+                                                }
+                                            >
+                                                {renderValueLabel(val, i)}
+                                            </ValueLabelText>
+                                        </ValueLabel>
+                                    ) : null}
+                                </Fragment>
+                            );
+                        })}
+                    </TrackContainer>
                 </TrackHitArea>
             </SliderRoot>
         );
