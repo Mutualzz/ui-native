@@ -3,7 +3,12 @@ import {
     type Theme,
 } from "@emotion/react";
 import type { ThemeType } from "@mutualzz/ui-core";
-import { baseDarkTheme, baseLightTheme } from "@mutualzz/ui-core";
+import {
+    baseDarkTheme,
+    baseLightTheme,
+    getUiDensitySpacingScale,
+    subscribeUiDensity,
+} from "@mutualzz/ui-core";
 import {
     createContext,
     forwardRef,
@@ -12,6 +17,7 @@ import {
     useImperativeHandle,
     useMemo,
     useState,
+    useSyncExternalStore,
     type PropsWithChildren,
 } from "react";
 import { useColorScheme } from "react-native";
@@ -41,6 +47,12 @@ const ThemeProvider = forwardRef<
     const [theme, setTheme] = useState<Theme>(baseDarkTheme);
     const [mounted, setMounted] = useState(false);
     const prefersDark = useColorScheme() === "dark";
+    ``;
+    const uiDensityScale = useSyncExternalStore(
+        subscribeUiDensity,
+        getUiDensitySpacingScale,
+        () => 1,
+    );
 
     useEffect(() => {
         setMounted(true);
@@ -78,7 +90,7 @@ const ThemeProvider = forwardRef<
             changeTheme,
             type,
         }),
-        [type, theme, changeTheme],
+        [type, theme, changeTheme, uiDensityScale],
     );
 
     if (!mounted) return null;
