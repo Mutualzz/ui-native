@@ -2,9 +2,9 @@ import styled from "@emotion/native";
 import type { ComponentType } from "react";
 import type { ViewProps } from "react-native";
 
-type InputDecoratorWrapperProps = {
+interface InputDecoratorWrapperProps {
     position: "start" | "end";
-};
+}
 
 const InputDecoratorWrapper = styled.View<InputDecoratorWrapperProps>(
     ({ position }) => ({

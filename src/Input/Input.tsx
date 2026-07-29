@@ -13,16 +13,16 @@ import type { InputProps } from "./Input.types";
 const Input = forwardRef<TextInput, InputProps>((props, ref) => {
     if ("type" in props && props.type === "password") {
         return (
-            <InputPassword ref={ref} {...(props as InputPasswordProps)} />
+            <InputPassword ref={ref} {...(props)} />
         );
     }
 
     if ("type" in props && props.type === "number") {
-        return <InputNumber ref={ref} {...(props as InputNumberProps)} />;
+        return <InputNumber ref={ref} {...(props)} />;
     }
 
     if ("type" in props && props.type === "color") {
-        return <InputColor ref={ref} {...(props as InputColorProps)} />;
+        return <InputColor ref={ref} {...(props)} />;
     }
 
     return <InputDefault ref={ref} {...(props as InputRootProps)} />;

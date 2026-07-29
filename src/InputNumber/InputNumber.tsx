@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
     Pressable,
-    TextInput,
+    type TextInput,
     type NativeSyntheticEvent,
     type TextInputKeyPressEventData,
 } from "react-native";

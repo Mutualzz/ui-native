@@ -1,6 +1,6 @@
 import styled from "@emotion/native";
 import { forwardRef, useContext, useMemo, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, type View } from "react-native";
 import Svg, { Line, Polyline } from "react-native-svg";
 import { CheckboxGroupContext } from "../CheckboxGroup/CheckboxGroup.context";
 import { useTheme } from "../useTheme";

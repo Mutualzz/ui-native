@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { View, type StyleProp, type ViewStyle } from "react-native";
+import { type View, type StyleProp, type ViewStyle } from "react-native";
 import { Box } from "../Box/Box";
 import type { StackProps } from "./Stack.types";
 

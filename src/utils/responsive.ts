@@ -23,7 +23,7 @@ export const resolveResponsiveValue = <T>(
     width: number,
 ): T => {
     if (prop == null || typeof prop !== "object" || Array.isArray(prop)) {
-        return prop as T;
+        return prop;
     }
 
     const bp = getActiveBreakpoint(theme, width);

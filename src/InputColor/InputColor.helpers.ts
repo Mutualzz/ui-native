@@ -57,7 +57,7 @@ export const resolveSwatchColor = (
     if (typeof resolvedColor === "string" && isValidGradient(resolvedColor)) {
         const extracted = extractColors(resolvedColor);
         if (extracted?.[0]) {
-            return formatColor(extracted[0]) as string;
+            return formatColor(extracted[0]);
         }
     }
 

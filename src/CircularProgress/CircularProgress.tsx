@@ -1,7 +1,7 @@
 import styled from "@emotion/native";
 import { resolveColor } from "@mutualzz/ui-core";
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Easing, View } from "react-native";
+import { Animated, Easing, type View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { useTheme } from "../useTheme";
 import {

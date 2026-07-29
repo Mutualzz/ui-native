@@ -56,16 +56,16 @@ export const toHsva = (color?: ColorLike | HsvaColor): HsvaColor => {
 export const hsvaToColorLike = (hsva: HsvaColor): ColorLike =>
     formatColor(handleColor(hsva).hex, {
         format: hsva.alpha < 1 ? "hexa" : "hex",
-    }) as ColorLike;
+    });
 
 export const hsvaToHslaString = (hsva: HsvaColor): string =>
     formatColor(handleColor(hsva).hex, {
         format: "hsla",
         alpha: hsva.alpha,
-    }) as string;
+    });
 
 export const hsvaToDisplayHex = (hsva: HsvaColor): string =>
-    formatColor(handleColor(hsva).hex) as string;
+    formatColor(handleColor(hsva).hex);
 
 export const hueToHex = (hue: number): string =>
     formatColor(
@@ -75,7 +75,7 @@ export const hueToHex = (hue: number): string =>
             v: 100,
             alpha: 1,
         }).hex,
-    ) as string;
+    );
 
 export const sortStops = (arr: GradientStop[]) =>
     [...arr].sort(
