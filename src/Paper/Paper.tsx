@@ -1,5 +1,11 @@
 import styled from "@emotion/native";
-import { extractGradientInfo, flipNumber } from "@mutualzz/ui-core";
+import {
+    dynamicElevation,
+    extractGradientInfo,
+    isValidGradient,
+    isWallpaperSurfaceRole,
+    resolveSurfaceOpacity,
+} from "@mutualzz/ui-core";
 import {
     Canvas,
     Rect,
@@ -8,7 +14,6 @@ import {
 } from "@shopify/react-native-skia";
 import { forwardRef, useMemo, useState } from "react";
 import {
-    Platform,
     StyleSheet,
     View,
     type LayoutChangeEvent,
@@ -17,6 +22,7 @@ import {
 } from "react-native";
 import { useSystemStyle } from "../hooks/useSystemStyle";
 import { useTheme } from "../useTheme";
+import { angleToSkia } from "../utils/angleToSkia";
 import { resolvePaperStyles } from "./Paper.helpers";
 import type { PaperProps } from "./Paper.types";
 
@@ -27,7 +33,6 @@ const PaperBase = styled(View)<PaperProps>(
         elevation = 0,
         color = "neutral",
         textColor = "inherit",
-        transparency = 0,
         surfaceRole,
     }) => ({
         ...resolvePaperStyles(
@@ -36,7 +41,6 @@ const PaperBase = styled(View)<PaperProps>(
             textColor,
             variant,
             elevation,
-            transparency,
             surfaceRole,
         )[variant],
 
@@ -50,10 +54,10 @@ const Paper = forwardRef<View, PaperProps>(
     (
         {
             variant = "elevation",
-            transparency = 0,
             surfaceRole,
             children,
             style,
+            elevation = 0,
             ...restProps
         },
         ref,
@@ -77,26 +81,45 @@ const Paper = forwardRef<View, PaperProps>(
         const gradient = useMemo(() => {
             try {
                 return extractGradientInfo(surface);
-            } catch (err) {
-                console.error("Failed to parse gradient:", err);
+            } catch {
                 return null;
             }
         }, [surface]);
 
         const wallpaperSurface =
-            Boolean(surfaceRole) && Boolean(theme.backgroundImageUrl);
+            Boolean(surfaceRole) &&
+            Boolean(theme.backgroundImageUrl) &&
+            isWallpaperSurfaceRole(surfaceRole!);
+
+        const gradientOpacity = useMemo(() => {
+            const paperVariant =
+                variant === "elevation" ? "elevation" : variant;
+            return (
+                resolveSurfaceOpacity(
+                    theme,
+                    paperVariant,
+                    elevation,
+                    surfaceRole,
+                ) / 100
+            );
+        }, [theme, variant, elevation, surfaceRole]);
 
         const onLayout = (e: LayoutChangeEvent) => {
             const { width, height } = e.nativeEvent.layout;
-            setSize({ width: width, height: height });
+            setSize({ width, height });
         };
 
-        if (!gradient || variant !== "elevation" || wallpaperSurface) {
+        if (
+            !gradient ||
+            variant !== "elevation" ||
+            wallpaperSurface ||
+            !isValidGradient(surface)
+        ) {
             return (
                 <PaperBase
                     ref={ref}
                     variant={variant}
-                    transparency={transparency}
+                    elevation={elevation}
                     surfaceRole={surfaceRole}
                     style={resolvedStyle}
                     {...props}
@@ -106,19 +129,28 @@ const Paper = forwardRef<View, PaperProps>(
             );
         }
 
+        const elevatedColor = dynamicElevation(surface, elevation);
+        const activeGradient =
+            extractGradientInfo(elevatedColor) ?? gradient;
+        const { start, end } = angleToSkia(
+            activeGradient.angle,
+            size.width,
+            size.height,
+        );
+
         return (
             <PaperBase
                 ref={ref}
                 onLayout={onLayout}
                 variant={variant}
-                transparency={transparency}
+                elevation={elevation}
                 surfaceRole={surfaceRole}
                 style={resolvedStyle}
                 {...props}
             >
                 <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
                     <Rect
-                        opacity={flipNumber(transparency / 100, false)}
+                        opacity={gradientOpacity}
                         dither
                         x={0}
                         y={0}
@@ -126,19 +158,10 @@ const Paper = forwardRef<View, PaperProps>(
                         height={size.height}
                     >
                         <SkiaLinearGradient
-                            start={Platform.select({
-                                android: vec(
-                                    size.width * 0.75,
-                                    size.height * 0.75,
-                                ),
-                                default: vec(
-                                    size.width * 0.5,
-                                    size.height * 0.5,
-                                ),
-                            })}
-                            end={vec(size.width, size.height)}
-                            colors={gradient.colors}
-                            positions={gradient.positions}
+                            start={vec(start.x, start.y)}
+                            end={vec(end.x, end.y)}
+                            colors={activeGradient.colors}
+                            positions={activeGradient.positions}
                         />
                     </Rect>
                 </Canvas>

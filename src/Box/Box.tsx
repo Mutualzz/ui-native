@@ -1,6 +1,6 @@
 import styled from "@emotion/native";
 import { forwardRef, useMemo } from "react";
-import { View, type StyleProp, type ViewStyle } from "react-native";
+import { type View, type StyleProp, type ViewStyle } from "react-native";
 import { useSystemStyle } from "../hooks/useSystemStyle";
 import type { BoxProps } from "./Box.types";
 

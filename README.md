@@ -2,7 +2,7 @@
 
 React Native + Emotion component library for the Mutualzz **mobile** app.
 
-Shares theme tokens and helpers with [`@mutualzz/ui-core`](../ui-core), mirroring patterns from [`@mutualzz/ui-web`](../ui-web) where it makes sense on native.
+Shares theme tokens and helpers with [`@mutualzz/ui-core`](https://github.com/mutualzz/ui-core), mirroring patterns from [`@mutualzz/ui-web`](https://github.com/mutualzz/ui-web) where it makes sense on native.
 
 ## Features
 
@@ -48,11 +48,11 @@ Peer dependencies include React, React Native, Emotion (`@emotion/react`, `@emot
 ## Authors & credit
 
 - [Azrael](https://github.com/mateie) — original author
-- Community contributors are credited via git authorship, PR attribution, and changelogs (see [`CONTRIBUTING.md`](./CONTRIBUTING.md))
+- Community contributors are credited via git authorship, PR attribution, and changelogs (see [`CONTRIBUTING.md`](https://github.com/mutualzz/ui-native/blob/master/CONTRIBUTING.md))
 
 ## License & contributions
 
 Source is available for transparency and community contributions. Contributors get credit for merged work.
 
-- [`LICENSE`](./LICENSE) — no unofficial redistribution / competing hosted services without permission
-- [`CONTRIBUTING.md`](./CONTRIBUTING.md) — how to fork, open PRs, and how credit works
+- [`LICENSE`](https://github.com/mutualzz/ui-native/blob/master/LICENSE) — no unofficial redistribution / competing hosted services without permission
+- [`CONTRIBUTING.md`](https://github.com/mutualzz/ui-native/blob/master/CONTRIBUTING.md) — how to fork, open PRs, and how credit works

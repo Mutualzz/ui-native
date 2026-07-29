@@ -47,7 +47,6 @@ const ThemeProvider = forwardRef<
     const [theme, setTheme] = useState<Theme>(baseDarkTheme);
     const [mounted, setMounted] = useState(false);
     const prefersDark = useColorScheme() === "dark";
-    ``;
     const uiDensityScale = useSyncExternalStore(
         subscribeUiDensity,
         getUiDensitySpacingScale,

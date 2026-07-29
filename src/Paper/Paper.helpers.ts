@@ -2,19 +2,19 @@ import type { Theme } from "@emotion/react";
 import {
     createColor,
     dynamicElevation,
-    flipNumber,
     formatColor,
-    isValidGradient,
     resolveColor,
+    resolvePanelFill,
     resolveTypographyColor,
     resolveWallpaperSurfaceStyles,
+    isWallpaperSurfaceRole,
     type Color,
     type ColorLike,
+    type PaperVariant,
+    type SurfaceRole,
     type TypographyColor,
-    type WallpaperSurfaceRole,
 } from "@mutualzz/ui-core";
 import type { ViewStyle } from "react-native";
-import type { PaperVariant } from "./Paper.types";
 
 export const resolvePaperStyles = (
     theme: Theme,
@@ -22,12 +22,13 @@ export const resolvePaperStyles = (
     textColor: TypographyColor | ColorLike | "inherit" | "transparent",
     variant: PaperVariant,
     elevation: number,
-    transparency: number,
-    surfaceRole?: WallpaperSurfaceRole,
+    surfaceRole?: SurfaceRole,
 ): Record<PaperVariant, ViewStyle> => {
     const { colors } = theme;
     const surface =
-        surfaceRole && theme.backgroundImageUrl
+        surfaceRole &&
+        theme.backgroundImageUrl &&
+        isWallpaperSurfaceRole(surfaceRole)
             ? resolveWallpaperSurfaceStyles(theme, surfaceRole)
             : null;
 
@@ -48,23 +49,23 @@ export const resolvePaperStyles = (
         elevation,
     );
 
-    const isGradient = isValidGradient(elevatedColor);
-    const gradientLayer = isGradient
-        ? formatColor(elevatedColor, {
-              alpha: flipNumber(transparency),
-              format: "hexa",
-          })
-        : null;
+    const panelVariant = variant === "elevation" ? "elevation" : variant;
+    const elevatedFill = resolvePanelFill(
+        theme,
+        elevatedColor,
+        panelVariant,
+        elevation,
+        surfaceRole,
+    );
 
-    const opaqueBase = formatColor(colors.background);
-
-    const elevatedBackgroundStyles: ViewStyle = isGradient
-        ? {
-              backgroundColor: opaqueBase,
-          }
-        : {
-              backgroundColor: elevatedColor,
-          };
+    const elevatedBackgroundStyles: ViewStyle = {
+        ...(elevatedFill.background
+            ? { backgroundColor: elevatedFill.background }
+            : {}),
+        ...(elevatedFill.backgroundColor
+            ? { backgroundColor: elevatedFill.backgroundColor }
+            : {}),
+    };
 
     const elevationShadow: ViewStyle =
         surface || elevation === 0
@@ -77,10 +78,10 @@ export const resolvePaperStyles = (
                   shadowRadius: 4 + elevation,
               };
 
-    const transparentPanel: ViewStyle = { backgroundColor: "transparent" };
-
     const panelBackground: ViewStyle =
-        elevation === 0 ? transparentPanel : elevatedBackgroundStyles;
+        elevation === 0 && (variant === "outlined" || variant === "plain")
+            ? { backgroundColor: "transparent" }
+            : elevatedBackgroundStyles;
 
     const applySurface = (base: ViewStyle): ViewStyle =>
         surface
@@ -124,9 +125,7 @@ export const resolvePaperStyles = (
         }),
         soft: applySurface({
             backgroundColor: formatColor(
-                elevation === 0
-                    ? resolvedColor
-                    : (gradientLayer ?? resolvedColor),
+                elevation === 0 ? resolvedColor : elevatedColor,
                 {
                     alpha: 10,
                     format: "hexa",

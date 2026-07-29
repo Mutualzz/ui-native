@@ -39,7 +39,7 @@
   "scripts": {
     "build": "pnpm typecheck && bunchee",
     "dev": "bunchee --watch",
-    "lint": "eslint .",
+    "lint": "eslint src",
     "typecheck": "tsc --noEmit"
   },
   "types": "./dist/index.d.ts",

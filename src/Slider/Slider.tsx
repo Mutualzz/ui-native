@@ -299,7 +299,7 @@ export const Slider = forwardRef<View, SliderProps>(
         const currentValue: number[] = isControlled
             ? Array.isArray(value)
                 ? value
-                : [value as number]
+                : [value]
             : internalValue;
 
         const [draggingIndex, setDraggingIndex] = useState<number | null>(null);

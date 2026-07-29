@@ -1,7 +1,7 @@
 import styled from "@emotion/native";
 import { resolveColor, type Variant } from "@mutualzz/ui-core";
 import { forwardRef, useEffect, useMemo, useRef } from "react";
-import { Animated, Easing, View } from "react-native";
+import { Animated, Easing, type View } from "react-native";
 import { useTheme } from "../useTheme";
 import {
     resolveLinearProgressLength,

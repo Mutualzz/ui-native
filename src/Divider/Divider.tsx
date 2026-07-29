@@ -6,7 +6,7 @@ import {
     type TypographyLevel,
 } from "@mutualzz/ui-core";
 import { forwardRef } from "react";
-import { View } from "react-native";
+import { type View } from "react-native";
 import { useTheme } from "../useTheme";
 import { resolveDividerColor, resolveDividerStyles } from "./Divider.helpers";
 import type { DividerProps } from "./Divider.types";
