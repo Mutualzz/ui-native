@@ -1,4 +1,14 @@
-# `@mutualzz/ui-native`
+<div align="center">
+
+# Mutualzz development moved to [git.mutualzz.com](https://git.mutualzz.com/mutualzz/mutualzz)
+
+**GitHub is a read-only mirror. Issues and pull requests opened on GitHub are not monitored.**
+
+Sign in with your GitHub account. No new password needed.
+
+</div>
+
+# `Mutualzz UI Native/Mobile`
 
 React Native + Emotion component library for the Mutualzz **mobile** app.
 
@@ -13,11 +23,11 @@ Shares theme tokens and helpers with [`@mutualzz/ui-core`](https://github.com/mu
 
 ## Package layout
 
-| Package | Role |
-|---|---|
-| `@mutualzz/ui-core` | Shared theme tokens, color utils, types |
-| `@mutualzz/ui-web` | Web / Electron React components |
-| `@mutualzz/ui-native` | React Native components (this package) |
+| Package               | Role                                    |
+| --------------------- | --------------------------------------- |
+| `@mutualzz/ui-core`   | Shared theme tokens, color utils, types |
+| `@mutualzz/ui-web`    | Web / Electron React components         |
+| `@mutualzz/ui-native` | React Native components (this package)  |
 
 ## Components (overview)
 
