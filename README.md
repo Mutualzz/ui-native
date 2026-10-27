@@ -1,6 +1,6 @@
 <div align="center">
 
-# Mutualzz development moved to [git.mutualzz.com](https://git.mutualzz.com/mutualzz/mutualzz)
+# Mutualzz is developed at [git.mutualzz.com](https://git.mutualzz.com/mutualzz/ui-native)
 
 **GitHub is a read-only mirror. Issues and pull requests opened on GitHub are not monitored.**
 
@@ -12,7 +12,7 @@ Sign in with your GitHub account. No new password needed.
 
 React Native + Emotion component library for the Mutualzz **mobile** app.
 
-Shares theme tokens and helpers with [`@mutualzz/ui-core`](https://github.com/mutualzz/ui-core), mirroring patterns from [`@mutualzz/ui-web`](https://github.com/mutualzz/ui-web) where it makes sense on native.
+Shares theme tokens and helpers with [`@mutualzz/ui-core`](https://git.mutualzz.com/mutualzz/ui-core), mirroring patterns from [`@mutualzz/ui-web`](https://git.mutualzz.com/mutualzz/ui-web) where it makes sense on native.
 
 ## Features
 
@@ -58,11 +58,11 @@ Peer dependencies include React, React Native, Emotion (`@emotion/react`, `@emot
 ## Authors & credit
 
 - [Azrael](https://github.com/mateie) — original author
-- Community contributors are credited via git authorship, PR attribution, and changelogs (see [`CONTRIBUTING.md`](https://github.com/mutualzz/ui-native/blob/master/CONTRIBUTING.md))
+- Community contributors are credited via git authorship, PR attribution, and changelogs (see [`CONTRIBUTING.md`](https://git.mutualzz.com/mutualzz/ui-native/src/branch/master/CONTRIBUTING.md))
 
 ## License & contributions
 
 Source is available for transparency and community contributions. Contributors get credit for merged work.
 
-- [`LICENSE`](https://github.com/mutualzz/ui-native/blob/master/LICENSE) — no unofficial redistribution / competing hosted services without permission
-- [`CONTRIBUTING.md`](https://github.com/mutualzz/ui-native/blob/master/CONTRIBUTING.md) — how to fork, open PRs, and how credit works
+- [`LICENSE`](https://git.mutualzz.com/mutualzz/ui-native/src/branch/master/LICENSE) — no unofficial redistribution / competing hosted services without permission
+- [`CONTRIBUTING.md`](https://git.mutualzz.com/mutualzz/ui-native/src/branch/master/CONTRIBUTING.md) — how to fork, open PRs, and how credit works
