@@ -1,9 +1,15 @@
 import styled from "@emotion/native";
 import { resolveColor, type Variant } from "@mutualzz/ui-core";
-import { forwardRef, useEffect, useMemo, useRef } from "react";
-import { Animated, Easing, type View } from "react-native";
+import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
+import {
+    Animated,
+    Easing,
+    type LayoutChangeEvent,
+    type View,
+} from "react-native";
 import { useTheme } from "../useTheme";
 import {
+    type LinearProgressLength,
     resolveLinearProgressLength,
     resolveLinearProgressStyles,
     resolveLinearProgressThickness,
@@ -11,7 +17,7 @@ import {
 import type { LinearProgressProps } from "./LinearProgress.types";
 
 const Wrapper = styled.View<{
-    width: number;
+    width: LinearProgressLength;
     height: number;
     background: string;
     outlinedColor: string;
@@ -59,6 +65,7 @@ const LinearProgress = forwardRef<View, LinearProgressProps>(
             determinate = false,
             value = 0,
             style,
+            onLayout,
             ...props
         },
         ref,
@@ -67,20 +74,28 @@ const LinearProgress = forwardRef<View, LinearProgressProps>(
 
         const height = resolveLinearProgressThickness(theme, thickness);
         const width = resolveLinearProgressLength(theme, length);
+        const [measuredWidth, setMeasuredWidth] = useState(0);
+        const animationWidth =
+            typeof width === "number" ? width : measuredWidth;
+
+        const handleLayout = (event: LayoutChangeEvent) => {
+            setMeasuredWidth(event.nativeEvent.layout.width);
+            onLayout?.(event);
+        };
 
         const background = resolveLinearProgressStyles(theme, color)[variant];
         const barColor = resolveColor(color, theme);
 
-        const t = useRef(new Animated.Value(0)).current;
+        const animationProgress = useRef(new Animated.Value(0)).current;
 
         useEffect(() => {
             if (determinate) return;
 
-            t.stopAnimation();
-            t.setValue(0);
+            animationProgress.stopAnimation();
+            animationProgress.setValue(0);
 
             const loop = Animated.loop(
-                Animated.timing(t, {
+                Animated.timing(animationProgress, {
                     toValue: 1,
                     duration: 1500,
                     easing: easeInOut,
@@ -90,44 +105,50 @@ const LinearProgress = forwardRef<View, LinearProgressProps>(
 
             loop.start();
             return () => loop.stop();
-        }, [determinate, t, animation]);
+        }, [determinate, animationProgress, animation]);
 
         const indeterminate = useMemo(() => {
-            const w = width;
-
             const barW =
                 animation === "bounce"
-                    ? 0.3 * w
+                    ? 0.3 * animationWidth
                     : animation === "slide"
-                      ? 0.4 * w
-                      : w;
+                      ? 0.4 * animationWidth
+                      : animationWidth;
 
             const translateX =
                 animation === "slide"
-                    ? t.interpolate({
+                    ? animationProgress.interpolate({
                           inputRange: [0, 0.5, 1],
-                          outputRange: [-0.5 * w, 0.25 * w, 1.0 * w],
+                          outputRange: [
+                              -0.5 * animationWidth,
+                              0.25 * animationWidth,
+                              1.0 * animationWidth,
+                          ],
                       })
                     : animation === "bounce"
-                      ? t.interpolate({
+                      ? animationProgress.interpolate({
                             inputRange: [0, 0.5, 1],
-                            outputRange: [0, 0.7 * w, 0],
+                            outputRange: [0, 0.7 * animationWidth, 0],
                         })
                       : animation === "wave"
-                        ? t.interpolate({
+                        ? animationProgress.interpolate({
                               inputRange: [0, 0.5, 1],
-                              outputRange: [-1.0 * w, 0.5 * w, 1.0 * w],
+                              outputRange: [
+                                  -1.0 * animationWidth,
+                                  0.5 * animationWidth,
+                                  1.0 * animationWidth,
+                              ],
                           })
                         : 0;
 
             const scaleX =
                 animation === "wave"
-                    ? t.interpolate({
+                    ? animationProgress.interpolate({
                           inputRange: [0, 0.5, 1],
                           outputRange: [0.8, 1, 0.8],
                       })
                     : animation === "scale-in-out"
-                      ? t.interpolate({
+                      ? animationProgress.interpolate({
                             inputRange: [0, 0.5, 1],
                             outputRange: [0.5, 1, 0.5],
                         })
@@ -135,7 +156,7 @@ const LinearProgress = forwardRef<View, LinearProgressProps>(
 
             const opacity =
                 animation === "wave" || animation === "scale-in-out"
-                    ? t.interpolate({
+                    ? animationProgress.interpolate({
                           inputRange: [0, 0.5, 1],
                           outputRange: [0.5, 1, 0.5],
                       })
@@ -149,12 +170,13 @@ const LinearProgress = forwardRef<View, LinearProgressProps>(
                 ],
                 opacity: opacity,
             };
-        }, [animation, t, width]);
+        }, [animation, animationProgress, animationWidth]);
 
         return (
             <Wrapper
                 ref={ref}
                 {...props}
+                onLayout={handleLayout}
                 width={width}
                 height={height}
                 background={background}

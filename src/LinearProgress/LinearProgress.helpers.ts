@@ -39,7 +39,15 @@ export const resolveLinearProgressThickness = (
     thickness: Size | SizeValue | number,
 ) => resolveSize(theme, thickness, thicknessMap);
 
+export type LinearProgressLength = number | `${number}%`;
+
+const isPercentLength = (
+    length: Size | SizeValue | number,
+): length is `${number}%` =>
+    typeof length === "string" && /^\d*\.?\d+%$/.test(length);
+
 export const resolveLinearProgressLength = (
     theme: Theme,
     length: Size | SizeValue | number,
-) => resolveSize(theme, length, lengthMap);
+): LinearProgressLength =>
+    isPercentLength(length) ? length : resolveSize(theme, length, lengthMap);
