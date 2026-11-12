@@ -49,7 +49,7 @@ const Checkbox = forwardRef<View, CheckboxProps>(
             color: colorProp,
             variant: variantProp,
             size: sizeProp,
-            name: propName,
+            name: _unusedFormName,
             value,
             uncheckedIcon,
             checkedIcon,
@@ -72,7 +72,6 @@ const Checkbox = forwardRef<View, CheckboxProps>(
         const color = colorProp ?? group?.color ?? "neutral";
         const variant = variantProp ?? group?.variant ?? "solid";
         const size = sizeProp ?? group?.size ?? "md";
-        const name = group?.name ?? propName;
         const disabled = Boolean(group?.disabled || propDisabled);
 
         const isChecked =
@@ -203,39 +202,39 @@ const Checkbox = forwardRef<View, CheckboxProps>(
                 }}
             >
                 {({ pressed }) => (
-                <Wrapper hasLabel={Boolean(label)}>
-                    {rtl ? labelNode : null}
-                    <Box
-                        style={[
-                            {
-                                width: controlSize,
-                                height: controlSize,
-                            },
-                            (pressed ? activeStyles : baseStyles).box,
-                        ]}
-                    >
-                        <IconSlot
-                            style={{
-                                width: iconSize.width,
-                                height: iconSize.height,
-                            }}
+                    <Wrapper hasLabel={Boolean(label)}>
+                        {rtl ? labelNode : null}
+                        <Box
+                            style={[
+                                {
+                                    width: controlSize,
+                                    height: controlSize,
+                                },
+                                (pressed ? activeStyles : baseStyles).box,
+                            ]}
                         >
-                            {indeterminate
-                                ? indeterminateIcon
+                            <IconSlot
+                                style={{
+                                    width: iconSize.width,
+                                    height: iconSize.height,
+                                }}
+                            >
+                                {indeterminate
                                     ? indeterminateIcon
-                                    : renderDefaultIcon("indeterminate")
-                                : isChecked
-                                  ? checkedIcon
+                                        ? indeterminateIcon
+                                        : renderDefaultIcon("indeterminate")
+                                    : isChecked
                                       ? checkedIcon
-                                      : renderDefaultIcon("checked")
-                                  : uncheckedIcon
-                                    ? uncheckedIcon
-                                    : null}
-                        </IconSlot>
-                    </Box>
+                                          ? checkedIcon
+                                          : renderDefaultIcon("checked")
+                                      : uncheckedIcon
+                                        ? uncheckedIcon
+                                        : null}
+                            </IconSlot>
+                        </Box>
 
-                    {!rtl ? labelNode : null}
-                </Wrapper>
+                        {!rtl ? labelNode : null}
+                    </Wrapper>
                 )}
             </Pressable>
         );

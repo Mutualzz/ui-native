@@ -17,7 +17,7 @@ import {
     useRef,
     useState,
 } from "react";
-import { useTranslation } from "react-i18next";
+import { useUiLabels } from "../UiLabels/UiLabels";
 import {
     PanResponder,
     Pressable,
@@ -63,7 +63,7 @@ export const ColorPicker = forwardRef<View, ColorPickerProps>(
         },
         ref,
     ) => {
-        const { t } = useTranslation("common");
+        const labels = useUiLabels();
         const { theme } = useTheme();
         const gradientId = useId().replace(/:/g, "");
 
@@ -74,8 +74,8 @@ export const ColorPicker = forwardRef<View, ColorPickerProps>(
         const [selectedStopId, setSelectedStopId] = useState<string | null>(
             () => stops[currentStopProp]?.id ?? stops[0]?.id ?? null,
         );
-        const [rotation, setRotation] = useState(() =>
-            createPickerGradientStops(color).angle,
+        const [rotation, setRotation] = useState(
+            () => createPickerGradientStops(color).angle,
         );
         const [barWidth, setBarWidth] = useState(PICKER_WIDTH);
         const [hueBarWidth, setHueBarWidth] = useState(PICKER_WIDTH);
@@ -166,7 +166,6 @@ export const ColorPicker = forwardRef<View, ColorPickerProps>(
                 color,
                 stops.map((stop) => stop.id),
             );
-
 
             if (typeof color === "string" && isValidGradient(color)) {
                 setRotation(parsed.angle);
@@ -292,14 +291,18 @@ export const ColorPicker = forwardRef<View, ColorPickerProps>(
                             return best;
                         }, null);
 
-                        dragStopId.current = nearest?.id ?? stops[0]?.id ?? null;
+                        dragStopId.current =
+                            nearest?.id ?? stops[0]?.id ?? null;
                         if (dragStopId.current) selectStop(dragStopId.current);
                     },
                     onPanResponderMove: (event) => {
                         if (!dragStopId.current || barWidth <= 0) return;
                         const x = event.nativeEvent.locationX;
                         if (!dragActive.current) {
-                            if (Math.abs(x - dragStartX.current) < DRAG_THRESHOLD_PX) {
+                            if (
+                                Math.abs(x - dragStartX.current) <
+                                DRAG_THRESHOLD_PX
+                            ) {
                                 return;
                             }
                             dragActive.current = true;
@@ -313,7 +316,11 @@ export const ColorPicker = forwardRef<View, ColorPickerProps>(
                         );
 
                         const prev = stopsRef.current;
-                        const nextPos = enforceMinGap(prev, activeId, rawPercent);
+                        const nextPos = enforceMinGap(
+                            prev,
+                            activeId,
+                            rawPercent,
+                        );
                         const next = prev.map((s) =>
                             s.id === activeId ? { ...s, position: nextPos } : s,
                         );
@@ -379,10 +386,7 @@ export const ColorPicker = forwardRef<View, ColorPickerProps>(
 
         const updateHueFromPoint = useCallback(
             (x: number) => {
-                const h = Math.max(
-                    0,
-                    Math.min(360, (x / hueBarWidth) * 360),
-                );
+                const h = Math.max(0, Math.min(360, (x / hueBarWidth) * 360));
                 updateStopColor({ ...hsva, h: snap(h, 1) });
             },
             [hsva, hueBarWidth, updateStopColor],
@@ -510,7 +514,8 @@ export const ColorPicker = forwardRef<View, ColorPickerProps>(
                                           marginLeft: -11,
                                           marginTop: -11,
                                           borderRadius: 6,
-                                          backgroundColor: hsvaToDisplayHex(stop),
+                                          backgroundColor:
+                                              hsvaToDisplayHex(stop),
                                           borderWidth: 2,
                                           borderColor: getBorderColor(stop),
                                           zIndex:
@@ -643,9 +648,7 @@ export const ColorPicker = forwardRef<View, ColorPickerProps>(
                             color="danger"
                             variant="plain"
                             onPress={removeStop}
-                            accessibilityLabel={t("a11y.removeColorStop", {
-                                defaultValue: "Remove color stop",
-                            })}
+                            accessibilityLabel={labels.removeColorStop}
                         >
                             <XIcon size={16} weight="bold" />
                         </IconButton>
@@ -673,7 +676,9 @@ export const ColorPicker = forwardRef<View, ColorPickerProps>(
                             onChange={(value) =>
                                 updateStopColor({
                                     ...hsva,
-                                    alpha: Array.isArray(value) ? value[0] : value,
+                                    alpha: Array.isArray(value)
+                                        ? value[0]
+                                        : value,
                                 })
                             }
                         />
@@ -694,7 +699,9 @@ export const ColorPicker = forwardRef<View, ColorPickerProps>(
                             step={1}
                             value={rotation}
                             onChange={(value) => {
-                                const next = Array.isArray(value) ? value[0] : value;
+                                const next = Array.isArray(value)
+                                    ? value[0]
+                                    : value;
                                 setRotation(next);
                                 onRotationChange?.(next);
                                 rotationRef.current = next;

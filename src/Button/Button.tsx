@@ -1,13 +1,13 @@
 import styled from "@emotion/native";
 import { resolveShapeValue } from "@mutualzz/ui-core";
 import {
+    Children,
     forwardRef,
     useContext,
     useMemo,
     cloneElement,
     isValidElement,
     type ReactNode,
-    type ReactElement,
 } from "react";
 import {
     Pressable,
@@ -51,6 +51,9 @@ const cloneDecorator = (
         style: node.props.style,
     });
 };
+
+const isTextNode = (node: ReactNode) =>
+    typeof node === "string" || typeof node === "number";
 
 const ContentRow = styled.View({
     minWidth: 0,
@@ -177,6 +180,12 @@ const Button = forwardRef<View, ButtonProps>(
         );
 
         const contentOpacity = loading ? 0 : 1;
+        const textAlignment =
+            horizontalAlign === "left"
+                ? "left"
+                : horizontalAlign === "right"
+                  ? "right"
+                  : "center";
         const shouldFillSpace = fullWidth || expand;
 
         return (
@@ -271,23 +280,32 @@ const Button = forwardRef<View, ButtonProps>(
                         },
                     ]}
                 >
-                    <Text
-                        style={[
-                            {
-                                fontSize,
-                                textAlign:
-                                    horizontalAlign === "left"
-                                        ? "left"
-                                        : horizontalAlign === "right"
-                                          ? "right"
-                                          : "center",
-                            },
-                            textVariant,
-                        ]}
-                        maxFontSizeMultiplier={MAX_FONT_SCALE_MULTIPLIER}
-                    >
-                        {children}
-                    </Text>
+                    {Children.toArray(children).every(isTextNode) ? (
+                        <Text
+                            style={[
+                                { fontSize, textAlign: textAlignment },
+                                textVariant,
+                            ]}
+                            maxFontSizeMultiplier={MAX_FONT_SCALE_MULTIPLIER}
+                        >
+                            {children}
+                        </Text>
+                    ) : (
+                        Children.map(children, (child) =>
+                            isTextNode(child) ? (
+                                <Text
+                                    style={[{ fontSize }, textVariant]}
+                                    maxFontSizeMultiplier={
+                                        MAX_FONT_SCALE_MULTIPLIER
+                                    }
+                                >
+                                    {child}
+                                </Text>
+                            ) : (
+                                child
+                            ),
+                        )
+                    )}
                 </ContentRow>
 
                 {endDecorator && (

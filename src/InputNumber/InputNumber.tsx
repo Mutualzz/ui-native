@@ -1,7 +1,7 @@
 import { clamp, formatColor, resolveSize } from "@mutualzz/ui-core";
 import { cloneElement, forwardRef, isValidElement, useState } from "react";
 import type { ReactNode } from "react";
-import { useTranslation } from "react-i18next";
+import { useUiLabels } from "../UiLabels/UiLabels";
 import {
     Pressable,
     type TextInput,
@@ -11,7 +11,10 @@ import {
 import Svg, { Polyline } from "react-native-svg";
 import { useInputRef } from "../Input/useInputRef";
 import { InputBase } from "../InputBase/InputBase";
-import { baseSizeMap, resolveInputBaseSize } from "../InputBase/InputBase.helpers";
+import {
+    baseSizeMap,
+    resolveInputBaseSize,
+} from "../InputBase/InputBase.helpers";
 import { InputDecoratorWrapper } from "../InputDecoratorWrapper/InputDecoratorWrapper";
 import { InputRoot } from "../InputRoot/InputRoot";
 import { Stack } from "../Stack/Stack";
@@ -42,7 +45,7 @@ const SpinnerButtons = ({
     InputNumberProps,
     "onIncrement" | "onDecrement" | "disabled" | "size"
 >) => {
-    const { t } = useTranslation("common");
+    const labels = useUiLabels();
     const { theme } = useTheme();
     const resolvedSize = resolveSize(theme, size, baseSizeMap);
     const spinnerHeight = resolvedSize * 1.6;
@@ -72,9 +75,7 @@ const SpinnerButtons = ({
             <Pressable
                 onPress={onIncrement}
                 disabled={disabled}
-                accessibilityLabel={t("a11y.increment", {
-                    defaultValue: "Increment",
-                })}
+                accessibilityLabel={labels.increment}
                 style={buttonStyle}
             >
                 <Svg width={12} height={12} viewBox="0 0 24 24">
@@ -91,9 +92,7 @@ const SpinnerButtons = ({
             <Pressable
                 onPress={onDecrement}
                 disabled={disabled}
-                accessibilityLabel={t("a11y.decrement", {
-                    defaultValue: "Decrement",
-                })}
+                accessibilityLabel={labels.decrement}
                 style={buttonStyle}
             >
                 <Svg width={12} height={12} viewBox="0 0 24 24">
@@ -151,11 +150,9 @@ const InputNumber = forwardRef<TextInput, InputNumberProps>(
             onChangeText?.(next);
         };
 
-        const decoratorColor = resolveTypographyStyles(
-            theme,
-            color,
-            textColor,
-        )["none"].color as string;
+        const decoratorColor = resolveTypographyStyles(theme, color, textColor)[
+            "none"
+        ].color as string;
         const { fontSize = 16 } = resolveInputBaseSize(theme, size);
 
         const clampValue = (raw: string) => {
@@ -219,7 +216,11 @@ const InputNumber = forwardRef<TextInput, InputNumberProps>(
             >
                 {startDecorator ? (
                     <InputDecoratorWrapper position="start">
-                        {cloneDecorator(startDecorator, decoratorColor, fontSize)}
+                        {cloneDecorator(
+                            startDecorator,
+                            decoratorColor,
+                            fontSize,
+                        )}
                     </InputDecoratorWrapper>
                 ) : null}
 

@@ -14,6 +14,7 @@ import { useInputRef } from "../Input/useInputRef";
 import { InputBase } from "../InputBase/InputBase";
 import { InputDecoratorWrapper } from "../InputDecoratorWrapper/InputDecoratorWrapper";
 import { InputRoot } from "../InputRoot/InputRoot";
+import { useUiLabels } from "../UiLabels/UiLabels";
 import { useTheme } from "../useTheme";
 import { normalizeTypography } from "../utils/normalize";
 import { resolvePasswordIconStyles } from "./InputPassword.helpers";
@@ -83,6 +84,7 @@ const InputPassword = forwardRef<TextInput, InputPasswordProps>(
     ) => {
         const { inputRef, focusInput } = useInputRef(ref);
         const { theme } = useTheme();
+        const labels = useUiLabels();
         const [visibleInternal, setVisibleInternal] = useState(false);
 
         const isControlled = visibleProp !== undefined;
@@ -182,6 +184,9 @@ const InputPassword = forwardRef<TextInput, InputPasswordProps>(
                         onPress={togglePassword}
                         disabled={disabled}
                         hitSlop={8}
+                        accessibilityRole="button"
+                        accessibilityLabel={labels.showPassword}
+                        accessibilityState={{ disabled, checked: visible }}
                     >
                         <InputDecoratorWrapper position="end">
                             {visible

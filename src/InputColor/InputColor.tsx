@@ -19,7 +19,7 @@ import {
     useState,
 } from "react";
 import type { ReactNode } from "react";
-import { useTranslation } from "react-i18next";
+import { useUiLabels } from "../UiLabels/UiLabels";
 import { DiceFiveIcon } from "phosphor-react-native";
 import { Pressable, type TextInput, View } from "react-native";
 import { ColorPicker } from "../ColorPicker/ColorPicker";
@@ -79,7 +79,7 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
         },
         ref,
     ) => {
-        const { t } = useTranslation("common");
+        const labels = useUiLabels();
         const { inputRef, focusInput } = useInputRef(ref);
         const { theme } = useTheme();
 
@@ -314,9 +314,7 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
                                 disabled={disabled}
                                 onPress={() => setPickerOpen(true)}
                                 style={[swatchSize, swatchStyles]}
-                                accessibilityLabel={t("a11y.openColorPicker", {
-                                    defaultValue: "Open color picker",
-                                })}
+                                accessibilityLabel={labels.openColorPicker}
                             />
                         ) : (
                             <View style={[swatchSize, swatchStyles]} />
@@ -356,12 +354,8 @@ const InputColor = forwardRef<TextInput, InputColorProps>(
                                 padding={2}
                                 disabled={disabled}
                                 onPress={handleRandomColor}
-                                accessibilityLabel={t("a11y.randomColor", {
-                                    defaultValue: "Random color",
-                                })}
-                                accessibilityHint={t("a11y.randomColorHint", {
-                                    defaultValue: "Picks a random color",
-                                })}
+                                accessibilityLabel={labels.randomColor}
+                                accessibilityHint={labels.randomColorHint}
                             >
                                 <DiceFiveIcon
                                     size={Math.min(14, fontSize)}

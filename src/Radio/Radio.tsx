@@ -72,7 +72,7 @@ const Radio = forwardRef<View, RadioProps>(
             color: colorProp,
             variant: variantProp,
             size: sizeProp,
-            name: propName,
+            name: _unusedFormName,
             value,
             checkedIcon,
             uncheckedIcon,
@@ -98,7 +98,6 @@ const Radio = forwardRef<View, RadioProps>(
         const color = colorProp ?? group?.color ?? "primary";
         const variant = variantProp ?? group?.variant ?? "solid";
         const size = sizeProp ?? group?.size ?? "md";
-        const name = group?.name ?? propName;
         const disabled = group?.disabled || propDisabled;
 
         const fontSize = useMemo(
@@ -181,73 +180,70 @@ const Radio = forwardRef<View, RadioProps>(
                           : variantStyle;
 
                     return (
-                    <>
-                        {rtl && label ? (
-                            <LabelWrapper rtl={rtl}>
-                                {typeof label === "string" ? (
-                                    <Text
-                                        maxFontSizeMultiplier={
-                                            MAX_FONT_SCALE_MULTIPLIER
-                                        }
-                                        style={{
-                                            color: labelColor,
-                                            fontSize: labelFontSize,
-                                        }}
-                                    >
-                                        {label}
-                                    </Text>
-                                ) : (
-                                    label
-                                )}
-                            </LabelWrapper>
-                        ) : null}
+                        <>
+                            {rtl && label ? (
+                                <LabelWrapper rtl={rtl}>
+                                    {typeof label === "string" ? (
+                                        <Text
+                                            maxFontSizeMultiplier={
+                                                MAX_FONT_SCALE_MULTIPLIER
+                                            }
+                                            style={{
+                                                color: labelColor,
+                                                fontSize: labelFontSize,
+                                            }}
+                                        >
+                                            {label}
+                                        </Text>
+                                    ) : (
+                                        label
+                                    )}
+                                </LabelWrapper>
+                            ) : null}
 
-                        <RadioControl
-                            sizePx={sizePx}
-                            boxStyle={visual.box}
-                        >
-                            {isChecked ? (
-                                checkedIcon ? (
+                            <RadioControl sizePx={sizePx} boxStyle={visual.box}>
+                                {isChecked ? (
+                                    checkedIcon ? (
+                                        <IconWrapper
+                                            sizePx={iconScale?.width ?? sizePx}
+                                        >
+                                            {checkedIcon}
+                                        </IconWrapper>
+                                    ) : (
+                                        <DefaultDot
+                                            dotSize={dotSize}
+                                            dotColor={visual.iconColor}
+                                        />
+                                    )
+                                ) : uncheckedIcon ? (
                                     <IconWrapper
                                         sizePx={iconScale?.width ?? sizePx}
                                     >
-                                        {checkedIcon}
+                                        {uncheckedIcon}
                                     </IconWrapper>
-                                ) : (
-                                    <DefaultDot
-                                        dotSize={dotSize}
-                                        dotColor={visual.iconColor}
-                                    />
-                                )
-                            ) : uncheckedIcon ? (
-                                <IconWrapper
-                                    sizePx={iconScale?.width ?? sizePx}
-                                >
-                                    {uncheckedIcon}
-                                </IconWrapper>
-                            ) : null}
-                        </RadioControl>
+                                ) : null}
+                            </RadioControl>
 
-                        {!rtl && label ? (
-                            <LabelWrapper rtl={rtl}>
-                                {typeof label === "string" ? (
-                                    <Text
-                                        maxFontSizeMultiplier={
-                                            MAX_FONT_SCALE_MULTIPLIER
-                                        }
-                                        style={{
-                                            color: labelColor,
-                                            fontSize: labelFontSize,
-                                        }}
-                                    >
-                                        {label}
-                                    </Text>
-                                ) : (
-                                    label
-                                )}
-                            </LabelWrapper>
-                        ) : null}
-                    </>
+                            {!rtl && label ? (
+                                <LabelWrapper rtl={rtl}>
+                                    {typeof label === "string" ? (
+                                        <Text
+                                            maxFontSizeMultiplier={
+                                                MAX_FONT_SCALE_MULTIPLIER
+                                            }
+                                            style={{
+                                                color: labelColor,
+                                                fontSize: labelFontSize,
+                                            }}
+                                        >
+                                            {label}
+                                        </Text>
+                                    ) : (
+                                        label
+                                    )}
+                                </LabelWrapper>
+                            ) : null}
+                        </>
                     );
                 }}
             </RadioWrapper>

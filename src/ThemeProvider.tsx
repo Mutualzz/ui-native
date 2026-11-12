@@ -20,7 +20,7 @@ import {
     useSyncExternalStore,
     type PropsWithChildren,
 } from "react";
-import { useColorScheme } from "react-native";
+import { Appearance, useColorScheme } from "react-native";
 
 export const ThemeContext = createContext({
     theme: baseDarkTheme,
@@ -44,8 +44,9 @@ const ThemeProvider = forwardRef<
 >(({ children, onThemeChange }, ref) => {
     const [type, setType] = useState<ThemeType | null>(null);
 
-    const [theme, setTheme] = useState<Theme>(baseDarkTheme);
-    const [mounted, setMounted] = useState(false);
+    const [theme, setTheme] = useState<Theme>(() =>
+        Appearance.getColorScheme() === "dark" ? baseDarkTheme : baseLightTheme,
+    );
     const prefersDark = useColorScheme() === "dark";
     const uiDensityScale = useSyncExternalStore(
         subscribeUiDensity,
@@ -54,8 +55,9 @@ const ThemeProvider = forwardRef<
     );
 
     useEffect(() => {
-        setMounted(true);
-    }, []);
+        if (type) return;
+        setTheme(prefersDark ? baseDarkTheme : baseLightTheme);
+    }, [prefersDark, type]);
 
     const changeTheme = useCallback(
         (newTheme: Theme | null) => {
@@ -91,8 +93,6 @@ const ThemeProvider = forwardRef<
         }),
         [type, theme, changeTheme, uiDensityScale],
     );
-
-    if (!mounted) return null;
 
     return (
         <ThemeContext.Provider value={value}>

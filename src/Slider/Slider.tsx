@@ -8,7 +8,6 @@ import {
     useRef,
     useState,
 } from "react";
-import { useTranslation } from "react-i18next";
 import {
     PanResponder,
     Text,
@@ -285,7 +284,6 @@ export const Slider = forwardRef<View, SliderProps>(
         },
         ref,
     ) => {
-        const { t } = useTranslation("common");
         const { theme } = useTheme();
 
         const isRange = Array.isArray(value ?? defaultValue);
@@ -459,8 +457,7 @@ export const Slider = forwardRef<View, SliderProps>(
                 return pageX - trackOriginRef.current.x - inset;
             }
             return (
-                trackLenRef.current -
-                (pageY - trackOriginRef.current.y - inset)
+                trackLenRef.current - (pageY - trackOriginRef.current.y - inset)
             );
         }, []);
 
@@ -472,12 +469,15 @@ export const Slider = forwardRef<View, SliderProps>(
             };
         }, []);
 
-        const updateTrackMetrics = useCallback((width: number, height: number) => {
-            const inset = trackInsetRef.current;
-            const span =
-                orientationRef.current === "horizontal" ? width : height;
-            trackLenRef.current = Math.max(span - inset * 2, 1);
-        }, []);
+        const updateTrackMetrics = useCallback(
+            (width: number, height: number) => {
+                const inset = trackInsetRef.current;
+                const span =
+                    orientationRef.current === "horizontal" ? width : height;
+                trackLenRef.current = Math.max(span - inset * 2, 1);
+            },
+            [],
+        );
 
         const onTrackLayout = (e: LayoutChangeEvent) => {
             const { width, height } = e.nativeEvent.layout;
@@ -534,13 +534,7 @@ export const Slider = forwardRef<View, SliderProps>(
                     onPanResponderRelease: endDrag,
                     onPanResponderTerminate: endDrag,
                 }),
-            [
-                applyValue,
-                endDrag,
-                locationToPos,
-                pageToPos,
-                syncTrackOrigin,
-            ],
+            [applyValue, endDrag, locationToPos, pageToPos, syncTrackOrigin],
         );
 
         const neutralTrack = useMemo(
@@ -572,7 +566,6 @@ export const Slider = forwardRef<View, SliderProps>(
                     .replace("{index}", String(idx));
             }
             if (getAriaValueText) return getAriaValueText(val, idx);
-            if (getAriaLabel) return getAriaLabel(idx);
             return Number.isFinite(val) ? val.toFixed(0) : String(val);
         };
 
@@ -582,19 +575,43 @@ export const Slider = forwardRef<View, SliderProps>(
         // does nothing without an onAccessibilityAction handler.
         const stepAmount = step ?? 1;
 
-        const handleAccessibilityAction = useCallback(
-            (event: { nativeEvent: { actionName: string } }) => {
-                if (disabled || isRange) return;
+        const adjustThumbForAccessibility = useCallback(
+            (index: number, actionName: string) => {
+                if (disabled) return;
 
-                if (event.nativeEvent.actionName === "increment") {
-                    const next = resolveValue(currentValue[0] + stepAmount);
-                    applyValue(0, next);
-                    onChangeCommitted?.(next);
-                } else if (event.nativeEvent.actionName === "decrement") {
-                    const next = resolveValue(currentValue[0] - stepAmount);
-                    applyValue(0, next);
-                    onChangeCommitted?.(next);
-                }
+                const direction =
+                    actionName === "increment"
+                        ? 1
+                        : actionName === "decrement"
+                          ? -1
+                          : 0;
+                if (direction === 0) return;
+
+                const thumbValue = currentValue[index];
+                const usesMarks = step === null && Array.isArray(marks);
+                const neighborMarkValue = [
+                    min,
+                    max,
+                    ...resolvedMarks.map((mark) => mark.value),
+                ]
+                    .filter((markValue) =>
+                        direction === 1
+                            ? markValue > thumbValue
+                            : markValue < thumbValue,
+                    )
+                    .sort((first, second) => direction * (first - second))[0];
+
+                applyValue(
+                    index,
+                    usesMarks
+                        ? (neighborMarkValue ?? thumbValue)
+                        : resolveValue(thumbValue + direction * stepAmount),
+                );
+
+                const committedValues = displayValueRef.current;
+                onChangeCommitted?.(
+                    isRange ? [...committedValues] : committedValues[0],
+                );
             },
             [
                 disabled,
@@ -604,10 +621,17 @@ export const Slider = forwardRef<View, SliderProps>(
                 currentValue,
                 stepAmount,
                 onChangeCommitted,
+                step,
+                marks,
+                min,
+                max,
+                resolvedMarks,
             ],
         );
 
-        const toAccessibilityText = (node: ReturnType<typeof renderValueLabel>) =>
+        const toAccessibilityText = (
+            node: ReturnType<typeof renderValueLabel>,
+        ) =>
             typeof node === "string" || typeof node === "number"
                 ? String(node)
                 : undefined;
@@ -622,7 +646,9 @@ export const Slider = forwardRef<View, SliderProps>(
                   min,
                   max,
                   now: currentValue[0],
-                  text: toAccessibilityText(renderValueLabel(currentValue[0], 0)),
+                  text: toAccessibilityText(
+                      renderValueLabel(currentValue[0], 0),
+                  ),
               };
 
         return (
@@ -631,21 +657,27 @@ export const Slider = forwardRef<View, SliderProps>(
                 orientation={orientation}
                 disabled={disabled}
                 {...rest}
-                accessibilityRole="adjustable"
-                accessibilityValue={accessibilityValue}
+                accessible={!isRange}
+                accessibilityRole={isRange ? undefined : "adjustable"}
+                accessibilityLabel={
+                    isRange
+                        ? undefined
+                        : (getAriaLabel?.(0) ?? rest.accessibilityLabel)
+                }
+                accessibilityValue={isRange ? undefined : accessibilityValue}
                 accessibilityActions={
                     isRange
                         ? undefined
                         : [{ name: "increment" }, { name: "decrement" }]
                 }
-                onAccessibilityAction={handleAccessibilityAction}
-                accessibilityHint={
+                onAccessibilityAction={
                     isRange
-                        ? t("a11y.rangeSliderHint", {
-                              defaultValue:
-                                  "Range slider. Adjust by dragging.",
-                          })
-                        : undefined
+                        ? undefined
+                        : (event) =>
+                              adjustThumbForAccessibility(
+                                  0,
+                                  event.nativeEvent.actionName,
+                              )
                 }
             >
                 <TrackHitArea
@@ -757,6 +789,48 @@ export const Slider = forwardRef<View, SliderProps>(
                                         percent={pct}
                                         sizePx={thumbPx}
                                         pointerEvents="none"
+                                        accessible={isRange}
+                                        accessibilityRole={
+                                            isRange ? "adjustable" : undefined
+                                        }
+                                        accessibilityLabel={
+                                            isRange
+                                                ? getAriaLabel?.(i)
+                                                : undefined
+                                        }
+                                        accessibilityValue={
+                                            isRange
+                                                ? {
+                                                      min,
+                                                      max,
+                                                      now: val,
+                                                      text: toAccessibilityText(
+                                                          renderValueLabel(
+                                                              val,
+                                                              i,
+                                                          ),
+                                                      ),
+                                                  }
+                                                : undefined
+                                        }
+                                        accessibilityActions={
+                                            isRange
+                                                ? [
+                                                      { name: "increment" },
+                                                      { name: "decrement" },
+                                                  ]
+                                                : undefined
+                                        }
+                                        onAccessibilityAction={
+                                            isRange
+                                                ? (event) =>
+                                                      adjustThumbForAccessibility(
+                                                          i,
+                                                          event.nativeEvent
+                                                              .actionName,
+                                                      )
+                                                : undefined
+                                        }
                                         style={{
                                             ...thumbSize,
                                             ...thumbStyleObj,

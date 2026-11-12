@@ -5,7 +5,8 @@ import {
 } from "@expo/ui/community/bottom-sheet";
 import { useTheme } from "../useTheme";
 import { forwardRef, useCallback, useEffect, useMemo, useRef } from "react";
-import { useTranslation } from "react-i18next";
+import { useUiLabels } from "../UiLabels/UiLabels";
+import { MAX_FONT_SCALE_MULTIPLIER } from "../utils/accessibility";
 import { Pressable, StyleSheet, Text, type View as RNView } from "react-native";
 import type { SheetProps } from "./Sheet.types";
 
@@ -35,7 +36,7 @@ const SheetInner = forwardRef<RNView, SheetProps>(function SheetInner(
     },
     _ref,
 ) {
-    const { t } = useTranslation("common");
+    const labels = useUiLabels();
     const { theme } = useTheme();
     const sheetRef = useRef<BottomSheetModalRef>(null);
     const openRef = useRef(open);
@@ -161,12 +162,24 @@ const SheetInner = forwardRef<RNView, SheetProps>(function SheetInner(
                           <Pressable
                               onPress={requestClose}
                               hitSlop={8}
-                              accessibilityLabel={t("a11y.closeModal", {
-                                  defaultValue: "Close modal",
-                              })}
+                              accessibilityRole="button"
+                              accessibilityLabel={labels.closeModal}
                               style={styles.closeButton}
                           >
-                              <Text style={styles.closeGlyph}>✕</Text>
+                              <Text
+                                  style={[
+                                      styles.closeGlyph,
+                                      {
+                                          color: theme.typography.colors
+                                              .primary,
+                                      },
+                                  ]}
+                                  maxFontSizeMultiplier={
+                                      MAX_FONT_SCALE_MULTIPLIER
+                                  }
+                              >
+                                  ✕
+                              </Text>
                           </Pressable>
                       ))
                     : null}
